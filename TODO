@@ -3,5 +3,3 @@
 - Localization of variables, code clean up
 
 - Use /var/run/nologin and/or dgl-specific nologin file
-
-- Possibility to send simplemail to all users from outside
