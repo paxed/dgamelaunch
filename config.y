@@ -108,7 +108,7 @@ KeyPair: KeyType '=' TYPE_VALUE {
   switch ($1)
   {
     case TYPE_SUID:
-      if (getpwuid($3) != NULL)
+      if (!myconfig->shed_user && getpwuid($3) != NULL)
         myconfig->shed_uid = $3;
       else
         fprintf(stderr, "%s: no such uid %lu\n", config, $3);
@@ -116,7 +116,7 @@ KeyPair: KeyType '=' TYPE_VALUE {
       break;
 
     case TYPE_SGID:
-      if (getgrgid($3) != NULL)
+      if (!myconfig->shed_group && getgrgid($3) != NULL)
         myconfig->shed_gid = $3;
       else
         fprintf(stderr, "%s: no such gid %lu\n", config, $3);

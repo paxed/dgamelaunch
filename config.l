@@ -20,6 +20,7 @@ static void ccomment(void);
 
 %}
 
+NUMBER		[0-9]+
 VALUE		\".*\"
 MALSTRING	\"[^\"\n]*\n
 WHITE		[\t ]*
@@ -28,6 +29,7 @@ LONGCOMMENT	"/*"
 
 %%             /* BEGIN RULES SECTION */
 
+{NUMBER} { yylval.i = atoi(yytext); }
 {VALUE}	{
   yytext[yyleng - 1] = '\0'; /* Kill the trailing quote */
   yytext++; /* Kill the leading quote */
