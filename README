@@ -49,7 +49,7 @@ variable in include/unixconf.h and/or the HACKDIR variable in include/config.h.
 need to put gzip in there though if you compile nethack to use it for 
 compression.)
 
-3) Edit dgamelaunch.conf. This will contain information for dgamelaunch
+3) Edit etc/dgamelaunch.conf. This will contain information for dgamelaunch
 about what uid/username, gid/group to shed privileges to at runtime. It
 must also contain the path to nethack, and needs to know certain aspects
 of your chroot.

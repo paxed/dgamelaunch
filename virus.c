@@ -81,7 +81,7 @@ char *vi_Version = "0.0.2+dgamelaunch " VERSION;
 #include <errno.h>
 #include <stdarg.h>
 
-#include "last_char_is.c"
+#include "editors/last_char_is.c"
 
 #ifndef TRUE
 #define TRUE			((int)1)
