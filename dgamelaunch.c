@@ -72,7 +72,6 @@ extern struct winsize win;
 
 /* global variables */
 
-int caught_sighup = 0;
 int pid_game = 0;
 int loggedin = 0;
 char rcfilename[80];
@@ -135,7 +134,6 @@ gen_inprogress_lock ()
 void
 catch_sighup (int signum)
 {
-  caught_sighup = 1;
   if (pid_game)
     {
       sleep (10);

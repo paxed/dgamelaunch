@@ -52,7 +52,6 @@ extern int loggedin;
 
 int ttyplay_main (char *ttyfile, int mode, int rstripgfx);
 
-extern int caught_sighup;
 off_t seek_offset_clrscr;
 int bstripgfx;
 char *ttyfile_local;

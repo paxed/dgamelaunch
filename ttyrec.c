@@ -74,7 +74,6 @@
 #define CDEL _POSIX_VDISABLE
 
 extern char ttyrec_filename[100];
-extern int caught_sighup;
 extern int pid_game;
 
 void done (void);
