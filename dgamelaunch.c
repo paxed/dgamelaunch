@@ -166,6 +166,24 @@ gen_ttyrec_filename ()
 /* ************************************************************* */
 
 char*
+gen_nhext_filename ()
+{
+  time_t rawtime;
+  struct tm *ptm;
+  char *nhext_filename = calloc(100, sizeof(char));
+
+  /* append time to filename */
+  time (&rawtime);
+  ptm = gmtime (&rawtime);
+  snprintf (nhext_filename, 100, "%04i-%02i-%02i.%02i:%02i:%02i.nhext",
+            ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday,
+            ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+  return nhext_filename;
+}
+
+/* ************************************************************* */
+
+char*
 gen_inprogress_lock (pid_t pid, char* ttyrec_filename)
 {
   char *lockfile = NULL, filebuf[80];
@@ -312,7 +330,8 @@ inprogressmenu ()
   int i, menuchoice, len = 20, offset = 0, doresizewin = 0;
   time_t ctime;
   struct dg_game **games;
-  char ttyrecname[130], *replacestr = NULL;
+  char ttyrecname[130], *replacestr = NULL, gametype[10];
+  int is_nhext[14];
   sigset_t oldmask, toblock;
 
   games = populate_games (&len);
@@ -343,9 +362,16 @@ inprogressmenu ()
           if (i + offset >= len)
             break;
 
-          mvprintw (7 + i, 1, "%c) %-15s (%3dx%3d) %s %s (%ldm %lds idle)",
-                    i + 97, games[i + offset]->name,
-		    games[i + offset]->ws_col, games[i + offset]->ws_row,
+	  is_nhext[i] = !strcmp (games[i + offset]->ttyrec_fn + strlen (games[i + offset]->ttyrec_fn) - 6, ".nhext");
+
+	  if (is_nhext[i])
+	    strcpy (gametype, "  NhExt");
+	  else
+	    snprintf (gametype, sizeof gametype, "%3dx%3d",
+		games[i + offset]->ws_col, games[i + offset]->ws_row);
+
+          mvprintw (7 + i, 1, "%c) %-15s (%s) %s %s (%ldm %lds idle)",
+                    i + 97, games[i + offset]->name, gametype,
                     games[i + offset]->date, games[i + offset]->time,
                     (time (&ctime) - games[i + offset]->idle_time) / 60,
                     (time (&ctime) - games[i + offset]->idle_time) % 60);
@@ -385,6 +411,9 @@ inprogressmenu ()
 	    }
           if ((menuchoice - 'a') >= 0 && (menuchoice - 'a') < i)
             {
+	      if (is_nhext[menuchoice - 97]) /* Cannot watch NhExt game */
+		break;
+
               /* valid choice has been made */
               snprintf (ttyrecname, 130, "%sttyrec/%s", myconfig->dglroot,
                         games[menuchoice - 97 + offset]->ttyrec_fn);
@@ -1562,19 +1591,80 @@ menuloop (void)
 }
 
 int
+authenticate ()
+{
+  int i, len, me_index;
+  char user_buf[22], pw_buf[22];
+  struct dg_game **games;
+
+  /* We use simple password authentication, rather than challenge/response. */
+  printf ("\n");
+  fflush(stdout);
+
+  fgets (user_buf, sizeof(user_buf), stdin);
+  len = strlen (user_buf);
+  if (user_buf[len - 1] == '\n')
+    user_buf[--len] = '\0';
+  else
+    {
+      fprintf (stderr, "Username too long (max 20 chars).\n");
+      return 1;
+    }
+
+  fgets (pw_buf, sizeof(pw_buf), stdin);
+  len = strlen (pw_buf);
+  if (pw_buf[len - 1] == '\n')
+    pw_buf[--len] = '\0';
+  else
+    {
+      fprintf (stderr, "Password too long (max 20 chars).\n");
+      return 1;
+    }
+
+  if ((me_index = userexist (user_buf)) != -1)
+    {
+      me = users[me_index];
+      if (passwordgood (pw_buf))
+        {
+	  games = populate_games (&len);
+	  for (i = 0; i < len; i++)
+	    if (!strcmp (games[i]->name, user_buf))
+	      {
+		fprintf (stderr, "Game already in progress.\n");
+		return 1;
+	      }
+	  win.ws_row = win.ws_col = 0;
+	  gen_inprogress_lock (getppid (), gen_nhext_filename ());
+	  return 0;
+	}
+    }
+
+  sleep (2);
+  fprintf (stderr, "Login failed.\n");
+  return 1;
+}
+
+int
 main (int argc, char** argv)
 {
   /* for chroot and program execution */
   char atrcfilename[81], *spool;
   unsigned int len;
   int c;
+  int nhext = 0, nhauth = 0;
 
-  while ((c = getopt(argc, argv, "qh:pp:f:")) != -1)
+  while ((c = getopt(argc, argv, "qh:pp:f:ae")) != -1)
   {
     switch (c)
     {
       case 'q':
 	silent = 1; break;
+
+      case 'a':
+	nhauth = 1; break;
+
+      case 'e':
+	nhext = 1; break;
 
       case 'f':
 	if (config)
@@ -1608,43 +1698,63 @@ main (int argc, char** argv)
     }
 
   /* get master tty just before chroot (lives in /dev) */
-  ttyrec_getpty ();
+  if (!nhext && !nhauth)
+    ttyrec_getpty ();
 
-  /* chroot */
-  if (chroot (myconfig->chroot))
+  if (geteuid () != myconfig->shed_uid)
     {
-      perror ("cannot change root directory");
-      graceful_exit (1);
+      /* chroot */
+      if (chroot (myconfig->chroot))
+	{
+	  perror ("cannot change root directory");
+	  graceful_exit (1);
+	}
+
+      if (chdir ("/"))
+	{
+	  perror ("cannot chdir to root directory");
+	  graceful_exit (1);
+	}
+
+      /* shed privs. this is done immediately after chroot. */
+      if (setgroups (1, &myconfig->shed_gid) == -1)
+	{
+	  perror ("setgroups");
+	  graceful_exit (1);
+	}
+
+      if (setgid (myconfig->shed_gid) == -1)
+	{
+	  perror ("setgid");
+	  graceful_exit (1);
+	}
+
+      if (setuid (myconfig->shed_uid) == -1)
+	{
+	  perror ("setuid");
+	  graceful_exit (1);
+	}
     }
 
-  if (chdir ("/"))
+  if (nhext)
     {
-      perror ("cannot chdir to root directory");
-      graceful_exit (1);
-    }
+      char *myargv[3];
 
-  /* shed privs. this is done immediately after chroot. */
-  if (setgroups (1, &myconfig->shed_gid) == -1)
-    {
-      perror ("setgroups");
-      graceful_exit (1);
-    }
+      myargv[0] = myconfig->game_path;
+      myargv[1] = "--proxy";
+      myargv[2] = 0;
 
-  if (setgid (myconfig->shed_gid) == -1)
-    {
-      perror ("setgid");
-      graceful_exit (1);
-    }
-
-  if (setuid (myconfig->shed_uid) == -1)
-    {
-      perror ("setuid");
+      execvp (myconfig->game_path, myargv);
+      perror (myconfig->game_path);
       graceful_exit (1);
     }
 
   /* simple login routine, uses ncurses */
   if (readfile (0))
     graceful_exit (110);
+
+  if (nhauth)
+    graceful_exit (authenticate ());
 
   initcurses ();
   menuloop();

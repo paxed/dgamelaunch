@@ -19,14 +19,20 @@ dgamelaunch \- Network console game launcher
 [
 .B \-p
 ]
+[
+.B \-a
+]
+[
+.B \-e
+]
 .ad
 .hy 14
 .SH DESCRIPTION
 .PP
 .I dgamelaunch
 is a network-based game shell where anyone can sign up for an
-account and start playing any game which suits your fancy - currently, though,
-it only supports NetHack.
+account and start playing any game which suits your fancy - currently
+it supports NetHack and Slash'Em.
 
 The user is presented with a curses-based menu to watch other games, edit the
 options or play the game.
@@ -40,6 +46,22 @@ Specify the location of the configuration file.
 .B
 -q
 Don't print errors pertaining to the server configuration.
+.TP
+.B
+-a
+Enter user authentication mode.
+.I
+dgamelaunch
+will read user name and password from stdin, check them, check whether the
+user doesn't have a game in progress already, then write the inprogress lock.
+Returns 0 if everything was successful.
+.TP
+.B
+-e
+Start game server to handle incoming NhExt connection.
+.I
+dgamelaunch
+will execute /bin/nethack --proxy after chroot and shedding privs.
 .TP
 .B
 -p
@@ -86,6 +108,8 @@ M. Drew Streib wrote the original version.
 .PP
 Later, Joshua Kwan, Brett Carrington and Jilles Tjoelker added many new
 features.
+.PP
+NhExt support was written by J. Ali Harlow.
 .SH FILES
 .DT
 .ta \w'dgldir/ttyrec/<login>/*.ttyrec\ \ \ 'u
@@ -122,7 +146,7 @@ dgldir/ttyrec/<login>/*.ttyrec	Recorded games, this may get
 .\".SH ENVIRONMENT
 .SH "SEE ALSO"
 .PP
-nethack(6), telnetd(8), login(1), curses(3), fcntl(2)
+nethack(6), slashem(6), telnetd(8), login(1), curses(3), fcntl(2)
 .SH BUGS
 .PP
 None known.

@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <grp.h>
@@ -43,7 +44,7 @@ char *chosen_name;
 struct dg_game **
 populate_games (int *l)
 {
-  int fd, len, n;
+  int fd, len, n, is_nhext, pid;
   DIR *pdir;
   struct dirent *pdirent;
   struct stat pstat;
@@ -72,22 +73,27 @@ populate_games (int *l)
       if (!strcmp (pdirent->d_name, ".") || !strcmp (pdirent->d_name, ".."))
         continue;
 
+      is_nhext = !strcmp (pdirent->d_name + strlen (pdirent->d_name) - 6, ".nhext");
+
       snprintf (fullname, 130, "%sinprogress/%s", myconfig->dglroot, pdirent->d_name);
 
       fd = 0;
       /* O_RDWR here should be O_RDONLY, but we need to test for
        * an exclusive lock */
       fd = open (fullname, O_RDWR);
-      if ((fd > 0) && fcntl (fd, F_SETLK, &fl) == -1)
+      if (fd >= 0 && (is_nhext || fcntl (fd, F_SETLK, &fl) == -1))
         {
 
           /* stat to check idle status */
-          snprintf (ttyrecname, 130, "%sttyrec/%s", myconfig->dglroot, pdirent->d_name);
-          replacestr = strchr (ttyrecname, ':');
-          if (!replacestr)
-            graceful_exit (145);
-          replacestr[0] = '/';
-          if (!stat (ttyrecname, &pstat))
+	  if (!is_nhext)
+	    {
+	      snprintf (ttyrecname, 130, "%sttyrec/%s", myconfig->dglroot, pdirent->d_name);
+	      replacestr = strchr (ttyrecname, ':');
+	      if (!replacestr)
+		graceful_exit (145);
+	      replacestr[0] = '/';
+	    }
+          if (is_nhext || !stat (ttyrecname, &pstat))
             {
               /* now it's a valid game for sure */
               games = realloc (games, sizeof (struct dg_game) * (len + 1));
@@ -119,6 +125,7 @@ populate_games (int *l)
 		}
 	      else
 		p = "";
+	      pid = atoi(p);
 	      while (*p != '\0' && *p != '\n')
 	        p++;
 	      if (*p != '\0')
@@ -129,13 +136,30 @@ populate_games (int *l)
 	      if (*p != '\0')
 	        p++;
 	      games[len]->ws_col = atoi(p);
-	      if (games[len]->ws_row < 4 || games[len]->ws_col < 4)
+	      if (is_nhext)
 	        {
-		  games[len]->ws_row = 24;
-		  games[len]->ws_col = 80;
-	        }
-
-              len++;
+		  if (kill (pid, 0) != 0)
+		    {
+		      /* Dead game */
+		      free (games[len]->ttyrec_fn);
+		      free (games[len]->name);
+		      free (games[len]->date);
+		      free (games[len]->time);
+		      free (games[len]);
+		      unlink (fullname);
+		    }
+		  else
+		    len++;
+		}
+	      else
+	        {
+		  if (games[len]->ws_row < 4 || games[len]->ws_col < 4)
+		  {
+		    games[len]->ws_row = 24;
+		    games[len]->ws_col = 80;
+		  }
+		  len++;
+		}
             }
         }
       else
