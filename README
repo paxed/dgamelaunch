@@ -81,7 +81,7 @@ service telnet
   bind      = 64.71.163.206
 }
 
-An classic inetd line would look like this
+A classic inetd line would look like this:
 
 telnet stream tcp nowait root.root /usr/sbin/tcpd /usr/sbin/in.telnetd -h -L /usr/sbin/dgamelaunch
 

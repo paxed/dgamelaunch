@@ -109,11 +109,11 @@ ttyrec_getmaster ()
   (void) tcgetattr (0, &tt);
   (void) ioctl (0, TIOCGWINSZ, (char *) &win);
 #ifdef USE_OPENPTY
-  if (openpty(&master, &slave, NULL, &tt, &win) == -1)
+  if (openpty (&master, &slave, NULL, &tt, &win) == -1)
 #else
   if ((master = open ("/dev/ptmx", O_RDWR)) < 0)
 #endif
-      exit (62);
+    exit (62);
 }
 
 /* ************************************************************* */
@@ -183,7 +183,7 @@ loadbanner (struct dg_banner *ban)
                 " - network console game launcher");
       ban->lines[1] =
         strdup
-        ("### NOTE: administrator has not installed a /dgl-banner file");
+        ("### NOTE: administrator has not installed a " LOC_BANNER " file");
       return;
     }
 
@@ -212,7 +212,7 @@ loadbanner (struct dg_banner *ban)
                 {
                   strncat (bufnew, VERSION, 80 - i);
                   b += 8;       /* skip the whole $VERSION string */
-                  i += ARRAY_SIZE(VERSION);
+                  i += ARRAY_SIZE (VERSION);
                 }
 
               if (strlen (b) == 0)
@@ -367,14 +367,14 @@ inprogressmenu ()
 
       switch ((menuchoice = tolower (getch ())))
         {
-        case 'd':
+        case '>':
           if ((offset + 14) >= len)
             break;
           else
             offset += 14;
           break;
 
-        case 'u':
+        case '<':
           if ((offset - 14) < 0)
             break;
           else
@@ -419,7 +419,7 @@ changepw ()
   char buf[21];
   int error = 2;
 
-  /* A precondiction is that struct `me' exists because we can be not-yet-logged-in. */
+  /* A precondition is that struct `me' exists because we can be not-yet-logged-in. */
   if (!me)
     exit (122);                 /* Die. */
 
@@ -489,7 +489,7 @@ domailuser (char *username)
 
   assert (loggedin);
 
-  len = ARRAY_SIZE(LOC_SPOOLDIR) +  strlen (username) + 1;
+  len = ARRAY_SIZE (LOC_SPOOLDIR) + strlen (username) + 1;
   spool_fn = malloc (len + 1);
   time (&now);
   snprintf (spool_fn, len, "%s/%s", LOC_SPOOLDIR, username);
@@ -1094,23 +1094,23 @@ main (void)
     }
 
   /* shed privs. this is done immediately after chroot. */
-  if (setgroups(1, &newgid) == -1)
-  {
-    perror("setgroups");
-    exit(1);
-  }
+  if (setgroups (1, &newgid) == -1)
+    {
+      perror ("setgroups");
+      exit (1);
+    }
 
   if (setgid (newgid) == -1)
-  {
-    perror("setgid");
-    exit(1);
-  }
+    {
+      perror ("setgid");
+      exit (1);
+    }
 
   if (setuid (newuid) == -1)
-  {
-    perror("setuid");
-    exit(1);
-  }
+    {
+      perror ("setuid");
+      exit (1);
+    }
 
   /* simple login routine, uses ncurses */
   if (readfile (0))
@@ -1156,7 +1156,7 @@ main (void)
   /* environment */
   snprintf (atrcfilename, 81, "@%s", rcfilename);
 
-  len = ARRAY_SIZE(LOC_SPOOLDIR) + strlen (me->username) + 1;
+  len = ARRAY_SIZE (LOC_SPOOLDIR) + strlen (me->username) + 1;
   spool = malloc (len + 1);
   snprintf (spool, len, "%s/%s", LOC_SPOOLDIR, me->username);
 
