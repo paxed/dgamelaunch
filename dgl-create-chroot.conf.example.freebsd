@@ -5,7 +5,7 @@
 chroot_path="/home/jilles/src/3rdparty/dgamelaunch-chroot-2"
 shed_uid=1031
 shed_gid=1031
-libs="/usr/libexec/ld-elf.so.1"
+libs="/usr/libexec/ld-elf.so.1" # /libexec/ld-elf.so.1 for FreeBSD 5
 playground_fixed="/usr/local/lib/nethack"
 playground_var="/usr/local/lib/nethack"
 nethack_bin="$playground_fixed/nethack"

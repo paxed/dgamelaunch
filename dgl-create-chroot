@@ -17,11 +17,11 @@ libs=""
 # (leave blank to skip)
 compress_bin="gzip"
 # nethack binary to copy (leave blank to skip)
-nethack_bin="/opt/local/bin/nethack"
+nethack_bin="/usr/lib/games/nethack/nethack-console"
 # fixed data to copy (leave blank to skip)
-playground_fixed="/opt/local/share/nethackdir/"
+playground_fixed="/usr/lib/games/nethack"
 # variable data to create (leave blank to skip) (may be equal to previous)
-playground_var=""
+playground_var="/var/games/nethack"
 # termcap/terminfo (copied recursively) (leave blank to skip)
 termdata="/usr/share/terminfo"
 

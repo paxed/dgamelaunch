@@ -1,0 +1,15 @@
+#!/bin/sh
+# hack it for crab test
+# This file created by Jilles Tjoelker <jilles@stack.nl>.
+
+chroot_path="/tmp/jilles/dgl-chroot"
+shed_uid=1677
+shed_gid=104
+# This allows both 32-bit and 64-bit dynamically linked binaries in the chroot:
+libs="/usr/lib/ld.so.1 /usr/lib/sparcv9/ld.so.1"
+playground_fixed=""
+playground_var=""
+nethack_bin="nethackstub"
+# For standard curses:
+termdata="/usr/share/lib/terminfo"
+#termdata="/usr/local/share/lib/terminfo"

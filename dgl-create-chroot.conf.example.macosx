@@ -1,0 +1,14 @@
+#!/bin/sh
+# Brett Carrington <brettcar@segvio.org>
+
+# NOTE: This copied from the dgl-create-chroot changes by Jilles, likely
+# incomplete.
+
+chroot_path="/var/lib/dgamelaunch"
+shed_uid=5
+shed_gid=60
+libs=""
+playground_fixed="/opt/local/share/nethackdir/"
+playground_var=""
+nethack_bin="/opt/local/bin/nethack"
+termdata="/usr/share/terminfo"
