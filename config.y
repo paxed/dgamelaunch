@@ -34,7 +34,7 @@ static const char* lookup_token (int t);
 %%
 
 Configuration: KeyPairs
-	| { fprintf(stderr, "%s: no settings, proceeding with defaults\n", config); }
+	| { if (!silent) fprintf(stderr, "%s: no settings, proceeding with defaults\n", config); }
 	;
 
 KeyPairs: KeyPairs KeyPair
@@ -55,14 +55,28 @@ KeyPair: KeyType '=' TYPE_VALUE {
   switch ($1)
   {
     case TYPE_SGROUP:
+      if (myconfig->shed_gid != (gid_t)-1)
+        break;
+	
       myconfig->shed_group = strdup($3);
       if ((gr = getgrnam($3)) != NULL)
-        myconfig->shed_gid = gr->gr_gid;
+      {
+	myconfig->shed_gid = gr->gr_gid;
+	if (!silent)
+	  fprintf(stderr, "%s:%d: suggest replacing 'shed_group = \"%s\"' line with 'shed_gid = %d'\n",
+	  config, line, $3, gr->gr_gid);
+      }
       else
-        fprintf(stderr, "%s: no such group '%s'\n", config, $3);
+      {
+        if (!silent)
+          fprintf(stderr, "%s: no such group '%s'\n", config, $3);
+      }
       
       break;
     case TYPE_SUSER:
+      if (myconfig->shed_uid != (uid_t)-1)
+        break;
+	
       if (!strcmp($3, "root"))
       {
         fprintf(stderr, "%s: I refuse to run as root! Aborting.\n", config);
@@ -72,7 +86,12 @@ KeyPair: KeyType '=' TYPE_VALUE {
       if ((usr = getpwnam($3)) != NULL)
       {
         if (usr->pw_uid != 0)
+	{
           myconfig->shed_uid = usr->pw_uid;
+	  if (!silent)
+	    fprintf(stderr, "%s:%d: suggest replacing 'shed_user = \"%s\"' line with 'shed_uid = %d'\n",
+	      config, line, $3, usr->pw_uid);
+	}
 	else
 	{
 	  fprintf(stderr, "%s: I refuse to run as %s (uid 0!) Aborting.\n", config, $3);
@@ -80,7 +99,10 @@ KeyPair: KeyType '=' TYPE_VALUE {
 	}
       }
       else
-        fprintf(stderr, "%s: no such user '%s'\n", config, $3);
+      {
+        if (!silent)
+          fprintf(stderr, "%s: no such user '%s'\n", config, $3);
+      }
       break;
 
     case TYPE_PATH_CHROOT:
@@ -139,25 +161,26 @@ KeyPair: KeyType '=' TYPE_VALUE {
   switch ($1)
   {
     case TYPE_SUID:
-      if (!myconfig->shed_user)
+      if (!silent && myconfig->shed_uid != (uid_t)-1 && myconfig->shed_uid != $3)
+        fprintf(stderr, "%s:%d: 'shed_uid = %lu' entry overrides old setting %d\n",
+	  config, line, $3, myconfig->shed_uid);
+
+      /* Naive user protection - do not allow running as user root */
+      if ($3 == 0)
       {
-        /* Naive user protection - do not allow running as user root */
-	if ($3 == 0)
-	{
-	  fprintf(stderr, "%s: I refuse to run as uid 0 (root)! Aborting.\n", config);
-	  graceful_exit(1);
-	}
-        myconfig->shed_uid = $3;
+        fprintf(stderr, "%s: I refuse to run as uid 0 (root)! Aborting.\n", config);
+        graceful_exit(1);
       }
-	
+     
+      myconfig->shed_uid = $3;
       break;
 
     case TYPE_SGID:
-      if (!myconfig->shed_group)
-      {
-        myconfig->shed_gid = $3;
-      }
-
+      if (!silent && myconfig->shed_gid != (gid_t)-1 && myconfig->shed_gid != $3)
+        fprintf(stderr, "%s:%d: 'shed_gid = %lu' entry overrides old setting %d\n",
+	  config, line, $3, myconfig->shed_gid);
+      
+      myconfig->shed_gid = $3;
       break;
 
     case TYPE_MAX:
@@ -209,5 +232,6 @@ const char* lookup_token (int t)
 
 void yyerror(char const* s)
 {
-  fprintf(stderr, "%s: couldn't parse \"%s\" at line %d, column %d: %s\n", config, yytext, line, col, s);
+  if (!silent)
+    fprintf(stderr, "%s: couldn't parse \"%s\" at line %d, column %d: %s\n", config, yytext, line, col, s);
 }

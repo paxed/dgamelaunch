@@ -59,6 +59,7 @@ extern char* config; /* file path */
 extern struct dg_config *myconfig;
 extern char *chosen_name;
 extern int loggedin;
+extern int silent;
 
 /* dgamelaunch.c */
 extern void create_config(void);

@@ -91,6 +91,7 @@ extern int editor_main (int argc, char **argv);
 
 struct dg_config *myconfig = NULL;
 char* config = NULL;
+int silent = 0;
 
 struct dg_config defconfig = {
   /* chroot = */ "/var/lib/dgamelaunch/",
@@ -1467,9 +1468,22 @@ main (int argc, char** argv)
   /* for chroot and program execution */
   char atrcfilename[81], *spool;
   unsigned int len;
+  int i;
 
-  if (argc == 2)
-    config = strdup(argv[1]);
+  for (i = 1; i < argc; i++)
+  {
+    if (!strcmp(argv[i], "-q")) silent = 1;
+    else 
+    {
+      if (config)
+      {
+	if (!silent)
+	  fprintf(stderr, "warning: using %s\n", argv[i]);
+	free(config);
+      }
+      config = strdup(argv[i]);
+    }
+  }
   
   create_config();
 
