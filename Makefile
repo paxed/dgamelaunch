@@ -21,12 +21,12 @@ $(NAME): $(OBJS)
 
 clean:
 	rm -f dgamelaunch
-	rm -f *.o .#*
+	rm -f *.o .#* *~
 install:
 	cp dgamelaunch /usr/sbin
 indent:
 	indent -nut -ts2 *.c *.h
-	rm *~
+	rm -f *~
 
 dist: clean indent
 	rm -rf $(NAME)-$(VERSION)
