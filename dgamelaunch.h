@@ -75,7 +75,7 @@ extern void domailuser(char *username);
 extern void drawmenu(void);
 extern void freefile(void);
 extern void initcurses(void);
-extern void loginprompt(void);
+extern void loginprompt(int from_ttyplay);
 extern void newuser(void);
 extern int passwordgood(char *cpw);
 extern int readfile(int nolock);

@@ -482,8 +482,7 @@ inprogressmenu ()
       clear ();
       drawbanner (1, 1);
       mvprintw (3, 1,
-                "During playback, hit 'q' to return here%s.",
-                loggedin ? ", 'm' to contact the player" : "");
+                "During playback, hit 'q' to return here, 'm' to send mail (requires login");
       mvaddstr (4, 1,
                 "(Use capital letter of selection to strip DEC graphics, VERY experimental!)");
       mvaddstr (5, 1, "The following games are in progress:");
@@ -789,7 +788,7 @@ initcurses ()
 /* ************************************************************* */
 
 void
-loginprompt ()
+loginprompt (int from_ttyplay)
 {
   char user_buf[22], pw_buf[22];
   int error = 2, me_index = -1;
@@ -802,8 +801,11 @@ loginprompt ()
 
       drawbanner (1, 1);
 
+      if (from_ttyplay == 1)
+	mvaddstr (4, 1, "This operation requires you to be logged in.");
+
       mvaddstr (5, 1,
-                "Please enter your username. (blank entry returns to main menu)");
+                "Please enter your username. (blank entry aborts)");
       mvaddstr (7, 1, "=> ");
 
       if (error == 1)
@@ -1173,7 +1175,7 @@ editoptions ()
   if (!rcfile)                  /* should not really happen except for old users */
     write_canned_rcfile (rcfilename);
 
-  /* use ee to edit */
+  /* use whatever editor_main to edit */
 
   myargv[0] = "";
   myargv[1] = rcfilename;
@@ -1196,7 +1198,6 @@ editoptions ()
   else
     waitpid(editor, NULL, 0);
     
-
   refresh ();
 }
 
@@ -1448,7 +1449,7 @@ menuloop (void)
           break;
         case 'l':
           if (!loggedin)        /* not visible to loggedin */
-            loginprompt ();
+            loginprompt (0);
           break;
         }
     }

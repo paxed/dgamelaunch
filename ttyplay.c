@@ -194,6 +194,11 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
               return READ_EOF;
               break;
             case 'm':
+	      if (!loggedin)
+	      {
+		initcurses();
+		loginprompt(1);
+	      }
               if (loggedin)
                 {
                   initcurses ();
