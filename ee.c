@@ -49,7 +49,7 @@
  |	proprietary information which is protected by
  |	copyright.  All rights are reserved.
  |
- |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.9 2004/01/26 08:29:04 joshk Exp $
+ |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.10 2004/01/26 16:54:02 joshk Exp $
  |
  */
 
@@ -62,7 +62,7 @@ char *ee_long_notice[] = {
 	"copyright.  All rights are reserved."
 	};
 
-char *version = "@(#) ee, version 1.4.1  $Revision: 1.9 $";
+char *version = "@(#) ee, version 1.4.1  $Revision: 1.10 $";
 
 #include <curses.h>
 #include <signal.h>
@@ -140,7 +140,7 @@ int eightbit = TRUE;		/* eight bit character flag		*/
 int local_LINES = 0;		/* copy of LINES, to detect when win resizes */
 int local_COLS = 0;		/* copy of COLS, to detect when win resizes  */
 int curses_initialized = FALSE;	/* flag indicating if curses has been started*/
-int emacs_keys_mode = FALSE;	/* mode for if emacs key binings are used    */
+int emacs_keys_mode = TRUE;	/* mode for if emacs key binings are used    */
 
 unsigned char *point;		/* points to current position in line	*/
 unsigned char *srch_str;	/* pointer for search string		*/
