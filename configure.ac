@@ -22,10 +22,25 @@ case "$(uname -s)" in
   ;;
 esac
 
+AC_MSG_CHECKING([for Solaris cc])
+case "`$CC -V 2>&1`" in
+  *Sun*WorkShop* | *Forte*Developer*)
+    AC_MSG_RESULT(yes)
+    suncc=yes
+  ;;
+  *)
+    AC_MSG_RESULT(no)
+  ;;
+esac
+
 if test "$ac_cv_c_compiler_gnu" = yes; then
   CFLAGS="$CFLAGS -Wall -Wno-unused"
   MKDEP="$CC -MM"
   MKDEP_DIRECT="> .depend"
+elif test "$suncc" = yes; then
+  MKDEP="$CC -xM"
+  # -xM is noisy
+  MKDEP_DIRECT="> .depend 2>/dev/null"
 else
   AC_CHECK_PROG(MKDEP, mkdep, mkdep,)
   if test -z "$MKDEP"; then
