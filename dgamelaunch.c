@@ -1375,6 +1375,7 @@ purge_stale_locks (void)
 	firsttime = 0;
       }
 
+      clear ();
       refresh ();
 
       pid = atoi (buf);
