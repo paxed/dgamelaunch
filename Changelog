@@ -35,6 +35,8 @@
 	  without actually going through the hassle of setting up Nethack.
 	* Always use -lcurses and #include <curses.h>
 	* Port to FreeBSD 5 and Solaris (as of yet, untested)
+	* Switched to own version of getnstr() that always accepts both
+	  ^H and ^?
 
 1.3.10 (2003/10/22)
 	* Added a mode flag to the open call for inprogress lock files.
