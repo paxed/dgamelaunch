@@ -1,6 +1,6 @@
 VERSION = 1.4
 NAME = dgamelaunch
-exclusions = CVS .cvsignore tags
+exclusions = CVS .svn .cvsignore tags
 PREFIX = /usr
 SBINDIR = $(PREFIX)/sbin
 
