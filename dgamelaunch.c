@@ -140,8 +140,8 @@ gen_inprogress_lock (pid_t pid)
   int fd;
   struct flock fl = { 0 };
 
-  snprintf(pidbuf, 16, "%.15d", pid);
-  
+  snprintf (pidbuf, 16, "%.15d", pid);
+
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
   fl.l_start = 0;
@@ -154,7 +154,7 @@ gen_inprogress_lock (pid_t pid)
   if (fcntl (fd, F_SETLKW, &fl) == -1)
     graceful_exit (68);
 
-  write(fd, pidbuf, strlen(pidbuf));
+  write (fd, pidbuf, strlen (pidbuf));
 }
 
 /* ************************************************************* */
@@ -285,8 +285,8 @@ populate_games (int *l)
 
   while ((pdirent = readdir (pdir)))
     {
-      if (!strcmp (pdirent->d_name, ".") || !strcmp(pdirent->d_name, ".."))
-	continue;
+      if (!strcmp (pdirent->d_name, ".") || !strcmp (pdirent->d_name, ".."))
+        continue;
 
       snprintf (fullname, 130, "%s%s", LOC_INPROGRESSDIR, pdirent->d_name);
 
@@ -294,7 +294,7 @@ populate_games (int *l)
       /* O_RDWR here should be O_RDONLY, but we need to test for
        * an exclusive lock */
       fd = open (fullname, O_RDWR);
-      if ((fd > 0) && fcntl(fd, F_SETLK, &fl) == -1)
+      if ((fd > 0) && fcntl (fd, F_SETLK, &fl) == -1)
         {
 
           /* stat to check idle status */
@@ -426,7 +426,7 @@ inprogressmenu ()
               refresh ();
               endwin ();
               ttyplay_main (ttyrecname, 1, 0);
-	      initncurses();
+              initncurses ();
             }
         }
 
@@ -509,7 +509,7 @@ domailuser (char *username)
   time_t now;
   int mail_empty = 1;
   struct flock fl = { 0 };
-  
+
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
   fl.l_start = 0;
@@ -560,15 +560,16 @@ domailuser (char *username)
   refresh ();
 
   while (fcntl (fileno (user_spool), F_SETLK, &fl) == -1)
-  {
-    if (errno != EAGAIN)
     {
-      mvaddstr (10, 1, "Received a weird error from fcntl, so I'm giving up.");
-      getch();
-      return;
+      if (errno != EAGAIN)
+        {
+          mvaddstr (10, 1,
+                    "Received a weird error from fcntl, so I'm giving up.");
+          getch ();
+          return;
+        }
+      sleep (1);
     }
-    sleep (1);
-  }
 
   fprintf (user_spool, "%s:%s\n", me->username, message);
 
@@ -869,7 +870,7 @@ readfile (int nolock)
       fpl = fopen ("/dgl-lock", "r");
       if (!fpl)
         graceful_exit (106);
-      if (fcntl (fileno(fpl), F_SETLKW, &fl) == -1)
+      if (fcntl (fileno (fpl), F_SETLKW, &fl) == -1)
         graceful_exit (114);
     }
 
@@ -1117,42 +1118,66 @@ graceful_exit (int status)
 void
 purge_stale_locks (void)
 {
-  DIR* pdir;
+  DIR *pdir;
   struct dirent *dent;
 
-  if (!(pdir = opendir(LOC_INPROGRESSDIR)))
-      graceful_exit(200);
+  if (!(pdir = opendir (LOC_INPROGRESSDIR)))
+    graceful_exit (200);
 
-  while ((dent = readdir(pdir)) != NULL)
-  {
-    FILE* ipfile;
-    char* colon;
-    char buf[16];
-    pid_t pid;
-    
-    colon = strchr(dent->d_name, ':');
-    /* should never happen */
-    if (!colon)
-      graceful_exit(201);
+  while ((dent = readdir (pdir)) != NULL)
+    {
+      FILE *ipfile;
+      char *colon;
+      char buf[16];
+      pid_t pid;
+      int seconds = 0;
 
-    if (strncmp(dent->d_name, me->username, colon - dent->d_name))
-      continue;
+      colon = strchr (dent->d_name, ':');
+      /* should never happen */
+      if (!colon)
+        graceful_exit (201);
 
-    if (!(ipfile = fopen(dent->d_name, "r")))
-      graceful_exit(202);
+      if (strncmp (dent->d_name, me->username, colon - dent->d_name))
+        continue;
 
-    if (fgets(buf, 16, ipfile) == NULL)
-      graceful_exit(203);
+      if (!(ipfile = fopen (dent->d_name, "r")))
+        graceful_exit (202);
 
-    fclose(ipfile);
-    unlink(dent->d_name);
+      if (fgets (buf, 16, ipfile) == NULL)
+        graceful_exit (203);
 
-    pid = atoi(buf);
+      fclose (ipfile);
+      unlink (dent->d_name);
 
-    kill(pid, SIGHUP);
-  }
-  
-  closedir(pdir);
+      pid = atoi (buf);
+
+      kill (pid, SIGHUP);
+
+      errno = 0;
+
+      /* Wait for it to stop running */
+      while (kill (pid, 0) == 0)
+        {
+          seconds++;
+          sleep (1);
+          if (seconds == 10)
+            {
+              clear ();
+              drawbanner (1, 1);
+              mvaddstr (3, 1,
+                        "Couldn't terminate one of your stale Nethack processes gracefully.");
+              mvaddstr (4, 1, "Force its termination? [yn] ");
+              if (tolower (getch ()) == 'y')
+                {
+                  kill (pid, SIGTERM);
+                  break;
+                }
+            }
+        }
+      seconds = 0;
+    }
+
+  closedir (pdir);
 }
 
 int
@@ -1258,8 +1283,8 @@ main (void)
 
   endwin ();
 
-  purge_stale_locks();
-  
+  purge_stale_locks ();
+
   /* environment */
   snprintf (atrcfilename, 81, "@%s", rcfilename);
 
