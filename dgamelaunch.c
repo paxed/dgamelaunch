@@ -30,6 +30,7 @@
  * is very small.
  */
 
+#define _GNU_SOURCE
 #include "dgamelaunch.h"
 
 /* a request from the author: please leave some remnance of
@@ -42,9 +43,6 @@
 /* ************************************************************* */
 
 /* program stuff */
-
-#define _XOPEN_SOURCE           /* grantpt, etc. */
-#define _BSD_SOURCE             /* setenv */
 
 #include <stdlib.h>
 #include <curses.h>
@@ -243,25 +241,90 @@ drawbanner (unsigned int start_line, unsigned int howmany)
     mvaddstr (start_line + i, 1, banner.lines[i]);
 }
 
+struct dg_game **
+populate_games (int *l)
+{
+  int fd, len;
+  DIR *pdir;
+  struct dirent *pdirent;
+  struct stat pstat;
+  char fullname[130], ttyrecname[130];
+  char *replacestr;
+  struct dg_game **games = NULL;
+
+  len = 0;
+
+  if (!(pdir = opendir (LOC_INPROGRESSDIR)))
+    exit (140);
+
+  while ((pdirent = readdir (pdir)))
+    {
+      snprintf (fullname, 130, "%s%s", LOC_INPROGRESSDIR, pdirent->d_name);
+
+      fd = 0;
+      fd = open (fullname, O_RDONLY);
+      if ((fd > 0) && flock (fd, LOCK_EX | LOCK_NB))
+        {
+
+          /* stat to check idle status */
+          snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR, pdirent->d_name);
+          replacestr = strchr (ttyrecname, ':');
+          if (!replacestr)
+            exit (145);
+          replacestr[0] = '/';
+          if (!stat (ttyrecname, &pstat))
+            {
+              /* now it's a valid game for sure */
+              games = realloc (games, sizeof (struct dg_game) * (len + 1));
+              games[len] = malloc (sizeof (struct dg_game));
+              games[len]->ttyrec_fn = strdup (pdirent->d_name);
+
+              if (!(replacestr = strchr (pdirent->d_name, ':')))
+                exit (146);
+              else
+                *replacestr = '\0';
+
+              games[len]->name = malloc (strlen (pdirent->d_name) + 1);
+              strncpy (games[len]->name, pdirent->d_name,
+                       strlen (pdirent->d_name) + 1);
+
+              games[len]->date = malloc (11);
+              strncpy (games[len]->date, replacestr + 1, 10);
+
+              games[len]->time = malloc (9);
+              strncpy (games[len]->time, replacestr + 12, 8);
+
+              games[len]->idle_time = pstat.st_mtime;
+
+              len++;
+            }
+        }
+      else
+        {
+          /* clean dead ones */
+          unlink (fullname);
+        }
+      flock (fd, LOCK_UN | LOCK_NB);
+      close (fd);
+    }
+
+  closedir (pdir);
+  *l = len;
+  return games;
+}
+
+
 void
 inprogressmenu ()
 {
-  int i;
-  DIR *pdir;
-  struct dirent *pdirent;
-  int fd;
-  struct stat pstat;
-  char fullname[130];
-  char ttyrecname[130];
-  char *replacestr;
-  char *games[15];
-  char m_name[26], m_date[11], m_time[9];
-  int m_namelen;
+  int i, menuchoice, len = 20, offset = 0;
   time_t ctime;
-  int menuchoice;
+  struct dg_game **games;
+  char ttyrecname[130], *replacestr = NULL;
 
+  games = populate_games (&len);
 
-  do
+  while (1)
     {
       clear ();
       drawbanner (1, 1);
@@ -274,87 +337,67 @@ inprogressmenu ()
 
       /* clean old games and list good ones */
       i = 0;
-      pdir = opendir (LOC_INPROGRESSDIR);
-      if (!pdir)
-        exit (140);
 
-      while ((pdirent = readdir (pdir)) && (i <= 14))
+      for (i = 0; i < 14; i++)
         {
-          snprintf (fullname, 130, "%s%s", LOC_INPROGRESSDIR,
-                    pdirent->d_name);
+          if (i + offset >= len)
+            break;
 
-          fd = 0;
-          fd = open (fullname, O_RDONLY);
-          if ((fd > 0) && flock (fd, LOCK_EX | LOCK_NB))
-            {
-
-              /* stat to check idle status */
-              snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
-                        pdirent->d_name);
-              replacestr = strchr (ttyrecname, ':');
-              if (!replacestr)
-                exit (145);
-              replacestr[0] = '/';
-              if (!stat (ttyrecname, &pstat))
-                {
-                  games[i] = pdirent->d_name;
-
-                  memset (m_name, 0, 26);
-                  memset (m_date, 0, 11);
-                  memset (m_time, 0, 9);
-                  m_namelen =
-                    replacestr - ttyrecname - strlen (LOC_TTYRECDIR);
-                  strncpy (m_name, pdirent->d_name, m_namelen);
-                  strncpy (m_date, replacestr + 1, 10);
-                  strncpy (m_time, replacestr + 12, 8);
-
-                  mvprintw (7 + i, 1, "%c) %-15s %s %s (%ldm %lds idle)",
-                            i + 97, m_name, m_date, m_time,
-                            (time (&ctime) - pstat.st_mtime) / 60,
-                            (time (&ctime) - pstat.st_mtime) % 60);
-                  i++;
-                }
-            }
-          else
-            {
-              unlink (fullname);
-            }
-          flock (fd, LOCK_UN | LOCK_NB);
-          close (fd);
+          mvprintw (7 + i, 1, "%c) %-15s %s %s (%ldm %lds idle)",
+                    i + 97, games[i + offset]->name,
+                    games[i + offset]->date, games[i + offset]->time,
+                    (time (&ctime) - games[i + offset]->idle_time) / 60,
+                    (time (&ctime) - games[i + offset]->idle_time) % 60);
         }
 
-      mvaddstr (23, 1, "Watch which game? (r to refresh, q to quit) => ");
+      mvaddstr (23, 1,
+                "Watch which game? (r refreshes, q quits, d/u for more/less) => ");
       refresh ();
 
-      menuchoice = tolower (getch ());
-
-      if ((menuchoice - 97) >= 0 && (menuchoice - 97) < i)
+      switch ((menuchoice = tolower (getch ())))
         {
-          /* valid choice has been made */
-          snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
-                    games[menuchoice - 97]);
-          chosen_name = strdup (games[menuchoice - 97]);
-          if (!(replacestr = strchr (chosen_name, ':')))
-            exit (145);
+        case 'd':
+          if ((offset + 14) >= len)
+            break;
           else
-            *replacestr = '\0';
+            offset += 14;
+          break;
 
-          replacestr = strchr (ttyrecname, ':');
+        case 'u':
+          if ((offset - 14) < 0)
+            break;
+          else
+            offset -= 14;
+          break;
 
-          if (!replacestr)
-            exit (145);
+        case 'q':
+          return;
 
-          replacestr[0] = '/';
+        default:
+          if ((menuchoice - 97) >= 0 && (menuchoice - 97) < i)
+            {
+              /* valid choice has been made */
+              snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
+                        games[menuchoice - 97]->ttyrec_fn);
+              chosen_name = strdup (games[menuchoice - 97 + offset]->name);
 
-          clear ();
-          refresh ();
-          endwin ();
-          ttyplay_main (ttyrecname, 1, 0);
+              /* reuse thie char* */
+              replacestr = strchr (ttyrecname, ':');
+
+              if (!replacestr)
+                exit (145);
+
+              replacestr[0] = '/';
+
+              clear ();
+              refresh ();
+              endwin ();
+              ttyplay_main (ttyrecname, 1, 0);
+            }
         }
 
-      closedir (pdir);
+      games = populate_games (&len);
     }
-  while (menuchoice != 'q');
 }
 
 /* ************************************************************* */
@@ -1052,7 +1095,8 @@ main (void)
       switch (tolower (userchoice))
         {
         case 'c':
-          changepw ();
+          if (loggedin)
+            changepw ();
           break;
         case 'w':
           inprogressmenu ();

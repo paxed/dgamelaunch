@@ -3,6 +3,8 @@
 #ifndef __DGAMELAUNCH_H
 #define __DGAMELAUNCH_H
 
+#include <time.h>
+
 struct dg_user
 {
   char *username;
@@ -16,6 +18,15 @@ struct dg_banner
 {
   char **lines;
   unsigned int len;
+};
+
+struct dg_game
+{
+  char *ttyrec_fn;
+  char *name;
+  char *date;
+  char *time;
+  time_t idle_time;
 };
 
 #define SHED_UID 5              /* the uid to shed privs to */
