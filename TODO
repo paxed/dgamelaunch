@@ -6,3 +6,5 @@
 
 - Still appears to call getpwnam(3) and getgrnam(3) polluting memory space,
   even though uid/gid and no user/group given in configuration file.
+
+- Resizing the terminal often disconnects you.
