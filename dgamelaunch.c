@@ -306,10 +306,11 @@ drawbanner (unsigned int start_line, unsigned int howmany)
 void
 inprogressmenu ()
 {
-  int i, menuchoice, len = 20, offset = 0;
+  int i, menuchoice, len = 20, offset = 0, doresizewin = 0;
   time_t ctime;
   struct dg_game **games;
   char ttyrecname[130], *replacestr = NULL;
+  sigset_t oldmask, toblock;
 
   games = populate_games (&len);
 
@@ -321,7 +322,7 @@ inprogressmenu ()
                 "During playback, hit 'q' to return here, 'm' to send mail (requires login),");
       mvaddstr (4, 1,
                 "'s' to toggle graphic-set stripping for DEC, IBM, and none.");
-      mvaddstr (5, 1, "The following games are in progress:");
+      mvaddstr (5, 1, "The following games are in progress: (use uppercase to try to change size)");
 
       /* clean old games and list good ones */
       i = 0;
@@ -345,7 +346,7 @@ inprogressmenu ()
                 "Watch which game? (any key refreshes, 'q' quits, '>'/'<' for more/less) => ");
       refresh ();
 
-      switch ((menuchoice = tolower (getch ())))
+      switch ((menuchoice = getch ()))
         {
         case '>':
           if ((offset + 14) >= len)
@@ -361,11 +362,17 @@ inprogressmenu ()
             offset -= 14;
           break;
 
-        case 'q':
+	case 'q': case 'Q':
           return;
 
         default:
-          if ((menuchoice - 97) >= 0 && (menuchoice - 97) < i)
+	  doresizewin = 0;
+	  if (isupper (menuchoice))
+	    {
+	      doresizewin = 1;
+	      menuchoice = tolower (menuchoice);
+	    }
+          if ((menuchoice - 'a') >= 0 && (menuchoice - 'a') < i)
             {
               /* valid choice has been made */
               snprintf (ttyrecname, 130, "%sttyrec/%s", myconfig->dglroot,
@@ -383,8 +390,24 @@ inprogressmenu ()
               clear ();
               refresh ();
               endwin ();
+	      if (doresizewin)
+	        {
+		  /*
+		   * Let curses deal with the resize later. Perhaps this is
+		   * not the best way.
+		   */
+		  sigemptyset (&toblock);
+		  sigaddset (&toblock, SIGWINCH);
+		  sigprocmask (SIG_BLOCK, &toblock, &oldmask);
+		  printf ("\033[8;%d;%dt",
+		    games[menuchoice - 97 + offset]->ws_row,
+		    games[menuchoice - 97 + offset]->ws_col);
+		  fflush (stdout);
+		}
               ttyplay_main (ttyrecname, 1);
               initcurses ();
+	      if (doresizewin)
+	        sigprocmask (SIG_SETMASK, &oldmask, NULL);
             }
         }
 
