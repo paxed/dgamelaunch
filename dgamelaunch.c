@@ -68,6 +68,7 @@
 # define ARRAY_SIZE(x) sizeof(x) / sizeof(x[0])
 #endif
 
+#include <fcntl.h>
 #include <pwd.h>
 #include <grp.h>
 #include <time.h>
@@ -1060,7 +1061,8 @@ readfile (int nolock)
 
   if (!nolock)
     {
-      flock (fileno (fpl), LOCK_UN);
+      fl.l_type = F_UNLCK;
+      fcntl (fileno(fpl), F_SETLK, &fl);
       fclose (fpl);
     }
   fclose (fp);
@@ -1162,13 +1164,21 @@ writefile (int requirenew)
   FILE *fp, *fpl;
   int i = 0;
   int my_done = 0;
+  struct flock fl = { 0 };
+
+  fl.l_type = F_WRLCK;
+  fl.l_whence = SEEK_SET;
+  fl.l_start = 0;
+  fl.l_len = 0;
 
   fpl = fopen ("/dgl-lock", "r");
   if (!fpl)
     graceful_exit (115);
-  if (flock (fileno (fpl), LOCK_EX))
+  if (fcntl (fileno (fpl), F_SETLK, &fl))
     graceful_exit (107);
 
+  fl.l_type = F_UNLCK;
+  
   freefile ();
   readfile (1);
 
@@ -1202,7 +1212,7 @@ writefile (int requirenew)
                me->env);
     }
 
-  flock (fileno (fpl), LOCK_UN);
+  fcntl (fileno (fpl), F_UNLCK, &fl);
   fclose (fp);
   fclose (fpl);
 }
