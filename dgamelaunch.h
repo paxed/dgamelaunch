@@ -10,8 +10,8 @@
 /* Default - should work everywhere */
 #if defined(__linux__) || defined(BSD)
 # define USE_OPENPTY
+# define NOSTREAMS
 #endif
-#define NOSTREAMS
 
 struct dg_user
 {
