@@ -1,20 +1,17 @@
-# This is your personal nethackrc file. It is in the same format as default
-# nethack options files. Optionally uncomment the following lines as a
-# starter. This editor is vi-like. Type ESC a couple times, then ':q!'
-# (without quotes) to exit if you get stuck.
-#
-# See the following link for more options information:
-# http://www.nethack.org/v341/Guidebook.html#_TOCentry_40
-#
-# OPTIONS=showexp,showscore,time
-# OPTIONS=!autopickup,color
-# OPTIONS=catname:catfoo,dogname:dogfoo,horsename:horsefoo
-#
-# The following lines are necessary if you want to use the menucolors option.
-# OPTIONS=menucolors
-# MENUCOLOR=" blessed "=green
-# MENUCOLOR=" holy "=green
-# MENUCOLOR=" uncursed "=yellow
-# MENUCOLOR=" cursed "=red
-# MENUCOLOR=" unholy "=red
-# MENUCOLOR=" cursed .* (being worn)"=orange&underline
+# This is an example nethackrc file. You should edit this to suit the needs
+# of your personal nethack build and add some reasonable default options.
+# If you compiled dgamelaunch with the `vi' editor enabled instead of ee,
+# perhaps a helpful blurb such as this might help:
+
+# This editor is vi-like. Type ESC a couple times, then ':q!' (without quotes)
+# to exit if you get stuck. To save, hit ESC and then ZZ or type ':wq'
+# (without quotes.) To insert text, hit 'i' to enter insert mode.
+
+# Here are some examples of reasonable defaults:
+
+OPTIONS=showexp,showscore,time,color,!autopickup
+OPTIONS=autodig,fruit:slime mold,boulder:0
+
+# For more information on what you can set in your nethackrc file, refer to:
+#   http://www.nethack.org/v343/Guidebook.html#_TOCentry_42
+# Happy hacking!
