@@ -3,6 +3,7 @@
 #ifndef __DGAMELAUNCH_H
 #define __DGAMELAUNCH_H
 
+#include <sys/param.h>
 #include <sys/types.h>
 #include <time.h>
 
