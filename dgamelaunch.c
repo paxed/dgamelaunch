@@ -1667,7 +1667,7 @@ main (int argc, char** argv)
   int c;
   int nhext = 0, nhauth = 0;
 
-  while ((c = getopt(argc, argv, "qh:pp:f:ae")) != -1)
+  while ((c = getopt(argc, argv, "qh:pf:ae")) != -1)
   {
     switch (c)
     {
@@ -1696,6 +1696,12 @@ main (int argc, char** argv)
     }
   }
   
+  while (optind < argc)
+  {
+    size_t len = strlen(argv[optind]);
+    memset(argv[optind++], 0, len);
+  }
+
   create_config();
 
   /* signal handlers */
