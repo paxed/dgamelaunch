@@ -16,7 +16,7 @@ else
   endif
 endif
 
-ifdef VIRUS
+ifeq (1,$(VIRUS))
   EDITOR = virus.c
 else
   EDITOR = ee.c
