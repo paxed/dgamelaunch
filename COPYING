@@ -347,7 +347,7 @@ consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
 
-ttyplay.c and ttyrec.c fall under a 4-clause BSD license,
+ttyplay.c, io.c and ttyrec.c fall under a 4-clause BSD license,
 which follows.
 
 Copyright (c) 2000 Satoru Takabayashi <satoru@namazu.org>
