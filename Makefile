@@ -1,10 +1,16 @@
-VERSION = 1.4.2
+VERSION = 1.4.3
 # Hardcoded path to config file
 DEFCONFIG = /etc/dgamelaunch.conf
 NAME = dgamelaunch
 exclusions = CVS .svn .cvsignore tags
 PREFIX = /usr
 SBINDIR = $(PREFIX)/sbin
+ifeq (PREFIX,/usr)
+  MANDIR = $(PREFIX)/share/man
+else
+  MANDIR = $(PREFIX)/man
+endif
+MAN8 = dgamelaunch.8
 
 ifndef optimize
   optimize = -O0
@@ -61,6 +67,7 @@ clean:
 	
 install:
 	$(INSTALL) -m 755 $(NAME) $(SBINDIR)
+	$(INSTALL) -m 644 $(MAN8) $(MANDIR)/man8
 	
 indent:
 	indent -nut -ts2 *.c *.h
