@@ -160,14 +160,14 @@ catch_sighup ()
 void
 loadbanner (struct dg_banner *ban)
 {
-  FILE *banfile;
+  FILE *bannerfile;
   char buf[80];
 
   memset (buf, 0, 80);
 
-  banfile = fopen ("/dgl-banner", "r");
+  bannerfile = fopen (LOC_BANNER, "r");
 
-  if (!banfile)
+  if (!bannerfile)
     {
       ban->len = 2;
       ban->lines = malloc (sizeof (char *));
@@ -182,7 +182,7 @@ loadbanner (struct dg_banner *ban)
 
   ban->len = 0;
 
-  while (fgets (buf, 80, banfile) != NULL)
+  while (fgets (buf, 80, bannerfile) != NULL)
     {
       char *loc;
 

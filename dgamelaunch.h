@@ -30,5 +30,5 @@ struct dg_banner
 #define LOC_INPROGRESSDIR	LOC_DGLROOT "inprogress/"
 #define LOC_SPOOLDIR		"/var/mail"
 #define LOC_CANNED		"/dgl-default-rcfile"
-
+#define LOC_BANNER		"/dgl-banner"
 #endif

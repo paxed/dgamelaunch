@@ -29,6 +29,11 @@ chown -R $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/dgldir
 chown -R $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/var/mail
 touch $CHROOT_PATH/dgl-login
 touch $CHROOT_PATH/dgl-lock
+
+# Might want to remove these two for packaging?
+cp dgl-default-rcfile $CHROOT_PATH/
+cp dgl-banner $CHROOT_PATH/
+
 chown $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/dgl-*
 
 # Needs gzip to compress
