@@ -1164,7 +1164,7 @@ writefile (int requirenew)
 
   for (i = 0; i < f_num; i++)
     {
-      if (loggedin && !strncasecmp (me->username, users[i]->username, 20))
+      if (loggedin && !strncmp (me->username, users[i]->username, 20))
         {
           if (requirenew)
             {
