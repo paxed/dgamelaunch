@@ -6,12 +6,12 @@ account and start playing any game which suits your fancy - currently, though,
 it only supports NetHack (see http://www.nethack.org).
 
 It requires the ncurses library and development headers to build and should
-compile without issue on Linux, Solaris, FreeBSD 4 and 5. On Solaris you need
-to remove the USE_OPENPTY and NOSTREAMS definitions in dgamelaunch.h, remove
--lutil from LIBS in the Makefile, and probably add something to make sure
-ncurses can be found (e.g. LD_RUN_PATH, -R, LD_LIBRARY_PATH).
-(Whether it _runs_ on all of these platforms is a different issue. We'd
-like to hear about it.)
+compile without issue on Linux, Solaris, FreeBSD 4 and 5. (Whether it _runs_
+on all of these platforms is a different issue. We'd like to hear about it.)
+
+On all platforms you should make sure that the curses library is accessible
+at runtime using the -R flag to gcc, or using LD_RUN_PATH or LD_LIBRARY_PATH
+as environment variables during build and run time, respectively.
 
 dgamelaunch was originally developed by M. Drew Streib <dtype@dtype.org> but
 is now a collaborative project. Copyright and contact information is in the 
