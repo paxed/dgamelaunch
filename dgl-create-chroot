@@ -120,7 +120,7 @@ fi
 
 # Curses junk
 if [ -n "$termdata" ]; then
-	mkdir -p $chroot_path$termdata
+	mkdir -p $chroot_path`dirname $termdata`
 	if [ -d $termdata/. ]; then
 		cp -R $termdata/. $chroot_path$termdata
 	else
