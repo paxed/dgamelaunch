@@ -11,7 +11,7 @@ endif
 ifeq (Linux,$(shell uname -s))
   LUTIL = -lutil
 else
-  ifeq (BSD,$(shell uname -s | grep -o BSD))
+  ifeq (BSD,$(shell uname -s | sed -e 's/.*BSD/BSD/g'))
     LUTIL = -lutil
   endif
 endif
