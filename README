@@ -6,7 +6,10 @@ account and start playing any game which suits your fancy - currently, though,
 it only supports NetHack (see http://www.nethack.org).
 
 It requires the ncurses library and development headers to build and should
-compile without issue on Linux, Solaris, System V, FreeBSD 4 and 5.
+compile without issue on Linux, Solaris, FreeBSD 4 and 5. On Solaris you need
+to remove the USE_OPENPTY and NOSTREAMS definitions in dgamelaunch.h, remove
+-lutil from LIBS in the Makefile, and probably add something to make sure
+ncurses can be found (e.g. LD_RUN_PATH, -R, LD_LIBRARY_PATH).
 (Whether it _runs_ on all of these platforms is a different issue. We'd
 like to hear about it.)
 
@@ -24,6 +27,8 @@ viewable by editing the script; to customize the installation, look at
 dgl-create-chroot.conf.example (also in the source directory) and edit it to
 suit your needs, and save it into the same directory as dgl-create-chroot as
 dgl-create-chroot.conf. It's very likely you need to run the script as root.
+The script will not work with the very limited System V /bin/sh, such found on
+Solaris; start it with ksh instead.
 
 If you decide to not use dgl-create-chroot, you're on your own and we assume
 you have enough clue to figure out exactly what's needed for the chroot to
