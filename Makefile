@@ -1,4 +1,4 @@
-VERSION = 1.4.3
+VERSION = 1.4.4
 # Hardcoded path to config file
 DEFCONFIG = /etc/dgamelaunch.conf
 NAME = dgamelaunch

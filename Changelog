@@ -1,4 +1,4 @@
-1.4.4 (????/??/??)
+1.4.4 (2004/03/07)
 	* Show total number of games in progress below the list, useful if
 	  there are more than fits on the screen.
 	* Use client-supplied window size again; try to detect broken
