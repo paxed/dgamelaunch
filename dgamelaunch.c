@@ -1072,8 +1072,23 @@ main (void)
     }
 
   /* shed privs. this is done immediately after chroot. */
-  setgid (newgid);
-  setuid (newuid);
+  if (setgroups(1, &newgid) == -1)
+  {
+    perror("setgroups");
+    exit(1);
+  }
+
+  if (setgid (1, newgid) == -1)
+  {
+    perror("setgid");
+    exit(1);
+  }
+
+  if (setuid (1, newuid) == -1)
+  {
+    perror("setuid");
+    exit(1);
+  }
 
   /* simple login routine, uses ncurses */
   if (readfile (0))
