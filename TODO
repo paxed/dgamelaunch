@@ -3,8 +3,7 @@
 - Put 'terminate' option in user's menu to end disconnected sessions.
   (Suggested by Sebbe in #nethack on freenode)
 
-- Localization of variables, code clean up... At some point during
-  this attempt to fix the 15-game display only (in Bugs file.)
+- Localization of variables, code clean up
 
 - Allow a runtime-read configuration file to specify all the stuff
   that is currently hardcoded into dgamelaunch.h.

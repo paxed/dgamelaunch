@@ -23,6 +23,7 @@
 	* Replace the giant size 64000 static buffers with dynamically
 	  allocated structs
 	* Checking for colons in user fields is made simpler using strstr(3)
+	* allow page up and page down on the watch games menu
 
 1.3.10 (2003/10/22)
 	* Added a mode flag to the open call for inprogress lock files.
