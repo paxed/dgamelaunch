@@ -1785,7 +1785,7 @@ main (int argc, char** argv)
     {
       pass = p + 1;
 
-      if (pass != '\0')
+      if (*pass != '\0')
       {
         *p = '\0';
         user = auth;
