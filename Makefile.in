@@ -74,4 +74,3 @@ dist: .depend distclean
 	$(MKDEP) $(DEP_SRCS) $(MKDEP_DIRECT)
 
 -include .depend
-
