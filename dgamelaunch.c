@@ -44,7 +44,6 @@
 /* ************************************************************* */
 
 /* program stuff */
-
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/wait.h>
@@ -55,16 +54,22 @@
 #include <curses.h>
 
 #ifndef __FreeBSD__
-# include <crypt.h>
+# ifdef __APPLE__
+#  include <unistd.h>
+# else
+#  include <crypt.h>
+# endif
 #else
 # include <libutil.h>
 #endif
+
+
 
 #ifdef __linux__
 # include <pty.h>
 #endif
 
-#ifndef ARRAY_SIZE
+#ifndef ARRAY_SIZEK
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 

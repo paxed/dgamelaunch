@@ -51,7 +51,7 @@ SRCS = $(EDITOR) dgl-common.c ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c 
 EXTRA_SRCS = nethackstub.c
 OBJS = $(SRCS:.c=.o)
 WALL_OBJS = y.tab.o lex.yy.o dgl-common.o dgl-wall.o strlcat.o strlcpy.o
-LIBS = -lcurses -lcrypt $(LUTIL) -ll
+LIBS = -lcurses $(LUTIL) -ll
 
 all: $(NAME) dgl-wall
 
