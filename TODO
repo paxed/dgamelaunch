@@ -1,2 +1,5 @@
+- Localization of variables, code clean up... At some point during
+  this attempt to fix the 15-game display only (in Bugs file.)
+
 - Allow a runtime-read configuration file to specify all the stuff
   that is currently hardcoded into dgamelaunch.h.

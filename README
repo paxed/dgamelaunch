@@ -22,6 +22,11 @@ curses.
 and 'inprogress' directories, in the dgldir. Also touch the files
 'dgl-login' and 'dgl-lock' in the main chroot directory.
 
+3) Copy the dgl-banner and dgl-default-rcfile files into the main 
+chroot directory  and optionally modify them. If these files aren't
+available in the package simply touch the files in the main chroot
+directory. 
+
 Your directories/files should now look like this:
 
 /chrootdir/bin/
@@ -34,6 +39,8 @@ Your directories/files should now look like this:
 /chrootdir/dgldir/rcfiles/
 /chrootdir/dgl-login (empty)
 /chrootdir/dgl-lock (empty)
+/chrootdir/dgl-banner
+/chrootdir/dgl-default-rcfile
 
 They should all be owned by the user you intend to run this as.
 
