@@ -5,16 +5,22 @@
 
 struct dg_user
 {
-	char *username;
-	char *email;
-	char *env;
-	char *password;
-	int flags;
+  char *username;
+  char *email;
+  char *env;
+  char *password;
+  int flags;
 };
 
-#define SHED_UID 5							/* the uid to shed privs to */
-#define SHED_GID 60							/* the gid to shed privs to */
-#define MAXUSERS 64000					/* solves some preallocation issues. */
+struct dg_banner
+{
+  char **lines;
+  unsigned int len;
+};
+
+#define SHED_UID 5              /* the uid to shed privs to */
+#define SHED_GID 60             /* the gid to shed privs to */
+#define MAXUSERS 64000          /* solves some preallocation issues. */
 
 #define LOC_CHROOT		"/var/lib/dgamelaunch/"
 #define LOC_NETHACK		"/bin/nethack"

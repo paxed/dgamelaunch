@@ -28,16 +28,16 @@
 char *
 last_char_is (const char *s, int c)
 {
-	char *sret;
-	if (!s)
-		return NULL;
-	sret = (char *) s + strlen (s) - 1;
-	if (sret >= s && *sret == c)
-		{
-			return sret;
-		}
-	else
-		{
-			return NULL;
-		}
+  char *sret;
+  if (!s)
+    return NULL;
+  sret = (char *) s + strlen (s) - 1;
+  if (sret >= s && *sret == c)
+    {
+      return sret;
+    }
+  else
+    {
+      return NULL;
+    }
 }

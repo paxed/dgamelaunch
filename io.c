@@ -48,99 +48,99 @@
 static int
 is_little_endian ()
 {
-	static int retval = -1;
+  static int retval = -1;
 
-	if (retval == -1)
-		{
-			int n = 1;
-			char *p = (char *) &n;
-			char x[] = { 1, 0, 0, 0 };
+  if (retval == -1)
+    {
+      int n = 1;
+      char *p = (char *) &n;
+      char x[] = { 1, 0, 0, 0 };
 
-			assert (sizeof (int) == 4);
+      assert (sizeof (int) == 4);
 
-			if (memcmp (p, x, 4) == 0)
-				{
-					retval = 1;
-				}
-			else
-				{
-					retval = 0;
-				}
-		}
+      if (memcmp (p, x, 4) == 0)
+        {
+          retval = 1;
+        }
+      else
+        {
+          retval = 0;
+        }
+    }
 
-	return retval;
+  return retval;
 }
 
 static int
 convert_to_little_endian (int x)
 {
-	if (is_little_endian ())
-		{
-			return x;
-		}
-	else
-		{
-			return SWAP_ENDIAN (x);
-		}
+  if (is_little_endian ())
+    {
+      return x;
+    }
+  else
+    {
+      return SWAP_ENDIAN (x);
+    }
 }
 
 int
 read_header (FILE * fp, Header * h)
 {
-	int buf[3];
-	int numread;
-	long offset;
+  int buf[3];
+  int numread;
+  long offset;
 
-	offset = ftell (fp);
-	numread = fread (buf, sizeof (int), 3, fp);
+  offset = ftell (fp);
+  numread = fread (buf, sizeof (int), 3, fp);
 
-	/* odd but possible race condition when full header isn't read because
-	 * it isn't there yet. */
-	if (numread < 3)
-		{
-			fseek (fp, offset, SEEK_SET);
-			return 0;
-		}
+  /* odd but possible race condition when full header isn't read because
+   * it isn't there yet. */
+  if (numread < 3)
+    {
+      fseek (fp, offset, SEEK_SET);
+      return 0;
+    }
 
-	h->tv.tv_sec = convert_to_little_endian (buf[0]);
-	h->tv.tv_usec = convert_to_little_endian (buf[1]);
-	h->len = convert_to_little_endian (buf[2]);
+  h->tv.tv_sec = convert_to_little_endian (buf[0]);
+  h->tv.tv_usec = convert_to_little_endian (buf[1]);
+  h->len = convert_to_little_endian (buf[2]);
 
-	return 1;
+  return 1;
 }
 
 int
 write_header (FILE * fp, Header * h)
 {
-	int buf[3];
+  int buf[3];
 
-	buf[0] = convert_to_little_endian (h->tv.tv_sec);
-	buf[1] = convert_to_little_endian (h->tv.tv_usec);
-	buf[2] = convert_to_little_endian (h->len);
+  buf[0] = convert_to_little_endian (h->tv.tv_sec);
+  buf[1] = convert_to_little_endian (h->tv.tv_usec);
+  buf[2] = convert_to_little_endian (h->len);
 
-	if (fwrite (buf, sizeof (int), 3, fp) == 0)
-		{
-			return 0;
-		}
+  if (fwrite (buf, sizeof (int), 3, fp) == 0)
+    {
+      return 0;
+    }
 
-	return 1;
+  return 1;
 }
 
 static char *progname = "";
 void
 set_progname (const char *name)
 {
-	progname = strdup (name);
+  progname = strdup (name);
 }
 
 FILE *
 efopen (const char *path, const char *mode)
 {
-	FILE *fp = fopen (path, mode);
-	if (fp == NULL)
-		{
-			fprintf (stderr, "%s: %s: %s\n", progname, path, strerror (errno));
-			exit (EXIT_FAILURE);
-		}
-	return fp;
+  FILE *fp = fopen (path, mode);
+  if (fp == NULL)
+    {
+      fprintf (stderr, "%s: %s: %s\n", progname, path, strerror (errno));
+      exit (EXIT_FAILURE);
+    }
+  return fp;
 }

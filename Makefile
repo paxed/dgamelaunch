@@ -25,7 +25,7 @@ clean:
 install:
 	cp dgamelaunch /usr/sbin
 indent:
-	indent -ts2 *.c *.h
+	indent -nut -ts2 *.c *.h
 	rm *~
 
 dist: clean indent

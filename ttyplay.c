@@ -58,368 +58,368 @@ int bstripgfx;
 char *ttyfile_local;
 
 typedef double (*WaitFunc) (struct timeval prev,
-														struct timeval cur, double speed);
+                            struct timeval cur, double speed);
 typedef int (*ReadFunc) (FILE * fp, Header * h, char **buf, int pread);
 typedef void (*WriteFunc) (char *buf, int len);
 typedef void (*ProcessFunc) (FILE * fp, double speed,
-														 ReadFunc read_func, WaitFunc wait_func);
+                             ReadFunc read_func, WaitFunc wait_func);
 
 struct timeval
 timeval_diff (struct timeval tv1, struct timeval tv2)
 {
-	struct timeval diff;
+  struct timeval diff;
 
-	diff.tv_sec = tv2.tv_sec - tv1.tv_sec;
-	diff.tv_usec = tv2.tv_usec - tv1.tv_usec;
-	if (diff.tv_usec < 0)
-		{
-			diff.tv_sec--;
-			diff.tv_usec += 1000000;
-		}
+  diff.tv_sec = tv2.tv_sec - tv1.tv_sec;
+  diff.tv_usec = tv2.tv_usec - tv1.tv_usec;
+  if (diff.tv_usec < 0)
+    {
+      diff.tv_sec--;
+      diff.tv_usec += 1000000;
+    }
 
-	return diff;
+  return diff;
 }
 
 struct timeval
 timeval_div (struct timeval tv1, double n)
 {
-	double x = ((double) tv1.tv_sec + (double) tv1.tv_usec / 1000000.0) / n;
-	struct timeval div;
+  double x = ((double) tv1.tv_sec + (double) tv1.tv_usec / 1000000.0) / n;
+  struct timeval div;
 
-	div.tv_sec = (int) x;
-	div.tv_usec = (x - (int) x) * 1000000;
+  div.tv_sec = (int) x;
+  div.tv_usec = (x - (int) x) * 1000000;
 
-	return div;
+  return div;
 }
 
 double
 ttywait (struct timeval prev, struct timeval cur, double speed)
 {
-	struct timeval diff = timeval_diff (prev, cur);
-	fd_set readfs;
+  struct timeval diff = timeval_diff (prev, cur);
+  fd_set readfs;
 
-	assert (speed != 0);
-	diff = timeval_div (diff, speed);
+  assert (speed != 0);
+  diff = timeval_div (diff, speed);
 
-	FD_SET (STDIN_FILENO, &readfs);
-	select (1, &readfs, NULL, NULL, &diff);	/* skip if a user hits any key */
-	if (FD_ISSET (0, &readfs))
-		{														/* a user hits a character? */
-			char c;
-			read (STDIN_FILENO, &c, 1);	/* drain the character */
-			switch (c)
-				{
-				case '+':
-				case 'f':
-					speed *= 2;
-					break;
-				case '-':
-				case 's':
-					speed /= 2;
-					break;
-				case '1':
-					speed = 1.0;
-					break;
-				}
-		}
-	return speed;
+  FD_SET (STDIN_FILENO, &readfs);
+  select (1, &readfs, NULL, NULL, &diff); /* skip if a user hits any key */
+  if (FD_ISSET (0, &readfs))
+    {                           /* a user hits a character? */
+      char c;
+      read (STDIN_FILENO, &c, 1); /* drain the character */
+      switch (c)
+        {
+        case '+':
+        case 'f':
+          speed *= 2;
+          break;
+        case '-':
+        case 's':
+          speed /= 2;
+          break;
+        case '1':
+          speed = 1.0;
+          break;
+        }
+    }
+  return speed;
 }
 
 double
 ttynowait (struct timeval prev, struct timeval cur, double speed)
 {
-	return 0;											/* Speed isn't important. */
+  return 0;                     /* Speed isn't important. */
 }
 
 int
 ttyread (FILE * fp, Header * h, char **buf, int pread)
 {
-	long offset;
+  long offset;
 
-	/* do this BEFORE header read, hlen bug */
-	offset = ftell (fp);
+  /* do this BEFORE header read, hlen bug */
+  offset = ftell (fp);
 
-	if (read_header (fp, h) == 0)
-		{
-			return 0;
-		}
+  if (read_header (fp, h) == 0)
+    {
+      return 0;
+    }
 
-	/* length should never be longer than one BUFSIZ */
-	if (h->len > BUFSIZ)
-		{
-			perror ("hlen");
-			exit (1);
-		}
+  /* length should never be longer than one BUFSIZ */
+  if (h->len > BUFSIZ)
+    {
+      perror ("hlen");
+      exit (1);
+    }
 
-	*buf = malloc (h->len);
-	if (*buf == NULL)
-		{
-			perror ("malloc");
-			exit (1);
-		}
+  *buf = malloc (h->len);
+  if (*buf == NULL)
+    {
+      perror ("malloc");
+      exit (1);
+    }
 
-	if (fread (*buf, 1, h->len, fp) != h->len)
-		{
-			fseek (fp, offset, SEEK_SET);
-			return 0;
-		}
-	return 1;
+  if (fread (*buf, 1, h->len, fp) != h->len)
+    {
+      fseek (fp, offset, SEEK_SET);
+      return 0;
+    }
+  return 1;
 }
 
 int
 ttypread (FILE * fp, Header * h, char **buf, int pread)
 {
-	int counter = 0;
-	fd_set readfs;
-	struct timeval zerotime;
+  int counter = 0;
+  fd_set readfs;
+  struct timeval zerotime;
 
-	zerotime.tv_sec = 0;
-	zerotime.tv_usec = 0;
+  zerotime.tv_sec = 0;
+  zerotime.tv_usec = 0;
 
-	/*
-	 * Read persistently just like tail -f.
-	 */
-	while (ttyread (fp, h, buf, 1) == 0)
-		{
-			struct timeval w = { 0, 100000 };
-			select (0, NULL, NULL, NULL, &w);
-			clearerr (fp);
-			if (counter++ > (20 * 60 * 10))
-				{
-					endwin ();
-					printf ("Exiting due to 20 minutes of inactivity.\n");
-					exit (2);
-					return 0;
-				}
+  /*
+   * Read persistently just like tail -f.
+   */
+  while (ttyread (fp, h, buf, 1) == 0)
+    {
+      struct timeval w = { 0, 100000 };
+      select (0, NULL, NULL, NULL, &w);
+      clearerr (fp);
+      if (counter++ > (20 * 60 * 10))
+        {
+          endwin ();
+          printf ("Exiting due to 20 minutes of inactivity.\n");
+          exit (2);
+          return 0;
+        }
 
 
-			/* look for keypresses here. as good a place as any */
-			FD_SET (STDIN_FILENO, &readfs);
-			select (1, &readfs, NULL, NULL, &zerotime);
-			if (FD_ISSET (0, &readfs))
-				{												/* a user hits a character? */
-					char c;
-					read (STDIN_FILENO, &c, 1);	/* drain the character */
-					switch (c)
-						{
-						case 'q':
-							return 0;
-							break;
-						case 'm':
-							if (loggedin)
-								{
-									initncurses ();
-									domailuser (chosen_name);
-									endwin ();
-									ttyplay_main (ttyfile_local, 1, 0);
-									return 0;
-								}
-							break;
-						}
-				}
-		}
-	return 1;
+      /* look for keypresses here. as good a place as any */
+      FD_SET (STDIN_FILENO, &readfs);
+      select (1, &readfs, NULL, NULL, &zerotime);
+      if (FD_ISSET (0, &readfs))
+        {                       /* a user hits a character? */
+          char c;
+          read (STDIN_FILENO, &c, 1); /* drain the character */
+          switch (c)
+            {
+            case 'q':
+              return 0;
+              break;
+            case 'm':
+              if (loggedin)
+                {
+                  initncurses ();
+                  domailuser (chosen_name);
+                  endwin ();
+                  ttyplay_main (ttyfile_local, 1, 0);
+                  return 0;
+                }
+              break;
+            }
+        }
+    }
+  return 1;
 }
 
 void
 ttywrite (char *buf, int len)
 {
-	int i;
+  int i;
 
-	if (bstripgfx)
-		{
-			for (i = 0; i < len; i++)
-				{
-					buf[i] = strip_gfx (buf[i]);
-				}
-		}
+  if (bstripgfx)
+    {
+      for (i = 0; i < len; i++)
+        {
+          buf[i] = strip_gfx (buf[i]);
+        }
+    }
 
-	fwrite (buf, 1, len, stdout);
+  fwrite (buf, 1, len, stdout);
 }
 
 void
 ttynowrite (char *buf, int len)
 {
-	/* do nothing */
+  /* do nothing */
 }
 
 void
 ttyplay (FILE * fp, double speed, ReadFunc read_func,
-				 WriteFunc write_func, WaitFunc wait_func, off_t offset)
+         WriteFunc write_func, WaitFunc wait_func, off_t offset)
 {
-	int first_time = 1;
-	struct timeval prev;
+  int first_time = 1;
+  struct timeval prev;
 
-	setbuf (stdout, NULL);
-	setbuf (fp, NULL);
+  setbuf (stdout, NULL);
+  setbuf (fp, NULL);
 
-	/* for dtype's attempt to get the last clrscr and playback from there */
-	if (offset)
-		{
-			lseek (fileno (fp), offset, SEEK_SET);
-		}
+  /* for dtype's attempt to get the last clrscr and playback from there */
+  if (offset)
+    {
+      lseek (fileno (fp), offset, SEEK_SET);
+    }
 
-	while (1)
-		{
-			char *buf;
-			Header h;
+  while (1)
+    {
+      char *buf;
+      Header h;
 
-			if (read_func (fp, &h, &buf, 0) == 0)
-				{
-					break;
-				}
+      if (read_func (fp, &h, &buf, 0) == 0)
+        {
+          break;
+        }
 
-			if (!first_time)
-				{
-					speed = wait_func (prev, h.tv, speed);
-				}
-			first_time = 0;
+      if (!first_time)
+        {
+          speed = wait_func (prev, h.tv, speed);
+        }
+      first_time = 0;
 
-			write_func (buf, h.len);
-			prev = h.tv;
-			free (buf);
-		}
+      write_func (buf, h.len);
+      prev = h.tv;
+      free (buf);
+    }
 }
 
 void
 set_seek_offset_clrscr (FILE * fp)
 {
-	off_t raw_seek_offset = 0;
-	char *buf;
-	struct stat mystat;
-	int state = 0;
-	int i;
-	int bytesread;
+  off_t raw_seek_offset = 0;
+  char *buf;
+  struct stat mystat;
+  int state = 0;
+  int i;
+  int bytesread;
 
-	lseek (fileno (fp), 0, SEEK_SET);
-	fstat (fileno (fp), &mystat);
-	buf = malloc (mystat.st_size);
-	bytesread = read (fileno (fp), buf, mystat.st_size);
+  lseek (fileno (fp), 0, SEEK_SET);
+  fstat (fileno (fp), &mystat);
+  buf = malloc (mystat.st_size);
+  bytesread = read (fileno (fp), buf, mystat.st_size);
 
-	/* one byte at at time sucks, but is a simple hack for the temp
-	 * being to avoid looking for wraparounds */
-	for (i = 0; i < bytesread; i++)
-		{
-			if (buf[i] == 0x1b)
-				{
-					state = 1;
-				}
-			else if ((buf[i] == 0x5b) && (state == 1))
-				{
-					state = 2;
-				}
-			else if ((buf[i] == 0x32) && (state == 2))
-				{
-					state = 3;
-				}
-			else if ((buf[i] == 0x4a) && ((state == 2) || (state == 3)))
-				{
-					state = 4;
-				}
-			else
-				{
-					state = 0;
-				}
+  /* one byte at at time sucks, but is a simple hack for the temp
+   * being to avoid looking for wraparounds */
+  for (i = 0; i < bytesread; i++)
+    {
+      if (buf[i] == 0x1b)
+        {
+          state = 1;
+        }
+      else if ((buf[i] == 0x5b) && (state == 1))
+        {
+          state = 2;
+        }
+      else if ((buf[i] == 0x32) && (state == 2))
+        {
+          state = 3;
+        }
+      else if ((buf[i] == 0x4a) && ((state == 2) || (state == 3)))
+        {
+          state = 4;
+        }
+      else
+        {
+          state = 0;
+        }
 
-			if (state == 4)
-				{
-					raw_seek_offset = i - 2;
-				}
-		}
+      if (state == 4)
+        {
+          raw_seek_offset = i - 2;
+        }
+    }
 
-	free (buf);
+  free (buf);
 
-	/* now find last filepos that is less than seek offset */
-	lseek (fileno (fp), 0, SEEK_SET);
-	while (1)
-		{
-			char *buf;
-			Header h;
+  /* now find last filepos that is less than seek offset */
+  lseek (fileno (fp), 0, SEEK_SET);
+  while (1)
+    {
+      char *buf;
+      Header h;
 
-			if (ttyread (fp, &h, &buf, 0) == 0)
-				{
-					break;
-				}
+      if (ttyread (fp, &h, &buf, 0) == 0)
+        {
+          break;
+        }
 
-			if (lseek (fileno (fp), 0, SEEK_CUR) < raw_seek_offset)
-				{
-					seek_offset_clrscr = lseek (fileno (fp), 0, SEEK_CUR);
-				}
+      if (lseek (fileno (fp), 0, SEEK_CUR) < raw_seek_offset)
+        {
+          seek_offset_clrscr = lseek (fileno (fp), 0, SEEK_CUR);
+        }
 
-			free (buf);
-		}
+      free (buf);
+    }
 
 }
 
 void
 ttyskipall (FILE * fp)
 {
-	/*
-	 * Skip all records.
-	 */
-	ttyplay (fp, 0, ttyread, ttynowrite, ttynowait, 0);
+  /*
+   * Skip all records.
+   */
+  ttyplay (fp, 0, ttyread, ttynowrite, ttynowait, 0);
 }
 
 void
 ttyplayback (FILE * fp, double speed, ReadFunc read_func, WaitFunc wait_func)
 {
-	ttyplay (fp, speed, ttyread, ttywrite, wait_func, 0);
+  ttyplay (fp, speed, ttyread, ttywrite, wait_func, 0);
 }
 
 void
 ttypeek (FILE * fp, double speed, ReadFunc read_func, WaitFunc wait_func)
 {
-	ttyskipall (fp);
-	set_seek_offset_clrscr (fp);
-	if (seek_offset_clrscr)
-		{
-			ttyplay (fp, 0, ttyread, ttywrite, ttynowait, seek_offset_clrscr);
-		}
-	ttyplay (fp, speed, ttypread, ttywrite, ttynowait, 0);
+  ttyskipall (fp);
+  set_seek_offset_clrscr (fp);
+  if (seek_offset_clrscr)
+    {
+      ttyplay (fp, 0, ttyread, ttywrite, ttynowait, seek_offset_clrscr);
+    }
+  ttyplay (fp, speed, ttypread, ttywrite, ttynowait, 0);
 }
 
 
 void
 usage (void)
 {
-	printf ("Usage: ttyplay [OPTION] [FILE]\n");
-	printf ("  -s SPEED Set speed to SPEED [1.0]\n");
-	printf ("  -n       No wait mode\n");
-	printf ("  -p       Peek another person's ttyrecord\n");
-	exit (EXIT_FAILURE);
+  printf ("Usage: ttyplay [OPTION] [FILE]\n");
+  printf ("  -s SPEED Set speed to SPEED [1.0]\n");
+  printf ("  -n       No wait mode\n");
+  printf ("  -p       Peek another person's ttyrecord\n");
+  exit (EXIT_FAILURE);
 }
 
 int
 ttyplay_main (char *ttyfile, int mode, int rstripgfx)
 {
-	double speed = 1.0;
-	ReadFunc read_func = ttyread;
-	WaitFunc wait_func = ttywait;
-	ProcessFunc process = ttyplayback;
-	FILE *input = stdin;
-	struct termios old, new;
+  double speed = 1.0;
+  ReadFunc read_func = ttyread;
+  WaitFunc wait_func = ttywait;
+  ProcessFunc process = ttyplayback;
+  FILE *input = stdin;
+  struct termios old, new;
 
-	ttyfile_local = ttyfile;
+  ttyfile_local = ttyfile;
 
-	/* strip graphics mode flag */
-	bstripgfx = rstripgfx;
-	if (bstripgfx)
-		populate_gfx_array (DEC_GRAPHICS);
+  /* strip graphics mode flag */
+  bstripgfx = rstripgfx;
+  if (bstripgfx)
+    populate_gfx_array (DEC_GRAPHICS);
 
-	seek_offset_clrscr = 0;
+  seek_offset_clrscr = 0;
 
-	if (mode == 1)
-		process = ttypeek;
+  if (mode == 1)
+    process = ttypeek;
 
-	input = efopen (ttyfile, "r");
+  input = efopen (ttyfile, "r");
 
-	tcgetattr (0, &old);					/* Get current terminal state */
-	new = old;										/* Make a copy */
-	new.c_lflag &= ~(ICANON | ECHO | ECHONL);	/* unbuffered, no echo */
-	tcsetattr (0, TCSANOW, &new);	/* Make it current */
+  tcgetattr (0, &old);          /* Get current terminal state */
+  new = old;                    /* Make a copy */
+  new.c_lflag &= ~(ICANON | ECHO | ECHONL); /* unbuffered, no echo */
+  tcsetattr (0, TCSANOW, &new); /* Make it current */
 
-	process (input, speed, read_func, wait_func);
-	tcsetattr (0, TCSANOW, &old);	/* Return terminal state */
+  process (input, speed, read_func, wait_func);
+  tcsetattr (0, TCSANOW, &old); /* Return terminal state */
 
-	return 0;
+  return 0;
 }

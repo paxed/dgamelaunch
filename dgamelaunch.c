@@ -37,31 +37,22 @@
  * even keep the line the same altogether. I'm probably happy 
  * to make any changes you need. */
 
-#define VERLINES 7							/* number of lines in this vanity text */
-#define VER1 "## dgamelaunch - network console game launcher\n"
-#define VER2 "## version " VERSION "\n"
-#define VER3 "## \n"
-#define VER4 "## (c)2001-3 M. Drew Streib. This program's source is released under the GPL.\n"
-#define VER5 "## Send mail to <dtype@dtype.org> for details or a copy of the source code.\n"
-#define VER6 "## ** Games on this server are recorded for in-progress viewing and playback!\n"
-#define VER7 "## Server info is at http://alt.org/nethack/"
-
 /* ************************************************************* */
 /* ************************************************************* */
 /* ************************************************************* */
 
 /* program stuff */
 
-#define _XOPEN_SOURCE						/* grantpt, etc. */
-#define _BSD_SOURCE							/* setenv */
+#define _XOPEN_SOURCE           /* grantpt, etc. */
+#define _BSD_SOURCE             /* setenv */
 
 #include <stdlib.h>
 #include <curses.h>
 #include <crypt.h>
 #include <sys/types.h>
-#include <sys/file.h>						/* for flock() */
+#include <sys/file.h>           /* for flock() */
 #include <sys/resource.h>
-#include <sys/ioctl.h>					/* ttyrec */
+#include <sys/ioctl.h>          /* ttyrec */
 #include <errno.h>
 #include <time.h>
 #include <dirent.h>
@@ -101,6 +92,7 @@ char *chosen_name;
 int f_num = 0;
 struct dg_user **users = NULL;
 struct dg_user *me = NULL;
+struct dg_banner banner;
 
 /* ************************************************************* */
 /* for ttyrec */
@@ -108,12 +100,12 @@ struct dg_user *me = NULL;
 void
 ttyrec_getmaster ()
 {
-	(void) tcgetattr (0, &tt);
-	(void) ioctl (0, TIOCGWINSZ, (char *) &win);
-	if ((master = open ("/dev/ptmx", O_RDWR)) < 0)
-		{
-			exit (62);
-		}
+  (void) tcgetattr (0, &tt);
+  (void) ioctl (0, TIOCGWINSZ, (char *) &win);
+  if ((master = open ("/dev/ptmx", O_RDWR)) < 0)
+    {
+      exit (62);
+    }
 }
 
 /* ************************************************************* */
@@ -121,15 +113,15 @@ ttyrec_getmaster ()
 void
 gen_ttyrec_filename ()
 {
-	time_t rawtime;
-	struct tm *ptm;
+  time_t rawtime;
+  struct tm *ptm;
 
-	/* append time to filename */
-	time (&rawtime);
-	ptm = gmtime (&rawtime);
-	snprintf (ttyrec_filename, 100, "%04i-%02i-%02i.%02i:%02i:%02i.ttyrec",
-						ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday,
-						ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+  /* append time to filename */
+  time (&rawtime);
+  ptm = gmtime (&rawtime);
+  snprintf (ttyrec_filename, 100, "%04i-%02i-%02i.%02i:%02i:%02i.ttyrec",
+            ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday,
+            ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
 }
 
 /* ************************************************************* */
@@ -137,15 +129,15 @@ gen_ttyrec_filename ()
 void
 gen_inprogress_lock ()
 {
-	char lockfile[130];
-	int fd;
+  char lockfile[130];
+  int fd;
 
-	snprintf (lockfile, 130, "%s%s:%s", LOC_INPROGRESSDIR,
-						me->username, ttyrec_filename);
+  snprintf (lockfile, 130, "%s%s:%s", LOC_INPROGRESSDIR,
+            me->username, ttyrec_filename);
 
-	fd = open (lockfile, O_WRONLY | O_CREAT, 0644);
-	if (flock (fd, LOCK_EX))
-		exit (68);
+  fd = open (lockfile, O_WRONLY | O_CREAT, 0644);
+  if (flock (fd, LOCK_EX))
+    exit (68);
 }
 
 /* ************************************************************* */
@@ -153,127 +145,210 @@ gen_inprogress_lock ()
 void
 catch_sighup ()
 {
-	caught_sighup = 1;
-	if (pid_game)
-		{
-			sleep (10);
-			kill (pid_game, SIGHUP);
-			sleep (5);
-		}
-	exit (2);
+  caught_sighup = 1;
+  if (pid_game)
+    {
+      sleep (10);
+      kill (pid_game, SIGHUP);
+      sleep (5);
+    }
+  exit (2);
 }
 
 /* ************************************************************* */
 
 void
+loadbanner (struct dg_banner *ban)
+{
+  FILE *banfile;
+  char buf[80];
+
+  memset (buf, 0, 80);
+
+  banfile = fopen ("/dgl-banner", "r");
+
+  if (!banfile)
+    {
+      ban->len = 2;
+      ban->lines = malloc (sizeof (char *));
+      ban->lines[0] =
+        strdup ("### dgamelaunch " VERSION
+                " - network console game launcher");
+      ban->lines[1] =
+        strdup
+        ("### NOTE: administrator has not installed a /dgl-banner file");
+      return;
+    }
+
+  ban->len = 0;
+
+  while (fgets (buf, 80, banfile) != NULL)
+    {
+      char *loc;
+
+      ban->len++;
+      ban->lines = realloc (ban->lines, sizeof (char *) * ban->len);
+
+      if ((loc = strstr (buf, "$VERSION")) != NULL)
+        {
+          char bufnew[80];
+          char *b = buf;
+          int i;
+
+          memset (bufnew, 0, 80);
+
+          for (i = 0; i < 80; i++)
+            {
+              if (loc != b)
+                bufnew[i] = *(b++);
+              else
+                {
+                  strncat (bufnew, VERSION, 80 - i);
+                  b += 8;       /* skip the whole $VERSION string */
+                  i += sizeof (VERSION) / sizeof (VERSION[0]);
+                }
+
+              if (strlen (b) == 0)
+                break;
+            }
+
+          ban->lines[ban->len - 1] = strdup (bufnew);
+        }
+      else
+        ban->lines[ban->len - 1] = strdup (buf);
+
+      memset (buf, 0, 80);
+    }
+}
+
+void
+drawbanner (unsigned int start_line, unsigned int howmany)
+{
+  static short loaded_banner = 0;
+  unsigned int i;
+
+  if (!loaded_banner)
+    {
+      loadbanner (&banner);
+      loaded_banner = 1;
+    }
+
+  if (howmany > banner.len || howmany == 0)
+    howmany = banner.len;
+
+  for (i = 0; i < howmany; i++)
+    mvaddstr (start_line + i, 1, banner.lines[i]);
+}
+
+void
 inprogressmenu ()
 {
-	int i;
-	DIR *pdir;
-	struct dirent *pdirent;
-	int fd;
-	struct stat pstat;
-	char fullname[130];
-	char ttyrecname[130];
-	char *replacestr;
-	char *games[15];
-	char m_name[26], m_date[11], m_time[9];
-	int m_namelen;
-	time_t ctime;
-	int menuchoice;
+  int i;
+  DIR *pdir;
+  struct dirent *pdirent;
+  int fd;
+  struct stat pstat;
+  char fullname[130];
+  char ttyrecname[130];
+  char *replacestr;
+  char *games[15];
+  char m_name[26], m_date[11], m_time[9];
+  int m_namelen;
+  time_t ctime;
+  int menuchoice;
 
 
-	do
-		{
-			clear ();
-			mvaddstr (1, 1, VER1);
-			mvprintw (3, 1,
-								"During playback, hit 'q' to return here%s.",
-								loggedin ? ", 'm' to contact the player" : "");
-			mvaddstr (4, 1,
-								"(Use capital letter of selection to strip DEC graphics, VERY experimental!)");
-			mvaddstr (5, 1, "The following games are in progress:");
+  do
+    {
+      clear ();
+      drawbanner (1, 1);
+      mvprintw (3, 1,
+                "During playback, hit 'q' to return here%s.",
+                loggedin ? ", 'm' to contact the player" : "");
+      mvaddstr (4, 1,
+                "(Use capital letter of selection to strip DEC graphics, VERY experimental!)");
+      mvaddstr (5, 1, "The following games are in progress:");
 
-			/* clean old games and list good ones */
-			i = 0;
-			pdir = opendir (LOC_INPROGRESSDIR);
-			if (!pdir)
-				exit (140);
+      /* clean old games and list good ones */
+      i = 0;
+      pdir = opendir (LOC_INPROGRESSDIR);
+      if (!pdir)
+        exit (140);
 
-			while ((pdirent = readdir (pdir)) && (i <= 14))
-				{
-					snprintf (fullname, 130, "%s%s", LOC_INPROGRESSDIR,
-										pdirent->d_name);
+      while ((pdirent = readdir (pdir)) && (i <= 14))
+        {
+          snprintf (fullname, 130, "%s%s", LOC_INPROGRESSDIR,
+                    pdirent->d_name);
 
-					fd = 0;
-					fd = open (fullname, O_RDONLY);
-					if ((fd > 0) && flock (fd, LOCK_EX | LOCK_NB))
-						{
+          fd = 0;
+          fd = open (fullname, O_RDONLY);
+          if ((fd > 0) && flock (fd, LOCK_EX | LOCK_NB))
+            {
 
-							/* stat to check idle status */
-							snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
-												pdirent->d_name);
-							replacestr = strstr (ttyrecname, ":");
-							if (!replacestr)
-								exit (145);
-							replacestr[0] = '/';
-							if (!stat (ttyrecname, &pstat))
-								{
-									games[i] = pdirent->d_name;
+              /* stat to check idle status */
+              snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
+                        pdirent->d_name);
+              replacestr = strstr (ttyrecname, ":");
+              if (!replacestr)
+                exit (145);
+              replacestr[0] = '/';
+              if (!stat (ttyrecname, &pstat))
+                {
+                  games[i] = pdirent->d_name;
 
-									memset (m_name, 0, 26);
-									memset (m_date, 0, 11);
-									memset (m_time, 0, 9);
-									m_namelen =
-										replacestr - ttyrecname - strlen (LOC_TTYRECDIR);
-									strncpy (m_name, pdirent->d_name, m_namelen);
-									strncpy (m_date, replacestr + 1, 10);
-									strncpy (m_time, replacestr + 12, 8);
+                  memset (m_name, 0, 26);
+                  memset (m_date, 0, 11);
+                  memset (m_time, 0, 9);
+                  m_namelen =
+                    replacestr - ttyrecname - strlen (LOC_TTYRECDIR);
+                  strncpy (m_name, pdirent->d_name, m_namelen);
+                  strncpy (m_date, replacestr + 1, 10);
+                  strncpy (m_time, replacestr + 12, 8);
 
-									mvprintw (7 + i, 1, "%c) %-15s %s %s (%ldm %lds idle)",
-														i + 97, m_name, m_date, m_time,
-														(time (&ctime) - pstat.st_mtime) / 60,
-														(time (&ctime) - pstat.st_mtime) % 60);
-									i++;
-								}
-						}
-					else
-						{
-							unlink (fullname);
-						}
-					flock (fd, LOCK_UN | LOCK_NB);
-					close (fd);
-				}
+                  mvprintw (7 + i, 1, "%c) %-15s %s %s (%ldm %lds idle)",
+                            i + 97, m_name, m_date, m_time,
+                            (time (&ctime) - pstat.st_mtime) / 60,
+                            (time (&ctime) - pstat.st_mtime) % 60);
+                  i++;
+                }
+            }
+          else
+            {
+              unlink (fullname);
+            }
+          flock (fd, LOCK_UN | LOCK_NB);
+          close (fd);
+        }
 
-			mvaddstr (23, 1, "Watch which game? (r to refresh, q to quit) => ");
-			refresh ();
+      mvaddstr (23, 1, "Watch which game? (r to refresh, q to quit) => ");
+      refresh ();
 
-			menuchoice = tolower (getch ());
+      menuchoice = tolower (getch ());
 
-			if ((menuchoice - 97) >= 0 && (menuchoice - 97) < i)
-				{
-					/* valid choice has been made */
-					snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
-										games[menuchoice - 97]);
-					chosen_name = strdup (games[menuchoice - 97]);
-					if (!(replacestr = strstr (chosen_name, ":")))
-						exit (145);
-					else
-						*replacestr = '\0';
-					replacestr = strstr (ttyrecname, ":");
-					if (!replacestr)
-						exit (145);
-					replacestr[0] = '/';
+      if ((menuchoice - 97) >= 0 && (menuchoice - 97) < i)
+        {
+          /* valid choice has been made */
+          snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
+                    games[menuchoice - 97]);
+          chosen_name = strdup (games[menuchoice - 97]);
+          if (!(replacestr = strstr (chosen_name, ":")))
+            exit (145);
+          else
+            *replacestr = '\0';
+          replacestr = strstr (ttyrecname, ":");
+          if (!replacestr)
+            exit (145);
+          replacestr[0] = '/';
 
-					clear ();
-					refresh ();
-					endwin ();
-					ttyplay_main (ttyrecname, 1, 0);
-				}
+          clear ();
+          refresh ();
+          endwin ();
+          ttyplay_main (ttyrecname, 1, 0);
+        }
 
-			closedir (pdir);
-		}
-	while (menuchoice != 'q');
+      closedir (pdir);
+    }
+  while (menuchoice != 'q');
 }
 
 /* ************************************************************* */
@@ -281,61 +356,63 @@ inprogressmenu ()
 void
 changepw ()
 {
-	char buf[21];
-	int error = 2;
+  char buf[21];
+  int error = 2;
 
-	/* A precondiction is that struct `me' exists because we can be not-yet-logged-in. */
-	if (!me)
-	 exit(122); /* Die. */
-	
-	while (error)
-		{
-			char repeatbuf[21];
-			clear ();
+  /* A precondiction is that struct `me' exists because we can be not-yet-logged-in. */
+  if (!me)
+    exit (122);                 /* Die. */
 
-			mvaddstr (1, 1, VER1);
+  while (error)
+    {
+      char repeatbuf[21];
+      clear ();
 
-			mvprintw (5, 1,				"Please enter a%s password. Remember that this is sent over the net", loggedin ? " new" : "");
-			mvaddstr (6, 1,
-								"in plaintext, so make it something new and expect it to be relatively");
-			mvaddstr (7, 1, "insecure.");
-			mvaddstr (8, 1,
-								"20 character max. No ':' characters. Blank line to abort.");
-			mvaddstr (10, 1, "=> ");
+      drawbanner (1, 1);
 
-			if (error == 1)
-				{
-					mvaddstr (15, 1, "Sorry, the passwords don't match. Try again.");
-					move (10, 4);
-				}
+      mvprintw (5, 1,
+                "Please enter a%s password. Remember that this is sent over the net",
+                loggedin ? " new" : "");
+      mvaddstr (6, 1,
+                "in plaintext, so make it something new and expect it to be relatively");
+      mvaddstr (7, 1, "insecure.");
+      mvaddstr (8, 1,
+                "20 character max. No ':' characters. Blank line to abort.");
+      mvaddstr (10, 1, "=> ");
 
-			refresh ();
-			
-			noecho();
-			getnstr (buf, 20);
-			echo(); /* Putting echo back on just for saftey and because it can't hurt. */
-			
-			if (buf && *buf == '\0')
-				return;
+      if (error == 1)
+        {
+          mvaddstr (15, 1, "Sorry, the passwords don't match. Try again.");
+          move (10, 4);
+        }
 
-			if (strstr (buf, ":") != NULL)
-				exit (112);
+      refresh ();
 
-			mvaddstr (12, 1, "And again:");
-			mvaddstr (13, 1, "=> ");
-	
-			noecho();
-			getnstr (repeatbuf, 20);
-			echo(); /* Here is the important echo(); if the former is removed. */
+      noecho ();
+      getnstr (buf, 20);
+      echo ();                  /* Putting echo back on just for saftey and because it can't hurt. */
 
-			if (!strcmp (buf, repeatbuf))
-				error = 0;
-			else
-				error = 1;
-		}
+      if (buf && *buf == '\0')
+        return;
 
-	me->password = strdup (crypt (buf, buf));
-	writefile (0);
+      if (strstr (buf, ":") != NULL)
+        exit (112);
+
+      mvaddstr (12, 1, "And again:");
+      mvaddstr (13, 1, "=> ");
+
+      noecho ();
+      getnstr (repeatbuf, 20);
+      echo ();                  /* Here is the important echo(); if the former is removed. */
+
+      if (!strcmp (buf, repeatbuf))
+        error = 0;
+      else
+        error = 1;
+    }
+
+  me->password = strdup (crypt (buf, buf));
+  writefile (0);
 }
 
 /* ************************************************************* */
@@ -343,114 +420,108 @@ changepw ()
 void
 domailuser (char *username)
 {
-	unsigned int len, i;
-	char *spool_fn, message[80];
-	FILE *user_spool = NULL;
-	time_t now;
-	int mail_empty = 1;
-	struct flock fl = { F_WRLCK, SEEK_SET, 0, 0, getpid () };
+  unsigned int len, i;
+  char *spool_fn, message[80];
+  FILE *user_spool = NULL;
+  time_t now;
+  int mail_empty = 1;
+  struct flock fl = { F_WRLCK, SEEK_SET, 0, 0, getpid () };
 
-	assert (loggedin);
+  assert (loggedin);
 
-	len =
-		(sizeof (LOC_SPOOLDIR) / sizeof (LOC_SPOOLDIR[0])) + strlen (username) +
-		1;
-	spool_fn = malloc (len + 1);
-	time (&now);
-	snprintf (spool_fn, len, "%s/%s", LOC_SPOOLDIR, username);
+  len =
+    (sizeof (LOC_SPOOLDIR) / sizeof (LOC_SPOOLDIR[0])) + strlen (username) +
+    1;
+  spool_fn = malloc (len + 1);
+  time (&now);
+  snprintf (spool_fn, len, "%s/%s", LOC_SPOOLDIR, username);
 
-	/* print the enter your message line */
-	clear ();
-	mvaddstr (1, 1, VER1);
-	mvaddstr (5, 1,
-						"Enter your message here. It is to be one line only and 80 characters or less.");
-	mvaddstr (7, 1, "=> ");
+  /* print the enter your message line */
+  clear ();
+  drawbanner (1, 1);
+  mvaddstr (5, 1,
+            "Enter your message here. It is to be one line only and 80 characters or less.");
+  mvaddstr (7, 1, "=> ");
 
-	getnstr (message, 80);
+  getnstr (message, 80);
 
-	for (i = 0; i < strlen (message); i++)
-		{
-			if (message[i] != ' ' && message[i] != '\n' && message[i] != '\t')
-				mail_empty = 0;
-		}
+  for (i = 0; i < strlen (message); i++)
+    {
+      if (message[i] != ' ' && message[i] != '\n' && message[i] != '\t')
+        mail_empty = 0;
+    }
 
-	if (mail_empty)
-		{
-			mvaddstr (9, 1, "This scroll appears to be blank.--More--");
-			mvaddstr (10, 1, "(Aborting your message.)");
-			getch ();
-			return;
-		}
+  if (mail_empty)
+    {
+      mvaddstr (9, 1, "This scroll appears to be blank.--More--");
+      mvaddstr (10, 1, "(Aborting your message.)");
+      getch ();
+      return;
+    }
 
-	if ((user_spool = fopen (spool_fn, "a")) == NULL)
-		{
-			mvaddstr (9, 1,
-								"You fall into the water! You sink like a rock.--More--");
-			mvprintw (10, 1,
-								"(I couldn't open %s'%c spool file for some reason, so I'm giving up.)",
-								username, (username[strlen (username) - 1] != 's') ? 's' : 0);
-			getch ();
-			return;
-		}
+  if ((user_spool = fopen (spool_fn, "a")) == NULL)
+    {
+      mvaddstr (9, 1,
+                "You fall into the water! You sink like a rock.--More--");
+      mvprintw (10, 1,
+                "(I couldn't open %s'%c spool file for some reason, so I'm giving up.)",
+                username, (username[strlen (username) - 1] != 's') ? 's' : 0);
+      getch ();
+      return;
+    }
 
-	mvaddstr (9, 1, "Getting a lock on the mailspool...");
-	refresh ();
+  mvaddstr (9, 1, "Getting a lock on the mailspool...");
+  refresh ();
 
-	while (fcntl (fileno (user_spool), F_SETLK, &fl) == -1);
+  while (fcntl (fileno (user_spool), F_SETLK, &fl) == -1);
 
-	fprintf (user_spool, "%s:%s\n", me->username, message);
+  fprintf (user_spool, "%s:%s\n", me->username, message);
 
-	fl.l_type = F_UNLCK;
+  fl.l_type = F_UNLCK;
 
-	if (fcntl (fileno (user_spool), F_UNLCK, &fl) == -1)
-		mvaddstr (10, 1, "Couldn't unlock the file! Oh well.");
+  if (fcntl (fileno (user_spool), F_UNLCK, &fl) == -1)
+    mvaddstr (10, 1, "Couldn't unlock the file! Oh well.");
 
-	fclose (user_spool);
+  fclose (user_spool);
 
-	return;
+  return;
 }
 
 void
 drawmenu ()
 {
-	static int flood = 0;
+  static int flood = 0;
 
-	clear ();
+  clear ();
 
-	mvaddstr (1, 1, VER1);
-	mvaddstr (2, 1, VER2);
-	mvaddstr (3, 1, VER3);
-	mvaddstr (4, 1, VER4);
-	mvaddstr (5, 1, VER5);
-	mvaddstr (6, 1, VER6);
-	mvaddstr (7, 1, VER7);
+  drawbanner (1, 0);
 
-	if (loggedin)
-		{
-			mvprintw (VERLINES + 2, 1, "Logged in as: %s", me->username);
-			mvaddstr (VERLINES + 4, 1, "c) Change password");
-			mvaddstr (VERLINES + 5, 1, "o) Edit option file (requires vi use)");
-			mvaddstr (VERLINES + 6, 1, "w) Watch games in progress");
-			mvaddstr (VERLINES + 7, 1, "p) Play nethack!");
-			mvaddstr (VERLINES + 8, 1, "q) Quit");
-			mvaddstr (VERLINES + 10, 1, "=> ");
-		}
-	else
-		{
-			mvaddstr (VERLINES + 2, 1, "Not logged in.");
-			mvaddstr (VERLINES + 4, 1, "l) Login");
-			mvaddstr (VERLINES + 5, 1, "r) Register new user");
-			mvaddstr (VERLINES + 6, 1, "w) Watch games in progress");
-			mvaddstr (VERLINES + 7, 1, "q) Quit");
-			mvaddstr (VERLINES + 9, 1, "=> ");
-		}
+  if (loggedin)
+    {
+      mvprintw (banner.len + 2, 1, "Logged in as: %s", me->username);
+      mvaddstr (banner.len + 4, 1, "c) Change password");
+      mvaddstr (banner.len + 5, 1, "o) Edit option file (requires vi use)");
+      mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
+      mvaddstr (banner.len + 7, 1, "p) Play nethack!");
+      mvaddstr (banner.len + 8, 1, "q) Quit");
+      mvaddstr (banner.len + 10, 1, "=> ");
+    }
+  else
+    {
+      mvaddstr (banner.len + 2, 1, "Not logged in.");
+      mvaddstr (banner.len + 4, 1, "l) Login");
+      mvaddstr (banner.len + 5, 1, "r) Register new user");
+      mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
+      mvaddstr (banner.len + 7, 1, "q) Quit");
+      mvaddstr (banner.len + 9, 1, "=> ");
+    }
 
-	refresh ();
+  refresh ();
 
-	/* for retarded clients */
-	flood++;
-	if (flood >= 20)
-		exit (119);
+  /* for retarded clients */
+  flood++;
+  if (flood >= 20)
+    exit (119);
 }
 
 /* ************************************************************* */
@@ -458,23 +529,23 @@ drawmenu ()
 void
 freefile ()
 {
-	int i;
+  int i;
 
-	/* free existing mem, clear existing entries */
-	for (i = 0; i < f_num; i++)
-		{
-			free (users[i]->password);
-			free (users[i]->username);
-			free (users[i]->email);
-			free (users[i]->env);
-			free (users[i]);
-		}
+  /* free existing mem, clear existing entries */
+  for (i = 0; i < f_num; i++)
+    {
+      free (users[i]->password);
+      free (users[i]->username);
+      free (users[i]->email);
+      free (users[i]->env);
+      free (users[i]);
+    }
 
-	if (users)
-		free (users);
+  if (users)
+    free (users);
 
-	users = NULL;
-	f_num = 0;
+  users = NULL;
+  f_num = 0;
 }
 
 /* ************************************************************* */
@@ -482,12 +553,12 @@ freefile ()
 void
 initncurses ()
 {
-	initscr ();
-	cbreak ();
-	echo ();
-	nonl ();
-	intrflush (stdscr, FALSE);
-	keypad (stdscr, TRUE);
+  initscr ();
+  cbreak ();
+  echo ();
+  nonl ();
+  intrflush (stdscr, FALSE);
+  keypad (stdscr, TRUE);
 }
 
 /* ************************************************************* */
@@ -495,75 +566,75 @@ initncurses ()
 struct dg_user *
 deep_copy (struct dg_user *src)
 {
-	struct dg_user *dest = malloc (sizeof (struct dg_user));
+  struct dg_user *dest = malloc (sizeof (struct dg_user));
 
-	dest->username = strdup (src->username);
-	dest->email = strdup (src->email);
-	dest->env = strdup (src->env);
-	dest->password = strdup (src->password);
-	dest->flags = src->flags;
+  dest->username = strdup (src->username);
+  dest->email = strdup (src->email);
+  dest->env = strdup (src->env);
+  dest->password = strdup (src->password);
+  dest->flags = src->flags;
 
-	return dest;
+  return dest;
 }
 
 void
 login ()
 {
-	char user_buf[22], pw_buf[22];
-	int error = 2, me_index = -1;
+  char user_buf[22], pw_buf[22];
+  int error = 2, me_index = -1;
 
-	loggedin = 0;
+  loggedin = 0;
 
-	while (error)
-		{
-			clear ();
+  while (error)
+    {
+      clear ();
 
-			mvaddstr (1, 1, VER1);
+      drawbanner (1, 1);
 
-			mvaddstr (5, 1,
-								"Please enter your username. (blank entry returns to main menu)");
-			mvaddstr (7, 1, "=> ");
+      mvaddstr (5, 1,
+                "Please enter your username. (blank entry returns to main menu)");
+      mvaddstr (7, 1, "=> ");
 
-			if (error == 1)
-				{
-					mvaddstr (9, 1, "There was a problem with your last entry.");
-					move (7, 4);
-				}
+      if (error == 1)
+        {
+          mvaddstr (9, 1, "There was a problem with your last entry.");
+          move (7, 4);
+        }
 
-			refresh ();
+      refresh ();
 
-			getnstr (user_buf, 20);
+      getnstr (user_buf, 20);
 
-			if (user_buf && *user_buf == '\0')
-				return;
+      if (user_buf && *user_buf == '\0')
+        return;
 
-			error = 1;
+      error = 1;
 
-			if ((me_index = userexist (user_buf)) != -1)
-				{
-					me = deep_copy (users[me_index]);
-					error = 0;
-				}
-		}
+      if ((me_index = userexist (user_buf)) != -1)
+        {
+          me = deep_copy (users[me_index]);
+          error = 0;
+        }
+    }
 
-	clear ();
+  clear ();
 
-	mvaddstr (1, 1, VER1);
+  drawbanner (1, 1);
 
-	mvaddstr (5, 1, "Please enter your password.");
-	mvaddstr (7, 1, "=> ");
+  mvaddstr (5, 1, "Please enter your password.");
+  mvaddstr (7, 1, "=> ");
 
-	refresh ();
+  refresh ();
 
-	noecho ();
-	getnstr (pw_buf, 20);
-	echo ();
+  noecho ();
+  getnstr (pw_buf, 20);
+  echo ();
 
-	if (passwordgood (user_buf, pw_buf))
-		{
-			loggedin = 1;
-			snprintf (rcfilename, 80, "%s%s.nethackrc", LOC_DGLDIR, me->username);
-		}
+  if (passwordgood (user_buf, pw_buf))
+    {
+      loggedin = 1;
+      snprintf (rcfilename, 80, "%s%s.nethackrc", LOC_DGLDIR, me->username);
+    }
 }
 
 /* ************************************************************* */
@@ -571,97 +642,97 @@ login ()
 void
 newuser ()
 {
-	char buf[1024];
-	int error = 2;
-	unsigned int i;
+  char buf[1024];
+  int error = 2;
+  unsigned int i;
 
-	loggedin = 0;
+  loggedin = 0;
 
-	if (me)
-		free (me);
+  if (me)
+    free (me);
 
-	me = malloc (sizeof (struct dg_user));
+  me = malloc (sizeof (struct dg_user));
 
-	while (error)
-		{
-			clear ();
+  while (error)
+    {
+      clear ();
 
-			mvaddstr (1, 1, VER1);
+      drawbanner (1, 1);
 
-			mvaddstr (5, 1, "Welcome new user. Please enter a username.");
-			mvaddstr (6, 1,
-								"Only characters and numbers are allowed, with no spaces.");
-			mvaddstr (7, 1, "20 character max.");
-			mvaddstr (9, 1, "=> ");
+      mvaddstr (5, 1, "Welcome new user. Please enter a username.");
+      mvaddstr (6, 1,
+                "Only characters and numbers are allowed, with no spaces.");
+      mvaddstr (7, 1, "20 character max.");
+      mvaddstr (9, 1, "=> ");
 
-			if (error == 1)
-				{
-					mvaddstr (11, 1, "There was a problem with your last entry.");
-					move (9, 4);
-				}
+      if (error == 1)
+        {
+          mvaddstr (11, 1, "There was a problem with your last entry.");
+          move (9, 4);
+        }
 
-			refresh ();
+      refresh ();
 
-			getnstr (buf, 20);
-			if (userexist (buf) == -1)
-				error = 0;
-			else
-				error = 1;
+      getnstr (buf, 20);
+      if (userexist (buf) == -1)
+        error = 0;
+      else
+        error = 1;
 
-			for (i = 0; i < strlen (buf); i++)
-				{
-					if (!
-							(((buf[i] >= 'a') && (buf[i] <= 'z'))
-							 || ((buf[i] >= 'A') && (buf[i] <= 'Z')) || ((buf[i] >= '0')
-																													 && (buf[i] <=
-																															 '9'))))
-						error = 1;
-				}
+      for (i = 0; i < strlen (buf); i++)
+        {
+          if (!
+              (((buf[i] >= 'a') && (buf[i] <= 'z'))
+               || ((buf[i] >= 'A') && (buf[i] <= 'Z')) || ((buf[i] >= '0')
+                                                           && (buf[i] <=
+                                                               '9'))))
+            error = 1;
+        }
 
-			if (strlen (buf) < 2)
-				error = 1;
+      if (strlen (buf) < 2)
+        error = 1;
 
-			if (strlen (buf) == 0)
-				return;
-		}
+      if (strlen (buf) == 0)
+        return;
+    }
 
-	me->username = strdup (buf);
+  me->username = strdup (buf);
 
-	/* password step */
+  /* password step */
 
-	clear ();
+  clear ();
 
-	changepw(); /* Calling changepw instead to prompt twice. */
-	
-	/* email step */
+  changepw ();                  /* Calling changepw instead to prompt twice. */
 
-	clear ();
+  /* email step */
 
-	mvaddstr (1, 1, VER1);
+  clear ();
 
-	mvaddstr (5, 1, "Please enter your email address.");
-	mvaddstr (6, 1,
-						"This is sent _nowhere_ but will be used if you ask the sysadmin for lost");
-	mvaddstr (7, 1,
-						"password help. Please use a correct one. It only benefits you.");
-	mvaddstr (8, 1, "80 character max. No ':' characters.");
-	mvaddstr (10, 1, "=> ");
+  drawbanner (1, 1);
 
-	refresh ();
-	getnstr (buf, 80);
+  mvaddstr (5, 1, "Please enter your email address.");
+  mvaddstr (6, 1,
+            "This is sent _nowhere_ but will be used if you ask the sysadmin for lost");
+  mvaddstr (7, 1,
+            "password help. Please use a correct one. It only benefits you.");
+  mvaddstr (8, 1, "80 character max. No ':' characters.");
+  mvaddstr (10, 1, "=> ");
 
-	if (strstr (buf, ":") != NULL)
-		exit (113);
+  refresh ();
+  getnstr (buf, 80);
 
-	me->email = strdup (buf);
-	me->env = calloc (1, 1);
+  if (strstr (buf, ":") != NULL)
+    exit (113);
 
-	loggedin = 1;
+  me->email = strdup (buf);
+  me->env = calloc (1, 1);
 
-	snprintf (rcfilename, 80, "%s%s.nethackrc", LOC_DGLDIR, me->username);
-	write_canned_rcfile (rcfilename);
+  loggedin = 1;
 
-	writefile (1);
+  snprintf (rcfilename, 80, "%s%s.nethackrc", LOC_DGLDIR, me->username);
+  write_canned_rcfile (rcfilename);
+
+  writefile (1);
 }
 
 /* ************************************************************* */
@@ -669,12 +740,12 @@ newuser ()
 int
 passwordgood (char *cname, char *cpw)
 {
-	if (!strncmp (crypt (cpw, cpw), me->password, 13))
-		return 1;
-	if (!strncmp (cpw, me->password, 20))
-		return 1;
+  if (!strncmp (crypt (cpw, cpw), me->password, 13))
+    return 1;
+  if (!strncmp (cpw, me->password, 20))
+    return 1;
 
-	return 0;
+  return 0;
 }
 
 /* ************************************************************* */
@@ -682,102 +753,102 @@ passwordgood (char *cname, char *cpw)
 int
 readfile (int nolock)
 {
-	FILE *fp = NULL, *fpl = NULL;
-	char buf[1200];
+  FILE *fp = NULL, *fpl = NULL;
+  char buf[1200];
 
-	memset (buf, 1024, 0);
+  memset (buf, 1024, 0);
 
-	/* read new stuff */
+  /* read new stuff */
 
-	if (!nolock)
-		{
-			fpl = fopen ("/dgl-lock", "r");
-			if (!fpl)
-				exit (106);
-			if (flock (fileno (fpl), LOCK_SH))
-				exit (114);
-		}
+  if (!nolock)
+    {
+      fpl = fopen ("/dgl-lock", "r");
+      if (!fpl)
+        exit (106);
+      if (flock (fileno (fpl), LOCK_SH))
+        exit (114);
+    }
 
-	fp = fopen ("/dgl-login", "r");
-	if (!fp)
-		exit (106);
+  fp = fopen ("/dgl-login", "r");
+  if (!fp)
+    exit (106);
 
-	/* once per name in the file */
-	while (fgets (buf, 1200, fp))
-		{
-			char *b = buf, *n = buf;
+  /* once per name in the file */
+  while (fgets (buf, 1200, fp))
+    {
+      char *b = buf, *n = buf;
 
-			users = realloc (users, sizeof (struct dg_user *) * (f_num + 1));
-			users[f_num] = malloc (sizeof (struct dg_user));
-			users[f_num]->username = (char *) calloc (22, sizeof (char));
-			users[f_num]->email = (char *) calloc (82, sizeof (char));
-			users[f_num]->password = (char *) calloc (22, sizeof (char));
-			users[f_num]->env = (char *) calloc (1026, sizeof (char));
+      users = realloc (users, sizeof (struct dg_user *) * (f_num + 1));
+      users[f_num] = malloc (sizeof (struct dg_user));
+      users[f_num]->username = (char *) calloc (22, sizeof (char));
+      users[f_num]->email = (char *) calloc (82, sizeof (char));
+      users[f_num]->password = (char *) calloc (22, sizeof (char));
+      users[f_num]->env = (char *) calloc (1026, sizeof (char));
 
-			/* name field, must be valid */
-			while (*b != ':')
-				{
-					if (!(((*b >= 'a') && (*b <= 'z')) || ((*b >= 'A') && (*b <= 'Z'))
-								|| ((*b >= '0') && (*b <= '9'))))
-						return 1;
-					users[f_num]->username[(b - n)] = *b;
-					b++;
-					if ((b - n) >= 21)
-						exit (100);
-				}
+      /* name field, must be valid */
+      while (*b != ':')
+        {
+          if (!(((*b >= 'a') && (*b <= 'z')) || ((*b >= 'A') && (*b <= 'Z'))
+                || ((*b >= '0') && (*b <= '9'))))
+            return 1;
+          users[f_num]->username[(b - n)] = *b;
+          b++;
+          if ((b - n) >= 21)
+            exit (100);
+        }
 
-			/* advance to next field */
-			n = b + 1;
-			b = n;
+      /* advance to next field */
+      n = b + 1;
+      b = n;
 
-			/* email field */
-			while (*b != ':')
-				{
-					users[f_num]->email[(b - n)] = *b;
-					b++;
-					if ((b - n) > 80)
-						exit (101);
-				}
+      /* email field */
+      while (*b != ':')
+        {
+          users[f_num]->email[(b - n)] = *b;
+          b++;
+          if ((b - n) > 80)
+            exit (101);
+        }
 
-			/* advance to next field */
-			n = b + 1;
-			b = n;
+      /* advance to next field */
+      n = b + 1;
+      b = n;
 
-			/* pw field */
-			while (*b != ':')
-				{
-					users[f_num]->password[(b - n)] = *b;
-					b++;
-					if ((b - n) >= 20)
-						exit (102);
-				}
+      /* pw field */
+      while (*b != ':')
+        {
+          users[f_num]->password[(b - n)] = *b;
+          b++;
+          if ((b - n) >= 20)
+            exit (102);
+        }
 
-			/* advance to next field */
-			n = b + 1;
-			b = n;
+      /* advance to next field */
+      n = b + 1;
+      b = n;
 
-			/* env field */
-			while ((*b != '\n') && (*b != 0) && (*b != EOF))
-				{
-					users[f_num]->env[(b - n)] = *b;
-					b++;
-					if ((b - n) >= 1024)
-						exit (102);
-				}
+      /* env field */
+      while ((*b != '\n') && (*b != 0) && (*b != EOF))
+        {
+          users[f_num]->env[(b - n)] = *b;
+          b++;
+          if ((b - n) >= 1024)
+            exit (102);
+        }
 
-			f_num++;
-			/* prevent a buffer overrun here */
-			if (f_num >= MAXUSERS)
-				exit (109);
-		}
+      f_num++;
+      /* prevent a buffer overrun here */
+      if (f_num >= MAXUSERS)
+        exit (109);
+    }
 
-	if (!nolock)
-		{
-			flock (fileno (fpl), LOCK_UN);
-			fclose (fpl);
-		}
-	fclose (fp);
-	return 0;
+  if (!nolock)
+    {
+      flock (fileno (fpl), LOCK_UN);
+      fclose (fpl);
+    }
+  fclose (fp);
+  return 0;
 }
 
 /* ************************************************************* */
@@ -785,15 +856,15 @@ readfile (int nolock)
 int
 userexist (char *cname)
 {
-	int i;
+  int i;
 
-	for (i = 0; i < f_num; i++)
-		{
-			if (!strncasecmp (cname, users[i]->username, 20))
-				return i;
-		}
+  for (i = 0; i < f_num; i++)
+    {
+      if (!strncasecmp (cname, users[i]->username, 20))
+        return i;
+    }
 
-	return -1;
+  return -1;
 }
 
 /* ************************************************************* */
@@ -801,64 +872,64 @@ userexist (char *cname)
 void
 write_canned_rcfile (char *target)
 {
-	FILE *canned, *newfile;
-	char buf[1024];
-	size_t bytes;
+  FILE *canned, *newfile;
+  char buf[1024];
+  size_t bytes;
 
-	if (!(newfile = fopen (target, "w")))
-		{
-		bail:
-			mvaddstr (13, 1,
-								"You don't know how to write that! You write \"%s\" was here and the scroll disappears.");
-			mvaddstr (14, 1,
-								"(Sorry, but I couldn't open one of the nethackrc files. This is a bug.)");
-			return;
-		}
+  if (!(newfile = fopen (target, "w")))
+    {
+    bail:
+      mvaddstr (13, 1,
+                "You don't know how to write that! You write \"%s\" was here and the scroll disappears.");
+      mvaddstr (14, 1,
+                "(Sorry, but I couldn't open one of the nethackrc files. This is a bug.)");
+      return;
+    }
 
-	if (!(canned = fopen (LOC_CANNED, "r")))
-		goto bail;
+  if (!(canned = fopen (LOC_CANNED, "r")))
+    goto bail;
 
-	while ((bytes = fread (buf, 1, 1024, canned)) > 0)
-		{
-			if (fwrite (buf, 1, bytes, newfile) != bytes)
-				{
-					if (ferror (newfile))
-						{
-							mvaddstr (13, 1, "Your hand slips while engraving.");
-							mvaddstr (14, 1,
-												"(Encountered a problem writing the new file. This is a bug.)");
-							fclose (canned);
-							fclose (newfile);
-							return;
-						}
-				}
-		}
+  while ((bytes = fread (buf, 1, 1024, canned)) > 0)
+    {
+      if (fwrite (buf, 1, bytes, newfile) != bytes)
+        {
+          if (ferror (newfile))
+            {
+              mvaddstr (13, 1, "Your hand slips while engraving.");
+              mvaddstr (14, 1,
+                        "(Encountered a problem writing the new file. This is a bug.)");
+              fclose (canned);
+              fclose (newfile);
+              return;
+            }
+        }
+    }
 
-	fclose (canned);
-	fclose (newfile);
+  fclose (canned);
+  fclose (newfile);
 }
 
 
 void
 editoptions ()
 {
-	FILE *rcfile;
-	char *myargv[3];
+  FILE *rcfile;
+  char *myargv[3];
 
-	rcfile = fopen (rcfilename, "r");
-	printf (" read");
-	if (!rcfile)									/* should not really happen except for old users */
-		write_canned_rcfile (rcfilename);
+  rcfile = fopen (rcfilename, "r");
+  printf (" read");
+  if (!rcfile)                  /* should not really happen except for old users */
+    write_canned_rcfile (rcfilename);
 
-	/* use virus to edit */
+  /* use virus to edit */
 
-	myargv[0] = "";
-	myargv[1] = rcfilename;
-	myargv[2] = 0;
+  myargv[0] = "";
+  myargv[1] = rcfilename;
+  myargv[2] = 0;
 
-	endwin ();
-	vi_main (2, myargv);
-	refresh ();
+  endwin ();
+  vi_main (2, myargv);
+  refresh ();
 }
 
 /* ************************************************************* */
@@ -866,52 +937,52 @@ editoptions ()
 void
 writefile (int requirenew)
 {
-	FILE *fp, *fpl;
-	int i = 0;
-	int my_done = 0;
+  FILE *fp, *fpl;
+  int i = 0;
+  int my_done = 0;
 
-	fpl = fopen ("/dgl-lock", "r");
-	if (!fpl)
-		exit (115);
-	if (flock (fileno (fpl), LOCK_EX))
-		exit (107);
+  fpl = fopen ("/dgl-lock", "r");
+  if (!fpl)
+    exit (115);
+  if (flock (fileno (fpl), LOCK_EX))
+    exit (107);
 
-	freefile ();
-	readfile (1);
+  freefile ();
+  readfile (1);
 
-	fp = fopen ("/dgl-login", "w");
-	if (!fp)
-		exit (104);
+  fp = fopen ("/dgl-login", "w");
+  if (!fp)
+    exit (104);
 
-	for (i = 0; i < f_num; i++)
-		{
-			if (loggedin && !strncasecmp (me->username, users[i]->username, 20))
-				{
-					if (requirenew)
-						{
-							/* this is if someone managed to register at the same time
-							 * as someone else. just die. */
-							exit (111);
-						}
-					fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
-									 me->env);
-					my_done = 1;
-				}
-			else
-				{
-					fprintf (fp, "%s:%s:%s:%s\n", users[i]->username, users[i]->email,
-									 users[i]->password, users[i]->env);
-				}
-		}
-	if (loggedin && !my_done)
-		{														/* new entry */
-			fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
-							 me->env);
-		}
+  for (i = 0; i < f_num; i++)
+    {
+      if (loggedin && !strncasecmp (me->username, users[i]->username, 20))
+        {
+          if (requirenew)
+            {
+              /* this is if someone managed to register at the same time
+               * as someone else. just die. */
+              exit (111);
+            }
+          fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
+                   me->env);
+          my_done = 1;
+        }
+      else
+        {
+          fprintf (fp, "%s:%s:%s:%s\n", users[i]->username, users[i]->email,
+                   users[i]->password, users[i]->env);
+        }
+    }
+  if (loggedin && !my_done)
+    {                           /* new entry */
+      fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
+               me->env);
+    }
 
-	flock (fileno (fpl), LOCK_UN);
-	fclose (fp);
-	fclose (fpl);
+  flock (fileno (fpl), LOCK_UN);
+  fclose (fp);
+  fclose (fpl);
 }
 
 /* ************************************************************* */
@@ -921,120 +992,120 @@ writefile (int requirenew)
 int
 main (void)
 {
-	/* for chroot and program execution */
-	uid_t newuid = SHED_UID;
-	gid_t newgid = SHED_GID;
-	char atrcfilename[81], *spool;
-	unsigned int len;
-	struct rlimit rl = { RLIM_INFINITY, RLIM_INFINITY };
+  /* for chroot and program execution */
+  uid_t newuid = SHED_UID;
+  gid_t newgid = SHED_GID;
+  char atrcfilename[81], *spool;
+  unsigned int len;
+  struct rlimit rl = { RLIM_INFINITY, RLIM_INFINITY };
 
-	int userchoice = 0;
+  int userchoice = 0;
 
-	/* coredumper */
-	setrlimit(RLIMIT_CORE, &rl);
-	
-	/* signal handlers */
-	signal (SIGHUP, catch_sighup);
+  /* coredumper */
+  setrlimit (RLIMIT_CORE, &rl);
 
-	/* get master tty just before chroot (lives in /dev) */
-	ttyrec_getmaster ();
-	grantpt (master);
-	unlockpt (master);
-	if ((slave = open ((const char *) ptsname (master), O_RDWR)) < 0)
-		{
-			exit (65);
-		}
+  /* signal handlers */
+  signal (SIGHUP, catch_sighup);
+
+  /* get master tty just before chroot (lives in /dev) */
+  ttyrec_getmaster ();
+  grantpt (master);
+  unlockpt (master);
+  if ((slave = open ((const char *) ptsname (master), O_RDWR)) < 0)
+    {
+      exit (65);
+    }
 
 
-	/* chroot */
-	if (chroot (LOC_CHROOT))
-		{
-			perror ("cannot change root directory");
-			exit (1);
-		}
+  /* chroot */
+  if (chroot (LOC_CHROOT))
+    {
+      perror ("cannot change root directory");
+      exit (1);
+    }
 
-	if (chdir ("/"))
-		{
-			perror ("cannot chdir to root directory");
-			exit (1);
-		}
+  if (chdir ("/"))
+    {
+      perror ("cannot chdir to root directory");
+      exit (1);
+    }
 
-	/* shed privs. this is done immediately after chroot. */
-	setgid (newgid);
-	setuid (newuid);
+  /* shed privs. this is done immediately after chroot. */
+  setgid (newgid);
+  setuid (newuid);
 
-	/* simple login routine, uses ncurses */
-	if (readfile (0))
-		exit (110);
+  /* simple login routine, uses ncurses */
+  if (readfile (0))
+    exit (110);
 
-	initncurses ();
-	while ((userchoice != 'p') | (!loggedin))
-		{
-			drawmenu ();
-			userchoice = getch ();
-			switch (tolower (userchoice))
-				{
-				case 'c':
-					changepw ();
-					break;
-				case 'w':
-					inprogressmenu ();
-					break;
-				case 'o':
-					if (loggedin)
-						editoptions ();
-					break;
-				case 'q':
-					endwin ();
-					exit (1);
-					/* break; */
-				case 'r':
-					if (!loggedin)				/*not visible to loggedin */
-						newuser ();
-					break;
-				case 'l':
-					if (!loggedin)				/* not visible to loggedin */
-						login ();
-					break;
-				}
-		}
+  initncurses ();
+  while ((userchoice != 'p') | (!loggedin))
+    {
+      drawmenu ();
+      userchoice = getch ();
+      switch (tolower (userchoice))
+        {
+        case 'c':
+          changepw ();
+          break;
+        case 'w':
+          inprogressmenu ();
+          break;
+        case 'o':
+          if (loggedin)
+            editoptions ();
+          break;
+        case 'q':
+          endwin ();
+          exit (1);
+          /* break; */
+        case 'r':
+          if (!loggedin)        /*not visible to loggedin */
+            newuser ();
+          break;
+        case 'l':
+          if (!loggedin)        /* not visible to loggedin */
+            login ();
+          break;
+        }
+    }
 
-	assert (loggedin);
+  assert (loggedin);
 
-	endwin ();
+  endwin ();
 
-	/* environment */
-	snprintf (atrcfilename, 81, "@%s", rcfilename);
+  /* environment */
+  snprintf (atrcfilename, 81, "@%s", rcfilename);
 
-	len =
-		(sizeof (LOC_SPOOLDIR) / sizeof (LOC_SPOOLDIR[0])) +
-		strlen (me->username) + 1;
-	spool = malloc (len + 1);
-	snprintf (spool, len, "%s/%s", LOC_SPOOLDIR, me->username);
+  len =
+    (sizeof (LOC_SPOOLDIR) / sizeof (LOC_SPOOLDIR[0])) +
+    strlen (me->username) + 1;
+  spool = malloc (len + 1);
+  snprintf (spool, len, "%s/%s", LOC_SPOOLDIR, me->username);
 
-	setenv ("NETHACKOPTIONS", atrcfilename, 1);
-	setenv ("MAIL", spool, 1);
-	setenv ("SIMPLEMAIL", "1", 1);
+  setenv ("NETHACKOPTIONS", atrcfilename, 1);
+  setenv ("MAIL", spool, 1);
+  setenv ("SIMPLEMAIL", "1", 1);
 
-	/* don't let the mail file grow */
-	if (access (spool, F_OK) == 0)
-		unlink (spool);
+  /* don't let the mail file grow */
+  if (access (spool, F_OK) == 0)
+    unlink (spool);
 
-	free (spool);
+  free (spool);
 
-	/* lock */
-	gen_ttyrec_filename ();
-	gen_inprogress_lock ();
+  /* lock */
+  gen_ttyrec_filename ();
+  gen_inprogress_lock ();
 
-	/* launch program */
-	ttyrec_main (me->username);
+  /* launch program */
+  ttyrec_main (me->username);
 
-	/* NOW we can safely kill this */
-	freefile ();
+  /* NOW we can safely kill this */
+  freefile ();
 
-	if (me)
-		free (me);
+  if (me)
+    free (me);
 
-	exit (1);
-	return 1;
+  exit (1);
+  return 1;
 }

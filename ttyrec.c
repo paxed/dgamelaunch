@@ -101,65 +101,65 @@ int uflg;
 int
 ttyrec_main (char *username)
 {
-	void finish ();
-	char dirname[100];
+  void finish ();
+  char dirname[100];
 
-	snprintf (dirname, 100, "%s%s", LOC_TTYRECDIR, username);
+  snprintf (dirname, 100, "%s%s", LOC_TTYRECDIR, username);
 
-	if (access (dirname, F_OK) != 0)
-		mkdir (dirname, 0755);
+  if (access (dirname, F_OK) != 0)
+    mkdir (dirname, 0755);
 
-	snprintf (dirname, 100, "%s%s/%s", LOC_TTYRECDIR, username,
-						ttyrec_filename);
+  snprintf (dirname, 100, "%s%s/%s", LOC_TTYRECDIR, username,
+            ttyrec_filename);
 
-	if ((fscript = fopen (dirname, "w")) == NULL)
-		{
-			perror (dirname);
-			fail ();
-		}
-	setbuf (fscript, NULL);
+  if ((fscript = fopen (dirname, "w")) == NULL)
+    {
+      perror (dirname);
+      fail ();
+    }
+  setbuf (fscript, NULL);
 
-	fixtty ();
+  fixtty ();
 
-	(void) signal (SIGCHLD, finish);
-	child = fork ();
-	if (child < 0)
-		{
-			perror ("fork");
-			fail ();
-		}
-	if (child == 0)
-		{
-			subchild = child = fork ();
-			if (child < 0)
-				{
-					perror ("fork");
-					fail ();
-				}
-			if (child)
-				{
-					close (slave);
-					pid_game = child;
-					dooutput ();
-				}
-			else
-				doshell (username);
-		}
-	doinput ();
+  (void) signal (SIGCHLD, finish);
+  child = fork ();
+  if (child < 0)
+    {
+      perror ("fork");
+      fail ();
+    }
+  if (child == 0)
+    {
+      subchild = child = fork ();
+      if (child < 0)
+        {
+          perror ("fork");
+          fail ();
+        }
+      if (child)
+        {
+          close (slave);
+          pid_game = child;
+          dooutput ();
+        }
+      else
+        doshell (username);
+    }
+  doinput ();
 
-	return 0;
+  return 0;
 }
 
 void
 doinput ()
 {
-	register int cc;
-	char ibuf[BUFSIZ];
+  register int cc;
+  char ibuf[BUFSIZ];
 
-	(void) fclose (fscript);
-	while ((cc = read (0, ibuf, BUFSIZ)) > 0)
-		(void) write (master, ibuf, cc);
-	done ();
+  (void) fclose (fscript);
+  while ((cc = read (0, ibuf, BUFSIZ)) > 0)
+    (void) write (master, ibuf, cc);
+  done ();
 }
 
 #include <sys/wait.h>
@@ -168,221 +168,221 @@ void
 finish ()
 {
 #if defined(SVR4)
-	int status;
-#else	/* !SVR4 */
-	union wait status;
+  int status;
+#else /* !SVR4 */
+  union wait status;
 #endif /* !SVR4 */
-	register int pid;
-	register int die = 0;
+  register int pid;
+  register int die = 0;
 
-	while ((pid = wait3 ((int *) &status, WNOHANG, 0)) > 0)
-		if (pid == child)
-			die = 1;
+  while ((pid = wait3 ((int *) &status, WNOHANG, 0)) > 0)
+    if (pid == child)
+      die = 1;
 
-	if (die)
-		done ();
+  if (die)
+    done ();
 }
 
 struct linebuf
 {
-	char str[BUFSIZ + 1];					/* + 1 for an additional NULL character. */
-	int len;
+  char str[BUFSIZ + 1];         /* + 1 for an additional NULL character. */
+  int len;
 };
 
 
 void
 check_line (const char *line)
 {
-	static int uuencode_mode = 0;
-	static FILE *uudecode;
+  static int uuencode_mode = 0;
+  static FILE *uudecode;
 
-	if (uuencode_mode == 1)
-		{
-			fprintf (uudecode, "%s", line);
-			if (strcmp (line, "end\n") == 0)
-				{
-					pclose (uudecode);
-					uuencode_mode = 0;
-				}
-		}
-	else
-		{
-			int dummy;
-			char dummy2[BUFSIZ];
-			if (sscanf (line, "begin %o %s", &dummy, dummy2) == 2)
-				{
-					/* 
-					 * uuencode line found! 
-					 */
-					uudecode = popen ("uudecode", "w");
-					fprintf (uudecode, "%s", line);
-					uuencode_mode = 1;
-				}
-		}
+  if (uuencode_mode == 1)
+    {
+      fprintf (uudecode, "%s", line);
+      if (strcmp (line, "end\n") == 0)
+        {
+          pclose (uudecode);
+          uuencode_mode = 0;
+        }
+    }
+  else
+    {
+      int dummy;
+      char dummy2[BUFSIZ];
+      if (sscanf (line, "begin %o %s", &dummy, dummy2) == 2)
+        {
+          /* 
+           * uuencode line found! 
+           */
+          uudecode = popen ("uudecode", "w");
+          fprintf (uudecode, "%s", line);
+          uuencode_mode = 1;
+        }
+    }
 }
 
 void
 check_output (const char *str, int len)
 {
-	static struct linebuf lbuf = { "", 0 };
-	int i;
+  static struct linebuf lbuf = { "", 0 };
+  int i;
 
-	for (i = 0; i < len; i++)
-		{
-			if (lbuf.len < BUFSIZ)
-				{
-					lbuf.str[lbuf.len] = str[i];
-					if (lbuf.str[lbuf.len] == '\r')
-						{
-							lbuf.str[lbuf.len] = '\n';
-						}
-					lbuf.len++;
-					if (lbuf.str[lbuf.len - 1] == '\n')
-						{
-							if (lbuf.len > 1)
-								{								/* skip a blank line. */
-									lbuf.str[lbuf.len] = '\0';
-									check_line (lbuf.str);
-								}
-							lbuf.len = 0;
-						}
-				}
-			else
-				{												/* buffer overflow */
-					lbuf.len = 0;
-				}
-		}
+  for (i = 0; i < len; i++)
+    {
+      if (lbuf.len < BUFSIZ)
+        {
+          lbuf.str[lbuf.len] = str[i];
+          if (lbuf.str[lbuf.len] == '\r')
+            {
+              lbuf.str[lbuf.len] = '\n';
+            }
+          lbuf.len++;
+          if (lbuf.str[lbuf.len - 1] == '\n')
+            {
+              if (lbuf.len > 1)
+                {               /* skip a blank line. */
+                  lbuf.str[lbuf.len] = '\0';
+                  check_line (lbuf.str);
+                }
+              lbuf.len = 0;
+            }
+        }
+      else
+        {                       /* buffer overflow */
+          lbuf.len = 0;
+        }
+    }
 }
 
 void
 dooutput ()
 {
-	int cc;
-	time_t tvec, time ();
-	char obuf[BUFSIZ], *ctime ();
+  int cc;
+  time_t tvec, time ();
+  char obuf[BUFSIZ], *ctime ();
 
-	setbuf (stdout, NULL);
-	(void) close (0);
-	tvec = time ((time_t *) NULL);
-	for (;;)
-		{
-			Header h;
+  setbuf (stdout, NULL);
+  (void) close (0);
+  tvec = time ((time_t *) NULL);
+  for (;;)
+    {
+      Header h;
 
-			cc = read (master, obuf, BUFSIZ);
-			if (cc <= 0)
-				break;
-			if (uflg)
-				check_output (obuf, cc);
-			h.len = cc;
-			gettimeofday (&h.tv, NULL);
-			(void) write (1, obuf, cc);
-			(void) write_header (fscript, &h);
-			(void) fwrite (obuf, 1, cc, fscript);
-		}
-	done ();
+      cc = read (master, obuf, BUFSIZ);
+      if (cc <= 0)
+        break;
+      if (uflg)
+        check_output (obuf, cc);
+      h.len = cc;
+      gettimeofday (&h.tv, NULL);
+      (void) write (1, obuf, cc);
+      (void) write_header (fscript, &h);
+      (void) fwrite (obuf, 1, cc, fscript);
+    }
+  done ();
 }
 
 void
 doshell (char *username)
 {
-	char *argv1 = LOC_NETHACK;
-	char *argv2 = "-u";
-	char *myargv[10];
+  char *argv1 = LOC_NETHACK;
+  char *argv2 = "-u";
+  char *myargv[10];
 
-	getslave ();
-	(void) close (master);
-	(void) fclose (fscript);
-	(void) dup2 (slave, 0);
-	(void) dup2 (slave, 1);
-	(void) dup2 (slave, 2);
-	(void) close (slave);
+  getslave ();
+  (void) close (master);
+  (void) fclose (fscript);
+  (void) dup2 (slave, 0);
+  (void) dup2 (slave, 1);
+  (void) dup2 (slave, 2);
+  (void) close (slave);
 
-	myargv[0] = argv1;
-	myargv[1] = argv2;
-	myargv[2] = username;
-	myargv[3] = 0;
+  myargv[0] = argv1;
+  myargv[1] = argv2;
+  myargv[2] = username;
+  myargv[3] = 0;
 
-	execvp (LOC_NETHACK, myargv);
+  execvp (LOC_NETHACK, myargv);
 
-	fail ();
+  fail ();
 }
 
 void
 fixtty ()
 {
-	struct termios rtt;
+  struct termios rtt;
 
-	rtt = tt;
-	rtt.c_iflag = 0;
-	rtt.c_lflag &= ~(ISIG | ICANON | XCASE | ECHO | ECHOE | ECHOK | ECHONL);
-	rtt.c_oflag = OPOST;
-	rtt.c_cc[VINTR] = CDEL;
-	rtt.c_cc[VQUIT] = CDEL;
-	rtt.c_cc[VERASE] = CDEL;
-	rtt.c_cc[VKILL] = CDEL;
-	rtt.c_cc[VEOF] = 1;
-	rtt.c_cc[VEOL] = 0;
-	(void) tcsetattr (0, TCSAFLUSH, &rtt);
+  rtt = tt;
+  rtt.c_iflag = 0;
+  rtt.c_lflag &= ~(ISIG | ICANON | XCASE | ECHO | ECHOE | ECHOK | ECHONL);
+  rtt.c_oflag = OPOST;
+  rtt.c_cc[VINTR] = CDEL;
+  rtt.c_cc[VQUIT] = CDEL;
+  rtt.c_cc[VERASE] = CDEL;
+  rtt.c_cc[VKILL] = CDEL;
+  rtt.c_cc[VEOF] = 1;
+  rtt.c_cc[VEOL] = 0;
+  (void) tcsetattr (0, TCSAFLUSH, &rtt);
 }
 
 void
 fail ()
 {
 
-	(void) kill (0, SIGTERM);
-	done ();
+  (void) kill (0, SIGTERM);
+  done ();
 }
 
 void
 done ()
 {
-	time_t tvec, time ();
-	char *ctime ();
+  time_t tvec, time ();
+  char *ctime ();
 
-	if (subchild)
-		{
-			tvec = time ((time_t *) NULL);
-			(void) fclose (fscript);
-			(void) close (master);
-		}
-	else
-		{
-			(void) tcsetattr (0, TCSAFLUSH, &tt);
-		}
-	exit (0);
+  if (subchild)
+    {
+      tvec = time ((time_t *) NULL);
+      (void) fclose (fscript);
+      (void) close (master);
+    }
+  else
+    {
+      (void) tcsetattr (0, TCSAFLUSH, &tt);
+    }
+  exit (0);
 }
 
 void
 getslave ()
 {
-	(void) setsid ();
-	/* grantpt( master);
-	   unlockpt(master);
-	   if ((slave = open((const char *)ptsname(master), O_RDWR)) < 0) {
-	   perror((const char *)ptsname(master));
-	   fail();
-	   perror("open(fd, O_RDWR)");
-	   fail();
-	   } */
-	if (isastream (slave))
-		{
-			if (ioctl (slave, I_PUSH, "ptem") < 0)
-				{
-					perror ("ioctl(fd, I_PUSH, ptem)");
-					fail ();
-				}
-			if (ioctl (slave, I_PUSH, "ldterm") < 0)
-				{
-					perror ("ioctl(fd, I_PUSH, ldterm)");
-					fail ();
-				}
+  (void) setsid ();
+  /* grantpt( master);
+     unlockpt(master);
+     if ((slave = open((const char *)ptsname(master), O_RDWR)) < 0) {
+     perror((const char *)ptsname(master));
+     fail();
+     perror("open(fd, O_RDWR)");
+     fail();
+     } */
+  if (isastream (slave))
+    {
+      if (ioctl (slave, I_PUSH, "ptem") < 0)
+        {
+          perror ("ioctl(fd, I_PUSH, ptem)");
+          fail ();
+        }
+      if (ioctl (slave, I_PUSH, "ldterm") < 0)
+        {
+          perror ("ioctl(fd, I_PUSH, ldterm)");
+          fail ();
+        }
 #ifndef _HPUX_SOURCE
-			if (ioctl (slave, I_PUSH, "ttcompat") < 0)
-				{
-					perror ("ioctl(fd, I_PUSH, ttcompat)");
-					fail ();
-				}
+      if (ioctl (slave, I_PUSH, "ttcompat") < 0)
+        {
+          perror ("ioctl(fd, I_PUSH, ttcompat)");
+          fail ();
+        }
 #endif
-			(void) ioctl (0, TIOCGWINSZ, (char *) &win);
-		}
+      (void) ioctl (0, TIOCGWINSZ, (char *) &win);
+    }
 }

@@ -6,8 +6,8 @@
 
 typedef struct header
 {
-	struct timeval tv;
-	size_t len;
+  struct timeval tv;
+  size_t len;
 }
 Header;
 
