@@ -77,14 +77,14 @@ service telnet
   wait      = no
   user      = root
   server    = /usr/sbin/in.telnetd
-  server_args     = -h -L /opt/nethack/nethack.dtype.org/dgamelaunch -q /etc/dgamelaunch.conf
+  server_args     = -h -L /opt/nethack/nethack.dtype.org/dgamelaunch -q -f /etc/dgamelaunch.conf
   rlimit_cpu      = 3600
   bind      = 64.71.163.206
 }
 
 A classic inetd line would look like this:
 
-telnet stream tcp nowait root.root /usr/sbin/tcpd /usr/sbin/in.telnetd -h -L /usr/sbin/dgamelaunch -q /etc/dgamelaunch.conf
+telnet stream tcp nowait root.root /usr/sbin/tcpd /usr/sbin/in.telnetd -h -L /usr/sbin/dgamelaunch -q -f /etc/dgamelaunch.conf
 
 In both cases, the -L specifies an alternate login program (telnetlogin is
 invoked by default) and -h prevents revealing of a login banner (for 
@@ -99,6 +99,9 @@ NOTE: It appears that the -L option is not very widely supported. FreeBSD's
 telnetd uses -p instead, and you can't give arguments (arguments appropriate
 to standard login are used), so it's necessary to start a shell script from
 it.  Some other telnetds do not support anything like this at all.
+
+The -f option, followed by a filename, specifies the path to the config file
+to use for dgamelaunch.
 
 For dgamelaunch, the -q option will silence errors pertaining to the server
 configuration. This is recommended for use within inetd to prevent spamming

@@ -1480,33 +1480,29 @@ main (int argc, char** argv)
   unsigned int len;
   int c;
 
-  while ((c = getopt(argc, argv, "qh:p")) != -1)
+  while ((c = getopt(argc, argv, "qh:p:f:")) != -1)
   {
     switch (c)
     {
       case 'q':
 	silent = 1; break;
 
+      case 'f':
+	if (config)
+	{
+	  if (!silent)
+	    fprintf(stderr, "warning: using %s\n", argv[optind]);
+	  free(config);
+	}
+	  
+	config = strdup(optarg);
+	break;
+	
       default:
 	break; /*ignore */
     }
   }
   
-  if (optind < argc)
-  {
-    while (optind < argc)
-    {
-      if (config)
-      {
-	if (!silent)
-	  fprintf(stderr, "warning: using %s\n", argv[optind]);
-	free(config);
-      }
-      config = strdup(argv[optind]);
-      optind++;
-    }
-  }
-
   create_config();
 
   /* signal handlers */
