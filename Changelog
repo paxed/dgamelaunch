@@ -1,5 +1,6 @@
 1.5 (???)
 	* Allow user to change his or her email address in the console.
+	* Remove some useless cruft in ttywait() [ttyplay.c]
 
 1.4 (2004/02/03)
 	* Major cleanups - remove most uses of strcpy() and strcat()

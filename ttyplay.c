@@ -84,32 +84,12 @@ double
 ttywait (struct timeval prev, struct timeval cur, double speed)
 {
   struct timeval diff = timeval_diff (prev, cur);
-  fd_set readfs;
 
   assert (speed != 0);
   diff = timeval_div (diff, speed);
 
-  FD_SET (STDIN_FILENO, &readfs);
-  select (1, &readfs, NULL, NULL, &diff); /* skip if a user hits any key */
-  if (FD_ISSET (0, &readfs))
-    {                           /* a user hits a character? */
-      char c;
-      read (STDIN_FILENO, &c, 1); /* drain the character */
-      switch (c)
-        {
-        case '+':
-        case 'f':
-          speed *= 2;
-          break;
-        case '-':
-        case 's':
-          speed /= 2;
-          break;
-        case '1':
-          speed = 1.0;
-          break;
-        }
-    }
+  select (1, NULL, NULL, NULL, &diff); /* skip if a user hits any key */
+  
   return speed;
 }
 
