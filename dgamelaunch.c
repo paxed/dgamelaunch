@@ -440,7 +440,7 @@ inprogressmenu ()
 
 /* ************************************************************* */
 
-void
+int
 changepw ()
 {
   char buf[21];
@@ -480,7 +480,7 @@ changepw ()
       echo ();                  /* Putting echo back on just for safety and because it can't hurt. */
 
       if (buf && *buf == '\0')
-        return;
+        return 0;
 
       if (strchr (buf, ':') != NULL)
         graceful_exit (112);
@@ -500,6 +500,8 @@ changepw ()
 
   me->password = strdup (crypt (buf, buf));
   writefile (0);
+
+  return 1;
 }
 
 /* ************************************************************* */
@@ -781,7 +783,7 @@ newuser ()
 
       for (i = 0; i < strlen (buf); i++)
         {
-          if (!isalnum(buf))
+          if (!isalnum(buf[i]))
             error = 1;
         }
 
@@ -798,7 +800,12 @@ newuser ()
 
   clear ();
 
-  changepw ();                  /* Calling changepw instead to prompt twice. */
+  if (!changepw ())                  /* Calling changepw instead to prompt twice. */
+  {
+    free(me);
+    me = NULL;
+    return;
+  }
 
   /* email step */
 
