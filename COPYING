@@ -381,6 +381,9 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 
+mygetnstr.c follows the BSD licence as well but only the first two clauses
+of the one reproduced above.
+
 stripgfx.c is derived from drawing.c in the NetHack source distribution,
 and falls under the NetHack General Public License, which follows.
 
