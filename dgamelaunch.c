@@ -109,6 +109,8 @@ struct dg_config defconfig = {
   "/var/lib/dgamelaunch/",
   "/bin/nethack",
   "/dgldir/",
+  "/dgl-lock",
+  "/dgl-login",
   "/dgl-banner",
   "/dgl-default-rcfile",
   "/var/mail/",
@@ -1000,14 +1002,14 @@ readfile (int nolock)
 
   if (!nolock)
     {
-      fpl = fopen ("/dgl-lock", "r");
+      fpl = fopen (myconfig->lockfile, "r");
       if (!fpl)
         graceful_exit (106);
       if (fcntl (fileno (fpl), F_SETLKW, &fl) == -1)
         graceful_exit (114);
     }
 
-  fp = fopen ("/dgl-login", "r");
+  fp = fopen (myconfig->passwd, "r");
   if (!fp)
     graceful_exit (106);
 
@@ -1191,7 +1193,7 @@ writefile (int requirenew)
   fl.l_start = 0;
   fl.l_len = 0;
 
-  fpl = fopen ("/dgl-lock", "r+");
+  fpl = fopen (myconfig->lockfile, "r+");
   if (!fpl)
     graceful_exit (115);
   if (fcntl (fileno (fpl), F_SETLK, &fl))
@@ -1202,7 +1204,7 @@ writefile (int requirenew)
   freefile ();
   readfile (1);
 
-  fp = fopen ("/dgl-login", "w");
+  fp = fopen (myconfig->passwd, "w");
   if (!fp)
     graceful_exit (104);
 

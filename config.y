@@ -26,6 +26,7 @@ static const char* lookup_token (int t);
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX
 %token TYPE_PATH_NETHACK TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
+%token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER
 %type  <kt> KeyType
@@ -84,32 +85,42 @@ KeyPair: KeyType '=' TYPE_VALUE {
 
     case TYPE_PATH_CHROOT:
       if (myconfig->chroot) free(myconfig->chroot);
-        myconfig->chroot = strdup ($3);
+      myconfig->chroot = strdup ($3);
       break;
 
     case TYPE_PATH_NETHACK:
       if (myconfig->nethack) free(myconfig->nethack);
-        myconfig->nethack = strdup ($3);
+      myconfig->nethack = strdup ($3);
       break;
 
     case TYPE_PATH_DGLDIR:
       if (myconfig->dglroot) free(myconfig->dglroot);
-        myconfig->dglroot = strdup ($3);
+      myconfig->dglroot = strdup ($3);
       break;
 
     case TYPE_PATH_BANNER:
       if (myconfig->banner) free(myconfig->banner);
-        myconfig->banner = strdup($3);
+      myconfig->banner = strdup($3);
       break;
 
     case TYPE_PATH_CANNED:
       if (myconfig->rcfile) free(myconfig->rcfile);
-        myconfig->rcfile = strdup($3);
+      myconfig->rcfile = strdup($3);
       break;
 
     case TYPE_PATH_SPOOL:
       if (myconfig->spool) free (myconfig->spool);
-        myconfig->spool = strdup($3);
+      myconfig->spool = strdup($3);
+      break;
+
+    case TYPE_PATH_LOCKFILE:
+      if (myconfig->lockfile) free (myconfig->lockfile);
+      myconfig->lockfile = strdup($3);
+      break;
+
+    case TYPE_PATH_PASSWD:
+      if (myconfig->passwd) free(myconfig->passwd);
+      myconfig->passwd = strdup($3);
       break;
 
     default:
@@ -171,6 +182,8 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_SPOOL	{ $$ = TYPE_PATH_SPOOL; }
 	| TYPE_PATH_BANNER	{ $$ = TYPE_PATH_BANNER; }
 	| TYPE_PATH_CANNED	{ $$ = TYPE_PATH_CANNED; }
+	| TYPE_PATH_PASSWD	{ $$ = TYPE_PATH_PASSWD; }
+	| TYPE_PATH_LOCKFILE	{ $$ = TYPE_PATH_LOCKFILE; }
 	;
 
 %%

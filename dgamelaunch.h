@@ -42,6 +42,8 @@ struct dg_config
   char* chroot;
   char* nethack;
   char* dglroot;
+  char* lockfile;
+  char* passwd;
   char* banner;
   char* rcfile;
   char* spool;
