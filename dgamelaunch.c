@@ -1281,9 +1281,9 @@ main (void)
 
   assert (loggedin);
 
-  endwin ();
-
   purge_stale_locks ();
+  
+  endwin ();
 
   /* environment */
   snprintf (atrcfilename, 81, "@%s", rcfilename);
