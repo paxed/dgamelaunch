@@ -58,7 +58,8 @@
 
 #ifdef __linux__
 # include <pty.h>
-# include <libiberty.h>
+/*# include <libiberty.h> -- NOT IN MINIAL-TYPE INSTALLATIONS 
+ * Also, wasn't needed for compiling at current revision - brettcar */
 #endif
 
 #ifndef ARRAY_SIZE
