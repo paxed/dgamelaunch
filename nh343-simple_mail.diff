@@ -1,0 +1,51 @@
+--- src/mail.c~	2003-12-28 13:09:16.000000000 -0800
++++ src/mail.c	2003-12-28 13:20:56.000000000 -0800
+@@ -501,6 +501,26 @@
+ readmail(otmp)
+ struct obj *otmp;
+ {
++#  ifdef SIMPLE_MAIL
++  FILE* mb = fopen(mailbox, "r");
++  char curline[93], from[20], buf[80], *tmp;
++
++  /* for use with strtok*/
++  strcpy(curline, buf);
++
++  while (fgets(curline, 80, mb) != NULL);
++
++  strncpy (from, strtok(buf, ":"), 20);
++
++  snprintf(buf, 93, "This scroll is from '%s'.", strtok(curline, ":"));
++  pline(buf);
++  tmp = strtok(NULL, ":");
++  tmp[strlen(tmp) - 1] = '\0'; /* kill newline */
++  snprintf(buf, 93, "It reads: \"%s\".", tmp);
++  pline(buf);
++
++  fclose(mb);
++#  else
+ #  ifdef DEF_MAILREADER			/* This implies that UNIX is defined */
+ 	register const char *mr = 0;
+ 
+@@ -517,6 +537,7 @@
+ 	display_file(mailbox, TRUE);
+ #   endif /* AMS */
+ #  endif /* DEF_MAILREADER */
++# endif /* SIMPLE_MAIL */
+ 
+ 	/* get new stat; not entirely correct: there is a small time
+ 	   window where we do not see new mail */
+--- include/unixconf.h~	2003-12-24 21:41:51.000000000 -0800
++++ include/unixconf.h	2003-12-28 13:21:58.000000000 -0800
+@@ -193,7 +193,10 @@
+ # endif
+ #endif
+ 
+-#define MAILCKFREQ	50
++#ifdef SIMPLE_MAIL /* one-liners - check often */
++# define MAILCKFREQ 10
++#else
++# define MAILCKFREQ 50
+ #endif	/* MAIL */
+ 
+ 
