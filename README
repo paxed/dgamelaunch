@@ -6,8 +6,9 @@ account and start playing any game which suits your fancy - currently, though,
 it only supports NetHack (see http://www.nethack.org).
 
 It requires the ncurses library and development headers to build and should
-compile without issue on Linux and FreeBSD 4.x. Other platforms have not been
-tested yet.
+compile without issue on Linux, Solaris, System V, FreeBSD 4 and 5.
+(Whether it _runs_ on all of these platforms is a different issue. We'd
+like to hear about it.)
 
 dgamelaunch was originally developed by M. Drew Streib <dtype@dtype.org> but
 is now a collaborative project. Copyright and contact information is in the 
