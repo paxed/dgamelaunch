@@ -49,7 +49,7 @@
  |	proprietary information which is protected by
  |	copyright.  All rights are reserved.
  |
- |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.2 2004/01/23 18:23:16 joshk Exp $
+ |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.3 2004/01/23 18:33:07 joshk Exp $
  |
  */
 
@@ -62,7 +62,7 @@ char *ee_long_notice[] = {
 	"copyright.  All rights are reserved."
 	};
 
-char *version = "@(#) ee, version 1.4.1  $Revision: 1.2 $";
+char *version = "@(#) ee, version 1.4.1  $Revision: 1.3 $";
 
 #define catgetlocal(a, b) (b)
 
@@ -173,7 +173,6 @@ unsigned char *start_at_line = NULL;	/* move to this line at start of session*/
 int in;				/* input character			*/
 
 FILE *temp_fp;			/* temporary file pointer		*/
-FILE *bit_bucket;		/* file pointer to /dev/null		*/
 
 char *table[] = { 
 	"^@", "^A", "^B", "^C", "^D", "^E", "^F", "^G", "^H", "\t", "^J", 
@@ -516,7 +515,6 @@ char *argv[];
 	scr_pos =0;
 	scr_vert = 0;
 	scr_horz = 0;
-	bit_bucket = fopen("/dev/null", "w");
 	edit = TRUE;
 	gold = case_sen = FALSE;
 	strings_init();
