@@ -53,13 +53,19 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <stropts.h>
+#ifndef NOSTREAMS
+# include <stropts.h>
+#endif
 #include <stdlib.h>
 #include <fcntl.h>
 
 #include <sys/time.h>
 #include "ttyrec.h"
 #include "io.h"
+
+#ifndef XCASE
+# define XCASE 0
+#endif
 
 #define HAVE_inet_aton
 #define HAVE_scsi_h
@@ -363,6 +369,7 @@ getslave ()
      perror("open(fd, O_RDWR)");
      fail();
      } */
+#ifndef NOSTREAMS
   if (isastream (slave))
     {
       if (ioctl (slave, I_PUSH, "ptem") < 0)
@@ -382,6 +389,7 @@ getslave ()
           fail ();
         }
 #endif
-      (void) ioctl (0, TIOCGWINSZ, (char *) &win);
     }
+#endif /* !NOSTREAMS */
+  (void) ioctl (0, TIOCGWINSZ, (char *) &win);
 }
