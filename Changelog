@@ -1,6 +1,7 @@
 1.4.1 (2004/02/13)
+	* Call fcntl with F_SETLK, not F_UNLCK.
 	* Make sure writefile does not get called when using it as a
-	  password prompt for new-users [CRITICAL]
+	  password prompt for new-users
 	* Allow user to change his or her email address in the console.
 	* Remove some useless cruft in ttywait() [ttyplay.c]
 
