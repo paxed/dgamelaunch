@@ -26,6 +26,8 @@
 	* Allow page up and page down on the watch games menu
 	* Merge BSD compatibility patches
 	* All licenses in source code mentioned in COPYING
+	* Use fcntl for all file locking; flock(3) is not portable
+	* Fix some troublesome uses of strncpy() with strlcpy
 
 1.3.10 (2003/10/22)
 	* Added a mode flag to the open call for inprogress lock files.
