@@ -10,7 +10,7 @@ CC = gcc
 LDFLAGS = 
 CFLAGS = -g3 $(optimize) -Wall $(DEFS)
 DEFS = -DVERSION=\"$(VERSION)\"
-SRCS = virus.c ttyrec.c dgamelaunch.c io.c ttyplay.c stripgfx.c strlcpy.c
+SRCS = virus.c ttyrec.c dgamelaunch.c io.c ttyplay.c stripgfx.c strlcpy.c strlcat.c
 OBJS = $(SRCS:.c=.o)
 LIBS = -lncurses -lcrypt -lutil
 

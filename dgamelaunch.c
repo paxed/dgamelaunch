@@ -223,7 +223,7 @@ loadbanner (struct dg_banner *ban)
                 bufnew[i] = *(b++);
               else
                 {
-                  strncat (bufnew, VERSION, 80 - i);
+                  strlcat (bufnew, VERSION, 80 - i);
                   b += 8;       /* skip the whole $VERSION string */
                   i += ARRAY_SIZE (VERSION);
                 }
