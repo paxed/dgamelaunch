@@ -21,7 +21,7 @@ $(NAME): $(OBJS)
 
 clean:
 	rm -f dgamelaunch
-	rm -f *.o .#* *~
+	rm -f *.o .#* *~ y.tab.* lex.yy.c
 	
 install:
 	cp dgamelaunch /usr/sbin
