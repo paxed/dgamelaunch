@@ -49,7 +49,7 @@
  |	proprietary information which is protected by
  |	copyright.  All rights are reserved.
  |
- |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.4 2004/01/23 18:48:44 joshk Exp $
+ |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.5 2004/01/23 19:50:39 joshk Exp $
  |
  */
 
@@ -62,7 +62,7 @@ char *ee_long_notice[] = {
 	"copyright.  All rights are reserved."
 	};
 
-char *version = "@(#) ee, version 1.4.1  $Revision: 1.4 $";
+char *version = "@(#) ee, version 1.4.1  $Revision: 1.5 $";
 
 #define catgetlocal(a, b) (b)
 
@@ -340,14 +340,6 @@ struct menu_entries leave_menu[] = {
 #define WRITE_FILE 2
 #define SAVE_FILE 3
 
-struct menu_entries file_menu[] = {
-	{"", NULL, NULL, NULL, NULL, -1},
-	{"", NULL, NULL, file_op, NULL, READ_FILE},
-	{"", NULL, NULL, file_op, NULL, WRITE_FILE},
-	{"", NULL, NULL, file_op, NULL, SAVE_FILE},
-	{NULL, NULL, NULL, NULL, NULL, -1}
-	};
-
 struct menu_entries search_menu[] = {
 	{"", NULL, NULL, NULL, NULL, 0}, 
 	{"", NULL, NULL, NULL, search_prompt, -1},
@@ -359,7 +351,7 @@ struct menu_entries main_menu[] = {
 	{"", NULL, NULL, NULL, NULL, -1}, 
 	{"", NULL, NULL, NULL, leave_op, -1}, 
 	{"", NULL, NULL, NULL, help, -1},
-	{"", menu_op, file_menu, NULL, NULL, -1}, 
+	{"", NULL, NULL, file_op, NULL, SAVE_FILE},
 	{"", NULL, NULL, NULL, redraw, -1}, 
 	{"", NULL, NULL, NULL, modes_op, -1}, 
 	{"", menu_op, search_menu, NULL, NULL, -1}, 
@@ -3423,26 +3415,7 @@ int arg;
 		return(0);
 	}
 
-	if (arg == READ_FILE)
-	{
-		string = get_string(file_read_prompt_str, TRUE);
-		recv_file = TRUE;
-		tmp_file = resolve_name(string);
-		check_fp();
-		if (tmp_file != string)
-			free(tmp_file);
-		free(string);
-	}
-	else if (arg == WRITE_FILE)
-	{
-		string = get_string(file_write_prompt_str, TRUE);
-		tmp_file = resolve_name(string);
-		write_file(tmp_file, -1);
-		if (tmp_file != string)
-			free(tmp_file);
-		free(string);
-	}
-	else if (arg == SAVE_FILE)
+	if (arg == SAVE_FILE)
 	{
 	/*
 	 |	changes made here should be reflected in ee_finish()
@@ -4430,18 +4403,13 @@ strings_init()
 	leave_menu[0].item_string  = catgetlocal( 9, "leave menu");
 	leave_menu[1].item_string  = catgetlocal( 10, "save changes");
 	leave_menu[2].item_string  = catgetlocal( 11, "no save");
-	file_menu[0].item_string  = catgetlocal( 12, "file menu");
-	file_menu[1].item_string  = catgetlocal( 13, "read a file");
-	file_menu[2].item_string  = catgetlocal( 14, "write a file");
-	file_menu[3].item_string  = catgetlocal( 15, "save file");
-	file_menu[4].item_string  = catgetlocal( 16, "print (disabled)");
 	search_menu[0].item_string = catgetlocal( 17, "search menu");
 	search_menu[1].item_string = catgetlocal( 18, "search for ...");
 	search_menu[2].item_string = catgetlocal( 19, "search");
 	main_menu[0].item_string  = catgetlocal( 27, "main menu");
 	main_menu[1].item_string  = catgetlocal( 28, "leave editor");
 	main_menu[2].item_string  = catgetlocal( 29, "help");
-	main_menu[3].item_string  = catgetlocal( 30, "file operations");
+	main_menu[3].item_string  = catgetlocal( 30, "save file");
 	main_menu[4].item_string  = catgetlocal( 31, "redraw screen");
 	main_menu[5].item_string  = catgetlocal( 32, "settings");
 	main_menu[6].item_string  = catgetlocal( 33, "search");
