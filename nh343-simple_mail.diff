@@ -77,7 +77,7 @@ diff -urN orig/nethack-3.4.3/src/mail.c nethack-3.4.3/src/mail.c
  		return;
  
  	laststattime = moves;
-@@ -501,9 +509,67 @@
+@@ -501,9 +509,68 @@
  readmail(otmp)
  struct obj *otmp;
  {
@@ -89,7 +89,7 @@ diff -urN orig/nethack-3.4.3/src/mail.c nethack-3.4.3/src/mail.c
 +	if (iflags.simplemail)
 +	{
 +		FILE* mb = fopen(mailbox, "r");
-+		char curline[80], *msg;
++		char curline[102], *msg;
 +		boolean seen_one_already = FALSE;
 +		struct flock fl = { 0 };
 +
@@ -107,7 +107,7 @@ diff -urN orig/nethack-3.4.3/src/mail.c nethack-3.4.3/src/mail.c
 +		
 +		errno = 0;
 +		
-+		while (fgets(curline, 80, mb) != NULL)
++		while (fgets(curline, 102, mb) != NULL)
 +		{
 +		  fl.l_type = F_UNLCK;
 +		  fcntl (fileno(mb), F_UNLCK, &fl);
@@ -139,6 +139,7 @@ diff -urN orig/nethack-3.4.3/src/mail.c nethack-3.4.3/src/mail.c
 +		fcntl(fileno(mb), F_UNLCK, &fl);
 +		
 +		fclose(mb);
++		unlink(mailbox);
 +		return;
 +	}
 +# endif /* SIMPLE_MAIL */
