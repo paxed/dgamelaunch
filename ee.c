@@ -49,7 +49,7 @@
  |	proprietary information which is protected by
  |	copyright.  All rights are reserved.
  |
- |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.6 2004/01/24 21:49:13 joshk Exp $
+ |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.7 2004/01/25 22:44:34 joshk Exp $
  |
  */
 
@@ -62,7 +62,7 @@ char *ee_long_notice[] = {
 	"copyright.  All rights are reserved."
 	};
 
-char *version = "@(#) ee, version 1.4.1  $Revision: 1.6 $";
+char *version = "@(#) ee, version 1.4.1  $Revision: 1.7 $";
 
 #define catgetlocal(a, b) (b)
 
@@ -451,7 +451,7 @@ FILE *fopen();			/* declaration for open function	*/
 #endif /* __STDC__ */
 
 int
-ee_main(argc, argv)		/* beginning of main program		*/
+editor_main(argc, argv)		/* beginning of main program		*/
 int argc;
 char *argv[];
 {

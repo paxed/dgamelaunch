@@ -16,12 +16,18 @@ else
   endif
 endif
 
+ifdef VIRUS
+  EDITOR = virus.c
+else
+  EDITOR = ee.c
+endif
+
 CC = gcc
 LDFLAGS = 
 CFLAGS = -g3 $(optimize) -Wall -Wno-unused $(DEFS)
 INSTALL = install -c
 DEFS = -DVERSION=\"$(VERSION)\"
-SRCS = ee.c ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c stripgfx.c strlcpy.c strlcat.c y.tab.c lex.yy.c
+SRCS = $(EDITOR) ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c stripgfx.c strlcpy.c strlcat.c y.tab.c lex.yy.c
 OBJS = $(SRCS:.c=.o)
 LIBS = -lcurses -lcrypt $(LUTIL) -ll
 
@@ -63,3 +69,4 @@ io.o: io.c ttyrec.h
 stripgfx.o: stripgfx.c stripgfx.h
 ttyplay.o: ttyplay.c ttyrec.h io.h stripgfx.h
 ttyrec.o: ttyrec.c dgamelaunch.h ttyrec.h io.h
+virus.o: virus.c last_char_is.c

@@ -46,7 +46,6 @@ char *vi_Version = "0.0.2+dgamelaunch " VERSION;
  */
 
 //----  Feature --------------  Bytes to immplement
-#define vi_main			vi_main
 #define BB_FEATURE_VI_COLON     // 4288
 #define BB_FEATURE_VI_YANKMARK  // 1408
 #define BB_FEATURE_VI_SEARCH    // 1088
@@ -303,7 +302,7 @@ static int crashme = 0;
 
 
 extern int
-vi_main (int argc, char **argv)
+editor_main (int argc, char **argv)
 {
 #ifdef BB_FEATURE_VI_YANKMARK
   int i;

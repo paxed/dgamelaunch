@@ -84,7 +84,7 @@ extern int yyparse ();
 
 extern pid_t child; /* nethack process */
 
-extern int ee_main (int argc, char **argv);
+extern int editor_main (int argc, char **argv);
 extern int ttyplay_main (char *ttyfile, int mode, int rstripgfx);
 extern int ttyrec_main (char *username, char* ttyrec_filename);
 extern int master, slave;
@@ -711,7 +711,7 @@ drawmenu ()
     {
       mvprintw (banner.len + 2, 1, "Logged in as: %s", me->username);
       mvaddstr (banner.len + 4, 1, "c) Change password");
-      mvaddstr (banner.len + 5, 1, "o) Edit option file (uses ee)");
+      mvaddstr (banner.len + 5, 1, "o) Edit option file");
       mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
       mvaddstr (banner.len + 7, 1, "p) Play nethack!");
       mvaddstr (banner.len + 8, 1, "q) Quit");
@@ -1193,7 +1193,7 @@ editoptions ()
   }
   else if (editor == 0)
   {
-    ee_main (2, myargv);
+    editor_main (2, myargv);
     exit(0);
   }
   else

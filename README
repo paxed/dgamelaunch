@@ -1,4 +1,4 @@
-udgamelaunch
+dgamelaunch
 ===========
 
 dgamelaunch is a network-based game shell where anyone can sign up for an
@@ -12,6 +12,13 @@ on all of these platforms is a different issue. We'd like to hear about it.)
 On all platforms you should make sure that the curses library is accessible
 at runtime using the -R flag to gcc, or using LD_RUN_PATH or LD_LIBRARY_PATH
 as environment variables during build and run time, respectively.
+
+NOTE: As of version 1.4 of dgamelaunch, 'ee' is now the default rc-file editor.
+Using the 'virus' editor is still supported - all you have to do is
+
+  make clean; make VIRUS=1
+
+(The make clean will guarantee that the dgamelaunch binary gets rebuilt.)
 
 dgamelaunch was originally developed by M. Drew Streib <dtype@dtype.org> but
 is now a collaborative project. Copyright and contact information is in the 
