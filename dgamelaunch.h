@@ -71,4 +71,7 @@ extern void write_canned_rcfile (char *target);
 extern void editoptions (void);
 extern void writefile (int requirenew);
 
+/* strlcpy.c */
+extern size_t strlcpy(char *dst, const char *src, size_t siz);
+
 #endif

@@ -314,14 +314,14 @@ populate_games (int *l)
                 *replacestr = '\0';
 
               games[len]->name = malloc (strlen (pdirent->d_name) + 1);
-              strncpy (games[len]->name, pdirent->d_name,
+              strlcpy (games[len]->name, pdirent->d_name,
                        strlen (pdirent->d_name) + 1);
 
               games[len]->date = malloc (11);
-              strncpy (games[len]->date, replacestr + 1, 10);
+              strlcpy (games[len]->date, replacestr + 1, 11);
 
               games[len]->time = malloc (9);
-              strncpy (games[len]->time, replacestr + 12, 8);
+              strlcpy (games[len]->time, replacestr + 12, 9);
 
               games[len]->idle_time = pstat.st_mtime;
 
