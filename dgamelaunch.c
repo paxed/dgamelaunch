@@ -537,9 +537,10 @@ freefile ()
 			free (users[i]);
 		}
 
-	free(users); 
+	if (users)
+		free(users); 
+
 	users = NULL;
-	me = NULL;
 	f_num = 0;
 }
 
@@ -557,6 +558,20 @@ initncurses ()
 }
 
 /* ************************************************************* */
+
+struct dg_user *
+deep_copy (struct dg_user * src)
+{
+  struct dg_user *dest = malloc(sizeof (struct dg_user));
+
+  dest->username = strdup(src->username);
+  dest->email = strdup(src->email);
+  dest->env = strdup(src->env);
+  dest->password = strdup(src->password);
+  dest->flags = src->flags;
+
+  return dest;
+}
 
 void
 login ()
@@ -593,7 +608,7 @@ login ()
 
 			if ((me_index = userexist (user_buf)) != -1)
 			{
-			  me = users[me_index];
+			  me = deep_copy(users[me_index]);
 				error = 0;
 			}
 		}
@@ -657,6 +672,8 @@ newuser ()
 			getnstr (buf, 20);
 			if (userexist (buf) == -1)
 				error = 0;
+			else
+			  error = 1;
 
 			for (i = 0; i < strlen (buf); i++)
 				{
@@ -1090,6 +1107,9 @@ main (void)
 
 	/* NOW we can safely kill this */
 	freefile ();
+
+	if (me)
+	  free(me);
 	
 	exit (1);
 	return 1;

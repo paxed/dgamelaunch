@@ -104,11 +104,12 @@ ttyrec_main (char *username)
 	void finish ();
 	char dirname[100];
 
-	snprintf (dirname, 100, "/%s%s%s", LOC_TTYRECDIR, username,
-						ttyrec_filename);
+	snprintf (dirname, 100, "%s%s", LOC_TTYRECDIR, username);
 
 	if (access(dirname, F_OK) != 0)
 		mkdir (dirname, 0755);
+
+	snprintf (dirname, 100, "%s%s/%s", LOC_TTYRECDIR, username, ttyrec_filename);
 
 	if ((fscript = fopen (dirname, "w")) == NULL)
 		{
