@@ -8,7 +8,7 @@ endif
 
 CC = gcc
 LDFLAGS = 
-CFLAGS = -g3 $(optimize) -Wall -W $(DEFS)
+CFLAGS = -g3 $(optimize) -Wall $(DEFS)
 DEFS = -DVERSION=\"$(VERSION)\"
 SRCS = virus.c ttyrec.c dgamelaunch.c io.c ttyplay.c stripgfx.c
 OBJS = $(SRCS:.c=.o)
@@ -22,8 +22,10 @@ $(NAME): $(OBJS)
 clean:
 	rm -f dgamelaunch
 	rm -f *.o .#* *~
+	
 install:
 	cp dgamelaunch /usr/sbin
+	
 indent:
 	indent -nut -ts2 *.c *.h
 	rm -f *~
