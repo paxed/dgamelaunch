@@ -1,4 +1,4 @@
-1.3.10.1 (2003/12/27)
+1.4 (2003/12/27)
 	* Major cleanups - remove most uses of strcpy() and strcat(), except
 	  in virus.c, replace with snprintf.
 	* Add support for mailing users while they are playing.
