@@ -47,7 +47,9 @@ AC_SEARCH_LIBS(initscr, [curses ncurses])
 
 AC_ARG_ENABLE(enable-virus,
 [AC_HELP_STRING([--enable-virus], [Use the 'virus' vi clone instead of the friendly ee editor.])],
-[AC_SUBST(EDITOR, virus.c)], [AC_SUBST(EDITOR, ee.c)])
+[EDITOR=virus.c], [EDITOR=virus.c])
+
+AC_SUBST(EDITOR)
 
 AC_ARG_WITH(config-file,
 [AC_HELP_STRING([--with-config-file=PATH], [Define the path to the default configuration file.])],
