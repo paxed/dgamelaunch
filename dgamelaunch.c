@@ -335,7 +335,7 @@ populate_games (int *l)
         }
       fl.l_type = F_UNLCK;
 
-      fcntl (fd, F_UNLCK, &fl);
+      fcntl (fd, F_SETLK, &fl);
       close (fd);
     }
 
@@ -572,7 +572,7 @@ domailuser (char *username)
 
   fl.l_type = F_UNLCK;
 
-  if (fcntl (fileno (user_spool), F_UNLCK, &fl) == -1)
+  if (fcntl (fileno (user_spool), F_SETLK, &fl) == -1)
     mvaddstr (10, 1, "Couldn't unlock the file! Oh well.");
 
   fclose (user_spool);
