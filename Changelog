@@ -36,6 +36,8 @@
 	  ^H and ^?
 	* Now use 'ee' as the default rcfile editor. virus is still a compile
 	  time option - see README for details.
+	* A giant code cleanup that centralizes necessary globals, removes
+	  unnecessary variables and #defines...
 
 1.3.10 (2003/10/22)
 	* Added a mode flag to the open call for inprogress lock files.
