@@ -342,6 +342,8 @@ populate_gfx_array (int gfxset)
 {
   int i;
 
+  state = 0;
+
   memset (gfx_map, 0, 256);
 
   if (gfxset == NO_GRAPHICS)
@@ -353,8 +355,11 @@ populate_gfx_array (int gfxset)
           && !(gfx_map[dec_graphics[i]]))
         gfx_map[dec_graphics[i] - 128] = no_graphics[i];
       if ((gfxset == IBM_GRAPHICS) && (ibm_graphics[i]))
-        gfx_map[ibm_graphics[i] - 128] = no_graphics[i];
+        gfx_map[ibm_graphics[i]] = no_graphics[i];
     }
+
+  if (gfxset == IBM_GRAPHICS)
+    state = -1;
 
   /*
      endwin();
@@ -385,7 +390,7 @@ strip_gfx (unsigned char inchar)
       return inchar;
     }
 
-  if (gfx_map[inchar] && (state == 1))
+  if (gfx_map[inchar] && (state == 1 || state == -1))
     {
       return gfx_map[inchar];
     }
