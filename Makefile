@@ -8,6 +8,14 @@ ifndef optimize
   optimize = -O0
 endif
 
+ifeq (Linux,$(shell uname -s))
+  LUTIL = -lutil
+else
+  ifeq (BSD,$(shell uname -s | grep -o BSD))
+    LUTIL = -lutil
+  endif
+endif
+
 CC = gcc
 LDFLAGS = 
 CFLAGS = -g3 $(optimize) -Wall -Wno-unused $(DEFS)
@@ -15,7 +23,7 @@ INSTALL = install -c
 DEFS = -DVERSION=\"$(VERSION)\"
 SRCS = virus.c ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c stripgfx.c strlcpy.c strlcat.c y.tab.c lex.yy.c
 OBJS = $(SRCS:.c=.o)
-LIBS = -lcurses -lcrypt  -ll
+LIBS = -lcurses -lcrypt $(LUTIL) -ll
 
 all: $(NAME)
 
