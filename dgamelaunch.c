@@ -140,12 +140,18 @@ gen_inprogress_lock ()
 {
   char lockfile[130];
   int fd;
+  struct flock fl = { 0 };
+
+  fl.l_type = F_WRLCK;
+  fl.l_whence = SEEK_SET;
+  fl.l_start = 0;
+  fl.l_len = 0;
 
   snprintf (lockfile, 130, "%s%s:%s", LOC_INPROGRESSDIR,
             me->username, ttyrec_filename);
 
   fd = open (lockfile, O_WRONLY | O_CREAT, 0644);
-  if (flock (fd, LOCK_EX))
+  if (fcntl (fd, F_SETLKW, &fl) == -1)
     exit (68);
 }
 
@@ -263,6 +269,12 @@ populate_games (int *l)
   char fullname[130], ttyrecname[130];
   char *replacestr;
   struct dg_game **games = NULL;
+  struct flock fl = { 0 };
+
+  fl.l_type = F_WRLCK;
+  fl.l_whence = SEEK_SET;
+  fl.l_start = 0;
+  fl.l_len = 0;
 
   len = 0;
 
@@ -271,11 +283,16 @@ populate_games (int *l)
 
   while ((pdirent = readdir (pdir)))
     {
+      if (!strcmp (pdirent->d_name, ".") || !strcmp(pdirent->d_name, ".."))
+	continue;
+
       snprintf (fullname, 130, "%s%s", LOC_INPROGRESSDIR, pdirent->d_name);
 
       fd = 0;
-      fd = open (fullname, O_RDONLY);
-      if ((fd > 0) && flock (fd, LOCK_EX | LOCK_NB))
+      /* O_RDWR here should be O_RDONLY, but we need to test for
+       * an exclusive lock */
+      fd = open (fullname, O_RDWR);
+      if ((fd > 0) && fcntl(fd, F_SETLK, &fl) == -1)
         {
 
           /* stat to check idle status */
@@ -316,7 +333,9 @@ populate_games (int *l)
           /* clean dead ones */
           unlink (fullname);
         }
-      flock (fd, LOCK_UN | LOCK_NB);
+      fl.l_type = F_UNLCK;
+
+      fcntl (fd, F_UNLCK, &fl);
       close (fd);
     }
 
@@ -832,6 +851,12 @@ readfile (int nolock)
 {
   FILE *fp = NULL, *fpl = NULL;
   char buf[1200];
+  struct flock fl;
+
+  fl.l_type = F_RDLCK;
+  fl.l_whence = SEEK_SET;
+  fl.l_start = 0;
+  fl.l_len = 0;
 
   memset (buf, 1024, 0);
 
@@ -842,7 +867,7 @@ readfile (int nolock)
       fpl = fopen ("/dgl-lock", "r");
       if (!fpl)
         exit (106);
-      if (flock (fileno (fpl), LOCK_SH))
+      if (fcntl (fileno(fpl), F_SETLKW, &fl) == -1)
         exit (114);
     }
 
