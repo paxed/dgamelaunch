@@ -5,6 +5,10 @@
 
 #include <time.h>
 
+/* Default - should work everywhere */
+#define USE_OPENPTY
+#define NOSTREAMS
+
 struct dg_user
 {
   char *username;

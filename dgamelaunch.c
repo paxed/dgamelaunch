@@ -46,17 +46,24 @@
 
 #include <stdlib.h>
 #include <curses.h>
-#include <crypt.h>
 #include <sys/types.h>
 #include <sys/file.h>           /* for flock() */
+#include <sys/time.h>
+
+#ifndef __FreeBSD__
+# include <crypt.h>
+#else
+# include <libutil.h>
+#endif
+
+#include <time.h>
 #include <sys/resource.h>
 #include <sys/ioctl.h>          /* ttyrec */
 #include <errno.h>
-#include <time.h>
 #include <dirent.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/signal.h>
+#include <signal.h>
 #include <assert.h>
 #include <ctype.h>
 #include <unistd.h>
@@ -91,10 +98,12 @@ ttyrec_getmaster ()
 {
   (void) tcgetattr (0, &tt);
   (void) ioctl (0, TIOCGWINSZ, (char *) &win);
+#ifdef USE_OPENPTY
+  if (openpty(&master, &slave, NULL, &tt, &win) == -1)
+#else
   if ((master = open ("/dev/ptmx", O_RDWR)) < 0)
-    {
+#endif
       exit (62);
-    }
 }
 
 /* ************************************************************* */
@@ -1050,12 +1059,14 @@ main (void)
 
   /* get master tty just before chroot (lives in /dev) */
   ttyrec_getmaster ();
+#ifndef USE_OPENPTY
   grantpt (master);
   unlockpt (master);
   if ((slave = open ((const char *) ptsname (master), O_RDWR)) < 0)
     {
       exit (65);
     }
+#endif
 
 
   /* chroot */
@@ -1078,13 +1089,13 @@ main (void)
     exit(1);
   }
 
-  if (setgid (1, newgid) == -1)
+  if (setgid (newgid) == -1)
   {
     perror("setgid");
     exit(1);
   }
 
-  if (setuid (1, newuid) == -1)
+  if (setuid (newuid) == -1)
   {
     perror("setuid");
     exit(1);
