@@ -967,7 +967,7 @@ readfile (int nolock)
 {
   FILE *fp = NULL, *fpl = NULL;
   char buf[1200];
-  struct flock fl;
+  struct flock fl = { 0 };
 
   fl.l_type = F_RDLCK;
   fl.l_whence = SEEK_SET;
