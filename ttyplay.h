@@ -13,4 +13,4 @@ typedef void (*WriteFunc) (char *buf, int len);
 typedef void (*ProcessFunc) (FILE * fp, double speed,
                              ReadFunc read_func, WaitFunc wait_func);
 
-#endif /* !INCLUDED_ttyrec_h */
+#endif /* !INCLUDED_ttyplay_h */
