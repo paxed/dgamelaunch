@@ -37,7 +37,7 @@ dgl-wall: $(WALL_OBJS)
 	
 clean:
 	rm -f $(NAME) nethackstub dgl-wall
-	rm -f editors/*.o *.o .#* *~ y.tab.* lex.yy.c .depend .depend.bak
+	rm -f *.o .#* *~ y.tab.* lex.yy.c .depend .depend.bak
 
 distclean: clean
 	rm -f Makefile config.h config.log config.status
