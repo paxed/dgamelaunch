@@ -865,6 +865,20 @@ newuser ()
 
   loggedin = 0;
 
+  if (f_num >= myconfig->max)
+  {
+      clear ();
+
+      drawbanner (1, 1);
+
+      mvaddstr (5, 1, "Sorry, too many users have registered now.");
+      mvaddstr (6, 1, "You might email the server administrator.");
+      mvaddstr (7, 1, "Press return to return to the menu. ");
+      getch ();
+
+      return;
+  }
+
   if (me)
     free (me);
 
@@ -1077,7 +1091,7 @@ readfile (int nolock)
 
       f_num++;
       /* prevent a buffer overrun here */
-      if (f_num >= myconfig->max)
+      if (f_num > myconfig->max)
         graceful_exit (109);
     }
 
@@ -1230,8 +1244,11 @@ writefile (int requirenew)
     }
   if (loggedin && !my_done)
     {                           /* new entry */
-      fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
-               me->env);
+      if (f_num < myconfig->max)
+        fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
+                 me->env);
+      else /* Oops, someone else registered the last available slot first */
+        graceful_exit (116);
     }
 
   fcntl (fileno (fpl), F_UNLCK, &fl);
