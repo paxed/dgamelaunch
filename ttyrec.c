@@ -49,7 +49,7 @@
 #include <sys/ioctl.h>
 #include <time.h>
 #include <sys/file.h>
-#include <sys/signal.h>
+#include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
