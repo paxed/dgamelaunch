@@ -1,4 +1,4 @@
-1.4.5 (2004/06/12)
+1.4.5 (2004/06/14)
 	* Reset offset if necessary to show at least one game to avoid things
 	  like "(15-14 of 14)".
 	* Provide several examples for dgl-create-chroot.conf.
