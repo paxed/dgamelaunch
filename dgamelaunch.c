@@ -29,7 +29,10 @@
  */
 
 #define _GNU_SOURCE
+
 #include "dgamelaunch.h"
+#include "ttyplay.h"
+#include "ttyrec.h"
 
 /* a request from the author: please leave some remnance of
  * 'based on dgamelaunch version xxx' in any derivative works, or
@@ -82,14 +85,7 @@
 extern FILE* yyin;
 extern int yyparse ();
 
-extern pid_t child; /* nethack process */
-
 extern int editor_main (int argc, char **argv);
-extern int ttyplay_main (char *ttyfile, int mode, int rstripgfx);
-extern int ttyrec_main (char *username, char* ttyrec_filename);
-extern int master, slave;
-extern struct termios tt;
-extern struct winsize win;
 
 /* global variables */
 

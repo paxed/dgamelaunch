@@ -54,33 +54,38 @@ struct dg_config
   unsigned long max;
 };
 
+/* Global variables */
 extern char* config; /* file path */
 extern struct dg_config *myconfig;
+extern char *chosen_name;
+extern int loggedin;
 
-/* dgamelaunch.c function prototypes */
-extern void create_config (void);
-extern void ttyrec_getmaster (void);
-extern char* gen_ttyrec_filename (void);
-extern char* gen_inprogress_lock (pid_t pid, char* ttyrec_filename);
-extern void catch_sighup (int signum);
-extern void loadbanner (struct dg_banner *ban);
-extern void drawbanner (unsigned int start_line, unsigned int howmany);
-extern struct dg_game **populate_games (int *l);
-extern void inprogressmenu (void);
-extern int changepw (void);
-extern void domailuser (char *username);
-extern void drawmenu (void);
-extern void freefile (void);
-extern void initcurses (void);
-extern void loginprompt (void);
-extern void newuser (void);
-extern int passwordgood (char *cpw);
-extern int readfile (int nolock);
-extern int userexist (char *cname);
-extern void write_canned_rcfile (char *target);
-extern void editoptions (void);
-extern void writefile (int requirenew);
-extern void graceful_exit (int status);
+/* dgamelaunch.c */
+extern void create_config(void);
+extern void ttyrec_getmaster(void);
+extern char *gen_ttyrec_filename(void);
+extern char *gen_inprogress_lock(pid_t pid, char *ttyrec_filename);
+extern void catch_sighup(int signum);
+extern void loadbanner(struct dg_banner *ban);
+extern void drawbanner(unsigned int start_line, unsigned int howmany);
+extern struct dg_game **populate_games(int *l);
+extern void inprogressmenu(void);
+extern int changepw(void);
+extern void domailuser(char *username);
+extern void drawmenu(void);
+extern void freefile(void);
+extern void initcurses(void);
+extern void loginprompt(void);
+extern void newuser(void);
+extern int passwordgood(char *cpw);
+extern int readfile(int nolock);
+extern int userexist(char *cname);
+extern void write_canned_rcfile(char *target);
+extern void editoptions(void);
+extern void writefile(int requirenew);
+extern void graceful_exit(int status);
+extern int purge_stale_locks(void);
+extern void menuloop(void);
 
 /* strlcpy.c */
 extern size_t strlcpy (char *dst, const char *src, size_t siz);

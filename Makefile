@@ -62,7 +62,7 @@ indent:
 lex.yy.c: config.l
 	$(LEX) $<
 
-y.tab.c: config.y
+y.tab.c y.tab.h: config.y
 	$(YACC) -d $<
 
 lex.yy.o: lex.yy.c
@@ -76,9 +76,15 @@ dist: clean
 	@echo "Created source release $(NAME)-$(VERSION).tar.gz"
 	
 # Dependencies - we may auto-generate later
-dgamelaunch.o: dgamelaunch.c dgamelaunch.h y.tab.o
+ee.o: ee.c
 io.o: io.c ttyrec.h
+last_char_is.o: last_char_is.c
+mygetnstr.o: mygetnstr.c
+nethackstub.o: nethackstub.c
 stripgfx.o: stripgfx.c stripgfx.h
-ttyplay.o: ttyplay.c ttyrec.h io.h stripgfx.h
+strlcat.o: strlcat.c
+strlcpy.o: strlcpy.c
+ttyplay.o: ttyplay.c dgamelaunch.h ttyplay.h ttyrec.h io.h stripgfx.h
 ttyrec.o: ttyrec.c dgamelaunch.h ttyrec.h io.h
 virus.o: virus.c last_char_is.c
+y.tab.o: y.tab.c dgamelaunch.h

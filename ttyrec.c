@@ -42,11 +42,10 @@
 /*
  * script
  */
-#include "dgamelaunch.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <sys/file.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 
@@ -62,6 +61,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
+#include "dgamelaunch.h"
 #include "ttyrec.h"
 #include "io.h"
 
@@ -69,31 +69,20 @@
 # define XCASE 0
 #endif
 
-void done (void);
-void fail (void);
-void fixtty (void);
-void getslave (void);
-void doinput (void);
-void dooutput (void);
-void doshell (char *);
-
-FILE *fscript;
-int master;
 int slave;
 pid_t child, subchild;
 char* ipfile = NULL;
 
+FILE *fscript;
+int master;
+
 struct termios tt;
 struct winsize win;
-int lb;
-int l;
-int aflg;
 int uflg;
 
 int
 ttyrec_main (char *username, char* ttyrec_filename)
 {
-  void finish ();
   char dirname[100];
 
   snprintf (dirname, 100, "%sttyrec/%s", myconfig->dglroot, username);
@@ -157,15 +146,19 @@ doinput ()
 }
 
 void
-finish ()
+finish (int sig)
 {
   int status;
   register int pid;
   register int die = 0;
 
-  while ((pid = wait3 ((int *) &status, WNOHANG, 0)) > 0)
+  (void)sig; /* unused */
+
+  while ((pid = wait3 (&status, WNOHANG, 0)) > 0)
+  {
     if (pid == child)
       die = 1;
+  }
 
   if (die)
     done ();

@@ -42,27 +42,15 @@
 #include <termios.h>
 #include <string.h>
 #include <curses.h>
+
+#include "dgamelaunch.h"
+#include "ttyplay.h"
 #include "ttyrec.h"
 #include "io.h"
 #include "stripgfx.h"
 
-extern void domailuser (char *);
-extern void initcurses (void);
-extern char *chosen_name;
-extern int loggedin;
-
-int ttyplay_main (char *ttyfile, int mode, int rstripgfx);
-
 off_t seek_offset_clrscr;
 int bstripgfx;
-char *ttyfile_local;
-
-typedef double (*WaitFunc) (struct timeval prev,
-                            struct timeval cur, double speed);
-typedef int (*ReadFunc) (FILE * fp, Header * h, char **buf, int pread);
-typedef void (*WriteFunc) (char *buf, int len);
-typedef void (*ProcessFunc) (FILE * fp, double speed,
-                             ReadFunc read_func, WaitFunc wait_func);
 
 struct timeval
 timeval_diff (struct timeval tv1, struct timeval tv2)
@@ -210,11 +198,6 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
                 {
                   initcurses ();
                   domailuser (chosen_name);
-		  /* XXX jilles: just quit out after mail for now */
-#if 0
-                  endwin ();
-                  ttyplay_main (ttyfile_local, 1, 0); /* ICK! Recursive */
-#endif
                   return 0;
                 }
               break;
@@ -391,8 +374,6 @@ ttyplay_main (char *ttyfile, int mode, int rstripgfx)
   ProcessFunc process = ttyplayback;
   FILE *input = stdin;
   struct termios old, new;
-
-  ttyfile_local = ttyfile;
 
   /* strip graphics mode flag */
   bstripgfx = rstripgfx;

@@ -11,5 +11,20 @@ typedef struct header
 }
 Header;
 
+extern void done (void);
+extern void fail (void);
+extern void fixtty (void);
+extern void getslave (void);
+extern void doinput (void);
+extern void dooutput (void);
+extern void doshell (char *);
+extern void finish (int);
+
+extern int ttyrec_main(char *username, char *ttyrec_filename);
+
+extern pid_t child; /* nethack process */
+extern int master, slave;
+extern struct termios tt;
+extern struct winsize win;
 
 #endif
