@@ -23,7 +23,13 @@ playground_fixed="/usr/lib/games/nethack"
 # variable data to create (leave blank to skip) (may be equal to previous)
 playground_var="/var/games/nethack"
 # termcap/terminfo (copied recursively) (leave blank to skip)
-termdata="/usr/share/terminfo"
+if [ -d "/etc/terminfo" ]; then
+  termdata="/etc/terminfo"
+elif [ -d "/usr/share/lib/terminfo" ]; then
+  termdata="/usr/share/lib/terminfo"
+else
+  termdata="/usr/share/terminfo"
+fi
 
 [ -f dgl-create-chroot.conf ] && . ./dgl-create-chroot.conf
 
@@ -122,8 +128,7 @@ fi
 if [ -n "$termdata" ]; then
 	mkdir -p $chroot_path`dirname $termdata`
 	if [ -d $termdata/. ]; then
-		# $termdata might be full of symlinks, like Debian is
-		cp -L -R $termdata/. $chroot_path$termdata
+		cp -R $termdata/. $chroot_path$termdata
 	else
 		cp $termdata $chroot_path`dirname $termdata`
 	fi

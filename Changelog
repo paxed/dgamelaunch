@@ -4,9 +4,8 @@
         * Bind with Satan / start using autoconf.
         * Fix a bug in automatic authorization that revealed the username
           and password in ps output, by munging argv.
-        * Fix dgl-create-chroot's copying of terminfo - the terminfo dir
-          might be full of symlinks, so dereference them by passing -L to
-          cp. It's SUSv3, honest!
+        * Fix dgl-create-chroot's copying of terminfo by choosing a sane
+          default.
         * Now compiles with Tiny C Compiler.
 
 1.4.5 (2004/06/14)
