@@ -31,14 +31,15 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/stat.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
 #include <termios.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <string.h>
 #include <curses.h>
 #include "ttyrec.h"

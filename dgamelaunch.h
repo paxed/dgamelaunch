@@ -56,13 +56,12 @@ struct dg_config
 
 extern char* config; /* file path */
 extern struct dg_config *myconfig;
-extern struct dg_config defconfig;
 
 /* dgamelaunch.c function prototypes */
 extern void create_config (void);
 extern void ttyrec_getmaster (void);
-extern void gen_ttyrec_filename (void);
-extern void gen_inprogress_lock (pid_t pid);
+extern char* gen_ttyrec_filename (void);
+extern void gen_inprogress_lock (pid_t pid, char* ttyrec_filename);
 extern void catch_sighup (int signum);
 extern void loadbanner (struct dg_banner *ban);
 extern void drawbanner (unsigned int start_line, unsigned int howmany);

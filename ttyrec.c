@@ -45,10 +45,13 @@
 #include "dgamelaunch.h"
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <termios.h>
 #include <sys/ioctl.h>
-#include <time.h>
 #include <sys/file.h>
+#include <sys/time.h>
+#include <sys/wait.h>
+
+#include <termios.h>
+#include <time.h>
 #include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -59,26 +62,12 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-#include <sys/time.h>
 #include "ttyrec.h"
 #include "io.h"
 
 #ifndef XCASE
 # define XCASE 0
 #endif
-
-#define HAVE_inet_aton
-#define HAVE_scsi_h
-#define HAVE_kd_h
-
-#define _(FOO) FOO
-
-#ifdef HAVE_openpty
-#include <libutil.h>
-#endif
-
-extern char ttyrec_filename[100];
-extern int pid_game;
 
 void done (void);
 void fail (void);
@@ -91,8 +80,7 @@ void doshell (char *);
 FILE *fscript;
 int master;
 int slave;
-int child;
-int subchild;
+pid_t child, subchild;
 
 struct termios tt;
 struct winsize win;
@@ -102,7 +90,7 @@ int aflg;
 int uflg;
 
 int
-ttyrec_main (char *username)
+ttyrec_main (char *username, char* ttyrec_filename)
 {
   void finish ();
   char dirname[100];
@@ -142,8 +130,7 @@ ttyrec_main (char *username)
       if (child)
         {
           close (slave);
-          pid_game = child;
-          gen_inprogress_lock (pid_game);
+          gen_inprogress_lock (child, ttyrec_filename);
           dooutput ();
         }
       else
@@ -165,8 +152,6 @@ doinput ()
     (void) write (master, ibuf, cc);
   done ();
 }
-
-#include <sys/wait.h>
 
 void
 finish ()

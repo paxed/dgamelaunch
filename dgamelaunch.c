@@ -1,7 +1,7 @@
 /* dgamelaunch.c
  *
- * (c)2001-3 M. Drew Streib <dtype@dtype.org>
- * also parts (c) 2003 Joshua Kwan <joshk@triplehelix.org>,
+ * (c)2001-4 M. Drew Streib <dtype@dtype.org>
+ * also parts (c) 2003-4 Joshua Kwan <joshk@triplehelix.org>,
  * Brett Carrington <brettcar@segvio.org>,
  * Jilles Tjoelker <jilles@stack.nl>
  *
@@ -26,12 +26,6 @@
  * This is a little wrapper for nethack (and soon other programs) that
  * will allow them to be run from a telnetd session, chroot, shed privs,
  * make a simple login, then play the game.
- *
- * By default, this thing is also statically compiled, and can thus be
- * run inside of a chroot jail itself if necessary.
- *
- * Yes, I know it is all global variables. Deal with it. The program
- * is very small.
  */
 
 #define _GNU_SOURCE
@@ -48,12 +42,14 @@
 
 /* program stuff */
 
-#include <stdlib.h>
-#include <curses.h>
 #include <sys/types.h>
-#include <sys/file.h>           /* for flock() */
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <sys/ioctl.h>          /* ttyrec */
+#include <sys/stat.h>
+
+#include <stdlib.h>
+#include <curses.h>
 
 #ifndef __FreeBSD__
 # include <crypt.h>
@@ -73,12 +69,9 @@
 #include <pwd.h>
 #include <grp.h>
 #include <time.h>
-#include <sys/resource.h>
-#include <sys/ioctl.h>          /* ttyrec */
 #include <errno.h>
 #include <dirent.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <signal.h>
 #include <assert.h>
 #include <ctype.h>
@@ -89,11 +82,12 @@
 extern FILE* yyin;
 extern int yyparse ();
 
+extern pid_t child; /* nethack process */
+
 extern int ee_main (int argc, char **argv);
 extern int ttyplay_main (char *ttyfile, int mode, int rstripgfx);
-extern int ttyrec_main (char *);
-extern int master;
-extern int slave;
+extern int ttyrec_main (char *username, char* ttyrec_filename);
+extern int master, slave;
 extern struct termios tt;
 extern struct winsize win;
 
@@ -103,23 +97,21 @@ struct dg_config *myconfig = NULL;
 char* config = NULL;
 
 struct dg_config defconfig = {
-  "/var/lib/dgamelaunch/",
-  "/bin/nethack",
-  "/dgldir/",
-  "/dgl-lock",
-  "/dgl-login",
-  "/dgl-banner",
-  "/dgl-default-rcfile",
-  "/var/mail/",
-  "games", "games",
-  5, 60, /* games:games in Debian */
-  64000 
+  .chroot = "/var/lib/dgamelaunch/",
+  .nethack = "/bin/nethack",
+  .dglroot = "/dgldir/",
+  .lockfile = "/dgl-lock",
+  .passwd = "/dgl-login",
+  .banner = "/dgl-banner",
+  .rcfile = "/dgl-default-rcfile",
+  .spool = "/var/mail/",
+  .shed_user = "games", .shed_group = "games",
+  .shed_uid = 5, .shed_gid = 60, /* games:games in Debian */
+  .max = 64000 
 };
 
-int pid_game = 0;
 int loggedin = 0;
 char rcfilename[80];
-char ttyrec_filename[100];
 char *chosen_name;
 
 int f_num = 0;
@@ -225,11 +217,12 @@ ttyrec_getmaster ()
 
 /* ************************************************************* */
 
-void
+char*
 gen_ttyrec_filename ()
 {
   time_t rawtime;
   struct tm *ptm;
+  char *ttyrec_filename = calloc(100, sizeof(char));
 
   /* append time to filename */
   time (&rawtime);
@@ -237,12 +230,13 @@ gen_ttyrec_filename ()
   snprintf (ttyrec_filename, 100, "%04i-%02i-%02i.%02i:%02i:%02i.ttyrec",
             ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday,
             ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+  return ttyrec_filename;
 }
 
 /* ************************************************************* */
 
 void
-gen_inprogress_lock (pid_t pid)
+gen_inprogress_lock (pid_t pid, char* ttyrec_filename)
 {
   char lockfile[130], pidbuf[16];
   int fd;
@@ -270,10 +264,10 @@ gen_inprogress_lock (pid_t pid)
 void
 catch_sighup (int signum)
 {
-  if (pid_game)
+  if (child)
     {
       sleep (10);
-      kill (pid_game, SIGHUP);
+      kill (child, SIGHUP);
       sleep (5);
     }
   graceful_exit (2);
@@ -1520,11 +1514,8 @@ main (int argc, char** argv)
 
   free (spool);
 
-  /* lock */
-  gen_ttyrec_filename ();
-
   /* launch program */
-  ttyrec_main (me->username);
+  ttyrec_main (me->username, gen_ttyrec_filename());
 
   /* NOW we can safely kill this */
   freefile ();
