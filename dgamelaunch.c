@@ -170,7 +170,7 @@ create_config ()
     }
 
     /* Fill the rest with defaults */
-    if (!myconfig->shed_user && myconfig->shed_uid == 0)
+    if (!myconfig->shed_user && myconfig->shed_uid == -1)
     {
       struct passwd *pw;
       if ((pw = getpwnam(defconfig.shed_user)))
@@ -179,7 +179,7 @@ create_config ()
 	myconfig->shed_uid = defconfig.shed_uid;
     }
 
-    if (!myconfig->shed_group && myconfig->shed_gid == 0)
+    if (!myconfig->shed_group && myconfig->shed_gid == -1)
     {
       struct group *gr;
       if ((gr = getgrnam(defconfig.shed_group)))
