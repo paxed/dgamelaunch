@@ -69,7 +69,7 @@ KeyPair: KeyType '=' TYPE_VALUE {
       else
       {
         if (!silent)
-          fprintf(stderr, "%s: no such group '%s'\n", config, $3);
+          fprintf(stderr, "%s:%d: no such group '%s'\n", config, line, $3);
       }
       
       break;
@@ -79,7 +79,7 @@ KeyPair: KeyType '=' TYPE_VALUE {
 	
       if (!strcmp($3, "root"))
       {
-        fprintf(stderr, "%s: I refuse to run as root! Aborting.\n", config);
+        fprintf(stderr, "%s:%d: I refuse to run as root! Aborting.\n", config, line);
 	graceful_exit(1);
       }
       myconfig->shed_user = strdup($3);
@@ -94,14 +94,14 @@ KeyPair: KeyType '=' TYPE_VALUE {
 	}
 	else
 	{
-	  fprintf(stderr, "%s: I refuse to run as %s (uid 0!) Aborting.\n", config, $3);
+	  fprintf(stderr, "%s:%d: I refuse to run as %s (uid 0!) Aborting.\n", config, line, $3);
 	  graceful_exit(1);
 	}
       }
       else
       {
         if (!silent)
-          fprintf(stderr, "%s: no such user '%s'\n", config, $3);
+          fprintf(stderr, "%s:%d: no such user '%s'\n", config, line, $3);
       }
       break;
 
@@ -146,8 +146,8 @@ KeyPair: KeyType '=' TYPE_VALUE {
       break;
 
     default:
-      fprintf(stderr, "%s: token %s does not take a string, bailing out\n",
-        config, lookup_token($1));
+      fprintf(stderr, "%s:%d: token %s does not take a string, bailing out\n",
+        config, line, lookup_token($1));
       exit(1);
       
   }
@@ -173,7 +173,7 @@ KeyPair: KeyType '=' TYPE_VALUE {
       /* Naive user protection - do not allow running as user root */
       if ($3 == 0)
       {
-        fprintf(stderr, "%s: I refuse to run as uid 0 (root)! Aborting.\n", config);
+        fprintf(stderr, "%s:%d: I refuse to run as uid 0 (root)! Aborting.\n", config, line);
         graceful_exit(1);
       }
      
@@ -194,8 +194,8 @@ KeyPair: KeyType '=' TYPE_VALUE {
       break;
 
     default:
-      fprintf(stderr, "%s: token %s does not take a number, bailing out\n",
-        config, lookup_token($1)); 
+      fprintf(stderr, "%s:%d: token %s does not take a number, bailing out\n",
+        config, line, lookup_token($1)); 
       exit(1);
   }
 };
