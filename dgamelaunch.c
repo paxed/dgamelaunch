@@ -451,6 +451,9 @@ populate_games (int *l)
       fl.l_type = F_UNLCK;
 
       fcntl (fd, F_SETLK, &fl);
+
+      fl.l_type = F_WRLCK;
+      
       close (fd);
     }
 
