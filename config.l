@@ -9,7 +9,6 @@
 #include "dgamelaunch.h"
 
 unsigned int line = 1, col = 0;
-unsigned int comment_begin_line, comment_begin_col;
 
 #define YY_USER_ACTION col += yyleng;
 
