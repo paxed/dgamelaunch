@@ -5,7 +5,7 @@ NAME = dgamelaunch
 exclusions = CVS .svn .cvsignore tags
 PREFIX = /usr
 SBINDIR = $(PREFIX)/sbin
-ifeq (PREFIX,/usr)
+ifeq ($(PREFIX),/usr)
   MANDIR = $(PREFIX)/share/man
 else
   MANDIR = $(PREFIX)/man

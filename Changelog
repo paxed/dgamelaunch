@@ -1,3 +1,7 @@
+1.4.6 (????/??/??)
+	* Fix some signed/unsigned warnings.
+	* Fix make install check for PREFIX -> $(PREFIX).
+
 1.4.5 (2004/06/14)
 	* Reset offset if necessary to show at least one game to avoid things
 	  like "(15-14 of 14)".

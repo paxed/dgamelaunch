@@ -96,7 +96,7 @@ fi
 
 # ...and all the data it needs
 if [ -n "$playground_var" ]; then
-	mkdir -p $chroot_path$playground_var/save
+	mkdir -p $chroot_path$playground_var/save $chroot_path$playground_var/dumps
 	touch $chroot_path$playground_var/record
 	touch $chroot_path$playground_var/perm
 	touch $chroot_path$playground_var/logfile
