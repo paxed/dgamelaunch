@@ -5,8 +5,8 @@ set -e
 CHROOT_PATH=/var/lib/dgamelaunch
 
 # Only in the chroot
-CHROOT_UID=1031
-CHROOT_GID=1031
+CHROOT_UID=5
+CHROOT_GID=60
 
 echo "Setting up the chroot in: $CHROOT_PATH"
 
