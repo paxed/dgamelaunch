@@ -1,0 +1,20 @@
+# This is your personal nethackrc file. It is in the same format as default
+# nethack options files. Optionally uncomment the following lines as a
+# starter. This editor is vi-like. Type ESC a couple times, then ':q!'
+# (without quotes) to exit if you get stuck.
+#
+# See the following link for more options information:
+# http://www.nethack.org/v341/Guidebook.html#_TOCentry_40
+#
+# OPTIONS=showexp,showscore,time
+# OPTIONS=!autopickup,color
+# OPTIONS=catname:catfoo,dogname:dogfoo,horsename:horsefoo
+#
+# The following lines are necessary if you want to use the menucolors option.
+# OPTIONS=menucolors
+# MENUCOLOR=" blessed "=green
+# MENUCOLOR=" holy "=green
+# MENUCOLOR=" uncursed "=yellow
+# MENUCOLOR=" cursed "=red
+# MENUCOLOR=" unholy "=red
+# MENUCOLOR=" cursed .* (being worn)"=orange&underline

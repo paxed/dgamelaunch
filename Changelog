@@ -1,0 +1,119 @@
+1.3.10.1 (2003/12/27)
+	* Merry Christmas, dtype...
+	* Major cleanups - remove most uses of strcpy() and strcat(), except
+	  in virus.c, replace with snprintf.
+	* Add support for mailing users while they are playing.
+	  [nh343-simple_mail.diff is needed]
+	* Rip out some crazy getopt code that was causing virus to go crazy
+	  after a ":q!" Since dgamelaunch only passes up to argv[1] to virus
+	  *ever*, just make it use argv[1] and panic if argc < 2, which should
+	  never happen anyway.
+	* Add a confirmation to the change password screen so people like me
+	  don't change their passwords by accident all the time.
+	* Removed strl{cat,cpy}.c, as they're not used by ttyrec even though
+	  they are included.
+	* Remove many unused variables and make some functions void because
+	  they don't return anything.
+	* Add some function prototypes in dgamelaunch.c to quell warnings.
+	* Make some vars unsigned to quell warnings.
+	* 'capital letter. experimental' section made irrelevant by use of
+	  tolower(3) around getch()
+	* Change big conditional block to use a switch.
+	* Replace a global with a static variable within the function.
+
+1.3.10 (2003/10/22)
+	* Added a mode flag to the open call for inprogress lock files.
+	  (jilles)
+
+1.3.9 (2003/09/06)
+	* Fixed the bug where editing options file wouldn't work on same
+	  session as registration.
+	* Changed ttyplay timeout to 20 minutes with a better error msg.
+	* Made a zero length response on registration just dump you
+	  back to the main menu.
+
+1.3.7 (2003/09/06)
+	* Fixed the infamous hlen bug! I was rewinding to the beginning
+	  of payload, not header. 
+
+1.3.5 (2003/09/05)
+	* Returned SIGWINCH to defaults after exiting virus. This was
+	  probably the screen resize crash bug. (maybe?)
+
+1.3.1 (2003/08/30)
+	* First shot at an engine to strip out graphics sets. It is a lot
+	  harder than I would have thought, but doable at a 99% or so
+		success rate, I think, which should at least allow people to
+		view games in other graphics sets somewhat.
+
+1.2.22 (2003/08/29)
+	* Expanded README
+	* Hope to have caught the error in a partial read of the error.
+
+1.2.21 (2003/08/28)
+	* Added a README since I noticed people were downloading this.
+
+1.2.20 (2003/08/24)
+	* Added additional check on payload length. Just a sanity thing.
+
+1.2.19 (2003/08/24)
+	* Fixed (hopefully) that nasty bug that occurs when a partial read
+	  after header read returned, and caused the next header read to
+		basically read random data (and thus a random length).
+
+1.2.18 (2003/08/14)
+	* After determining select() on files sucks ass, I've just reduced
+		the polling interval on the ttyplay engine to 100ms, and given
+		up on an otherwise proper select call. Humans shouldn't notice
+		the latency, but I always will... grrr...
+
+1.2.17 (2003/08/14)
+	* Put in the 50ms delay from header read until payload read during
+	  preads in order to hopefully hack/wait around the race condition
+		99% of the time.
+	* Added a sleep(10) after receiving SIGHUP until sending one
+	  to the child process in the mild hopes that this gets around
+		whatever condition is causing it not to receive and handle 
+		the SIGHUP now.
+
+1.2.16 (2003/08/14)
+	* All code is now run through indent(1) for cleanliness
+	* Game playback in progress now finds the last term reset and plays
+	  forward from the last header before that reset.
+	* Some effort has been made to trap SIGHUP better and pass that 
+	  along to child processes as well. This still needs work for
+		nethack itself, but dgamelaunch is clean so far.
+
+1.2.6 (2003/08/08)
+	* Viewing games in progress now works pretty well.
+
+1.2.0beta2 (2003/08/07)
+	* Added initial ttyrec integration, although everything is very
+	  broken at this point. Once I learn more about tty libraries than
+		I ever want to know, maybe everything will work again.
+
+1.1.6 (2003/08/06)
+	* The last few revs included minor bugfixes found in production use,
+	  changed some text in the program, and 1.1.6 is some minor packaging
+		changes for the purposes of a release to the public of the source
+		code.
+
+1.1.1 (2003/08/02)
+  * Introduced virus (vi editor) code, and provided a new option to edit
+	  personal nethack rc files.
+
+1.0.0 (2003/08/01)
+	* Since 0.2.3 has been in production for over a year and a half, it
+	  is hereby dubbed 1.0.0.
+
+0.2.2 (2001/11/11)
+  * added change password feature. also is the way to get password crypt()ed
+
+0.2.1 (2001/11/11)
+  * moved more of the crucial config into defines
+  * removed the echo of password on login
+
+0.2.0 (2001/11/11)
+  * added crypt() support for the password file. Now the program first
+    checks for the crypt() password, then the plaintext one for legacy
+    and for ease of admins changing passwords.
