@@ -1,5 +1,6 @@
 1.4.3 (???)
 	* Make ttyplay use the 'strip' value it remembered from last view.
+	* Don't fail if client-supplied window size seems incorrect.
 
 1.4.2 (2004/02/22)
 	* Add a compile-time option to define a static location to look
@@ -10,6 +11,7 @@
 	* Don't write rcfiles if they already exist. (i.e., lost account
 	  holders recreating their accounts.
 	* Allow administrator to hardcode a dgamelaunch.conf path.
+	* Ignore client-supplied window size again.
 	* Include dgl-wall, which notifies all logged in users with
 	  a mail message.
 	* Split common functions into dgl-common.c.

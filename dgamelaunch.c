@@ -1411,14 +1411,6 @@ main (int argc, char** argv)
   signal (SIGHUP, catch_sighup);
 
   (void) tcgetattr (0, &tt);
-  if (ioctl (0, TIOCGWINSZ, (char *) &win) == 0)
-    {
-      if (win.ws_row < 24 || win.ws_col < 80)
-        {
-          fprintf(stderr, "ERROR: dgamelaunch needs at least 80x24 screen.\n");
-	  graceful_exit(1);
-        }
-    }
   win.ws_row = 24;
   win.ws_col = 80;
   win.ws_xpixel = win.ws_col * 8;
