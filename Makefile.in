@@ -1,7 +1,7 @@
 NAME = @PACKAGE_NAME@
 VERSION = @PACKAGE_VERSION@
 
-exclusions = CVS .svn .cvsignore tags autogen.sh svn-commit.tmp
+exclusions = CVS .svn .cvsignore tags autogen.sh svn-commit.tmp .\#*
 exec_prefix = @exec_prefix@
 prefix = @prefix@
 sbindir = @sbindir@
@@ -37,7 +37,7 @@ dgl-wall: $(WALL_OBJS)
 	
 clean:
 	rm -f $(NAME) nethackstub dgl-wall
-	rm -f *.o .#* *~ y.tab.* lex.yy.c .depend .depend.bak
+	rm -f *.o *~ y.tab.* lex.yy.c .depend .depend.bak
 
 distclean: clean
 	rm -f Makefile config.h config.log config.status
