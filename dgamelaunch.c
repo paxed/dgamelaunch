@@ -1142,8 +1142,8 @@ purge_stale_locks (void)
       size_t len;
       int seconds = 0;
 
-      if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
-	  continue;
+      if (!strcmp (dent->d_name, ".") || !strcmp (dent->d_name, ".."))
+        continue;
 
       colon = strchr (dent->d_name, ':');
       /* should never happen */
@@ -1153,11 +1153,11 @@ purge_stale_locks (void)
       if (strncmp (dent->d_name, me->username, colon - dent->d_name))
         continue;
 
-      len = strlen(dent->d_name) + ARRAY_SIZE(LOC_INPROGRESSDIR) + 1;
+      len = strlen (dent->d_name) + ARRAY_SIZE (LOC_INPROGRESSDIR) + 1;
       fn = malloc (len);
 
-      snprintf(fn, len, "%s%s", LOC_INPROGRESSDIR, dent->d_name);
-      
+      snprintf (fn, len, "%s%s", LOC_INPROGRESSDIR, dent->d_name);
+
       if (!(ipfile = fopen (fn, "r")))
         graceful_exit (202);
 
@@ -1168,7 +1168,8 @@ purge_stale_locks (void)
 
       clear ();
       drawbanner (1, 1);
-      mvaddstr (3, 1, "There is a stale Nethack process, attempting to recover...");
+      mvaddstr (3, 1,
+                "There is a stale Nethack process, attempting to recover...");
       refresh ();
 
       pid = atoi (buf);
@@ -1193,13 +1194,13 @@ purge_stale_locks (void)
                   kill (pid, SIGTERM);
                   break;
                 }
-	      else
-		{
-                  endwin();
-		  fprintf(stderr, "Sorry, no nethack for you now, please "
-			"contact the admin.\n");
-		  graceful_exit(1);
-		}
+              else
+                {
+                  endwin ();
+                  fprintf (stderr, "Sorry, no nethack for you now, please "
+                           "contact the admin.\n");
+                  graceful_exit (1);
+                }
             }
         }
 
