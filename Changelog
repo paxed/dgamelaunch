@@ -1,3 +1,7 @@
+1.4.4 (????/??/??)
+	* Show total number of games in progress below the list, useful if
+	  there are more than fits on the screen.
+
 1.4.3 (2004/02/28)
 	* Make ttyplay use the 'strip' value it remembered from last view.
 	* Don't fail if client-supplied window size seems incorrect.

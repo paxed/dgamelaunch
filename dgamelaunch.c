@@ -337,6 +337,8 @@ inprogressmenu ()
                     (time (&ctime) - games[i + offset]->idle_time) % 60);
         }
 
+      if (len > 0)
+        mvprintw (21, 1, "(%d-%d of %d)", offset + 1, offset + i, len);
       mvaddstr (23, 1,
                 "Watch which game? (any key refreshes, 'q' quits, '>'/'<' for more/less) => ");
       refresh ();
