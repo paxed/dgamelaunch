@@ -1,0 +1,53 @@
+#!/bin/sh
+
+set -e
+
+CHROOT_PATH=/var/lib/dgamelaunch
+
+# Only in the chroot
+CHROOT_UID=1031
+CHROOT_GID=1031
+
+echo "Setting up the chroot in: $CHROOT_PATH"
+
+mkdir -p $CHROOT_PATH/lib $CHROOT_PATH/bin $CHROOT_PATH/etc $CHROOT_PATH/var/mail
+
+# Required libraries
+cp -L /lib/libc.so.6 $CHROOT_PATH/lib
+cp -L /lib/libncurses.so.5 $CHROOT_PATH/lib
+cp -L /lib/ld-linux.so.2 $CHROOT_PATH/lib
+
+# Passwd file
+echo "nethack:!:1031:1031::/nonexistent:/bin/sh" > $CHROOT_PATH/etc/passwd
+echo "nethack:x:1031:" > $CHROOT_PATH/etc/group
+
+# Dungeon directory setup
+mkdir -p $CHROOT_PATH/dgldir/inprogress
+mkdir -p $CHROOT_PATH/dgldir/rcfiles
+mkdir -p $CHROOT_PATH/dgldir/ttyrec
+chown -R $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/dgldir
+
+touch $CHROOT_PATH/dgl-login
+touch $CHROOT_PATH/dgl-lock
+chown $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/dgl-*
+
+# Needs gzip to compress
+cp /bin/gzip $CHROOT_PATH/bin
+
+# Copy the nethack binary over (Debian specific for now)
+cp /usr/lib/games/nethack/nethack-console $CHROOT_PATH/bin/nethack
+
+# ...and all the data it needs
+mkdir -p $CHROOT_PATH/var/games/nethack/save
+mkdir -p $CHROOT_PATH/usr/lib/games/nethack
+touch $CHROOT_PATH/var/games/nethack/record
+touch $CHROOT_PATH/var/games/nethack/perm
+touch $CHROOT_PATH/var/games/nethack/logfile
+
+chown -R $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/var/games/nethack
+cp -L /usr/lib/games/nethack/license $CHROOT_PATH/usr/lib/games/nethack
+cp -L /usr/lib/games/nethack/nhdat $CHROOT_PATH/usr/lib/games/nethack
+
+# Curses junk
+mkdir -p $CHROOT_PATH/usr/share
+cp -r /usr/share/terminfo $CHROOT_PATH/usr/share
