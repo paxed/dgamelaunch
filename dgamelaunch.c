@@ -664,12 +664,16 @@ domailuser (char *username)
 
   fprintf (user_spool, "%s:%s\n", me->username, message);
 
-  fl.l_type = F_UNLCK;
-
-  if (fcntl (fileno (user_spool), F_SETLK, &fl) == -1)
-    mvaddstr (10, 1, "Couldn't unlock the file! Oh well.");
+  /* 
+   * Don't unlock the file ourselves, this way it will be done automatically
+   * after all data has been written. (Using file locking with stdio is icky.)
+   */
 
   fclose (user_spool);
+
+  mvaddstr (9, 1, "Message sent successfully         ");
+  refresh ();
+  sleep (2);
 
   return;
 }

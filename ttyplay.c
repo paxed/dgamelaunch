@@ -209,8 +209,11 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
                 {
                   initncurses ();
                   domailuser (chosen_name);
+		  /* XXX jilles: just quit out after mail for now */
+#if 0
                   endwin ();
-                  ttyplay_main (ttyfile_local, 1, 0);
+                  ttyplay_main (ttyfile_local, 1, 0); /* ICK! Recursive */
+#endif
                   return 0;
                 }
               break;
