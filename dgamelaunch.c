@@ -1337,7 +1337,6 @@ writefile (int requirenew)
         graceful_exit (116);
     }
 
-  fcntl (fileno (fpl), F_UNLCK, &fl);
   fclose (fp);
   fclose (fpl);
 }
