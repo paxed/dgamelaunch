@@ -29,9 +29,9 @@ else
 endif
 
 ifeq (1,$(VIRUS))
-  EDITOR = editors/virus.c
+  EDITOR = virus.c
 else
-  EDITOR = editors/ee.c
+  EDITOR = ee.c
 endif
 
 CC = gcc

@@ -26,7 +26,6 @@ playground_var="/var/games/nethack"
 termdata="/usr/share/terminfo"
 
 [ -f dgl-create-chroot.conf ] && . ./dgl-create-chroot.conf
-[ -f etc/dgl-create-chroot.conf ] && . etc/dgl-create-chroot.conf
 
 findlibs()
 {
@@ -72,8 +71,8 @@ touch $chroot_path/dgl-login
 touch $chroot_path/dgl-lock
 
 # Might want to remove these two for packaging?
-cp etc/dgl-default-rcfile $chroot_path
-cp etc/dgl-banner $chroot_path
+cp dgl-default-rcfile $chroot_path
+cp dgl-banner $chroot_path
 
 chown $shed_uid:$shed_gid $chroot_path/dgl-*
 
