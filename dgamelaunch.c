@@ -60,6 +60,7 @@
 #include <crypt.h>
 #include <sys/types.h>
 #include <sys/file.h>						/* for flock() */
+#include <sys/resource.h>
 #include <sys/ioctl.h>					/* ttyrec */
 #include <errno.h>
 #include <time.h>
@@ -187,7 +188,8 @@ inprogressmenu ()
 			clear ();
 			mvaddstr (1, 1, VER1);
 			mvprintw (3, 1,
-								"During playback, hit 'q' to return here%s.", loggedin ? ", 'm' to contact the player" : "");
+								"During playback, hit 'q' to return here%s.",
+								loggedin ? ", 'm' to contact the player" : "");
 			mvaddstr (4, 1,
 								"(Use capital letter of selection to strip DEC graphics, VERY experimental!)");
 			mvaddstr (5, 1, "The following games are in progress:");
@@ -935,9 +937,13 @@ main (void)
 	gid_t newgid = SHED_GID;
 	char atrcfilename[81], *spool;
 	unsigned int len;
+	struct rlimit rl = { RLIM_INFINITY, RLIM_INFINITY };
 
 	int userchoice = 0;
 
+	/* coredumper */
+	setrlimit(RLIMIT_CORE, &rl);
+	
 	/* signal handlers */
 	signal (SIGHUP, catch_sighup);
 
