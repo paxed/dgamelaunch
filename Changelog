@@ -1,9 +1,10 @@
-1.4.6 (????/??/??)
+1.4.6 (2004/07/03)
 	* Fix some signed/unsigned warnings.
 	* Fix make install check for PREFIX -> $(PREFIX).
         * Bind with Satan / start using autoconf.
         * Fix a bug in automatic authorization that revealed the username
-          and password in ps output, by munging argv.
+          and password in ps output, by munging argv using setproctitle()
+	  if possible.
         * Fix dgl-create-chroot's copying of terminfo by choosing a sane
           default.
         * Now compiles with Tiny C Compiler.
