@@ -42,9 +42,9 @@ distclean: clean
 	rm -f Makefile config.h config.log config.status
 	rm -rf autom4te.cache
 	
-install:
-	$(INSTALL_PROGRAM) -m 755 $(NAME) $(sbindir)
-	$(INSTALL_PROGRAM) -m 644 $(MAN8) $(mandir)/man8
+install: all
+	$(INSTALL) -m 755 $(NAME) $(sbindir)
+	$(INSTALL) -m 644 $(MAN8) $(mandir)/man8
 	
 indent:
 	indent -nut -ts2 *.c *.h
