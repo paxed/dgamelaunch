@@ -49,7 +49,7 @@
  |	proprietary information which is protected by
  |	copyright.  All rights are reserved.
  |
- |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.1 2004/01/23 18:14:48 joshk Exp $
+ |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.2 2004/01/23 18:23:16 joshk Exp $
  |
  */
 
@@ -62,7 +62,7 @@ char *ee_long_notice[] = {
 	"copyright.  All rights are reserved."
 	};
 
-char *version = "@(#) ee, version 1.4.1  $Revision: 1.1 $";
+char *version = "@(#) ee, version 1.4.1  $Revision: 1.2 $";
 
 #define catgetlocal(a, b) (b)
 
@@ -141,11 +141,6 @@ int info_type = CONTROL_KEYS;	/* flag to indicate type of info to display */
 int expand_tabs = TRUE;		/* flag for expanding tabs		*/
 int right_margin = 0;		/* the right margin 			*/
 int observ_margins = TRUE;	/* flag for whether margins are observed */
-int temp_stdin;			/* temporary storage for stdin		*/
-int temp_stdout;		/* temp storage for stdout descriptor	*/
-int temp_stderr;		/* temp storage for stderr descriptor	*/
-int pipe_out[2];		/* pipe file desc for output		*/
-int pipe_in[2];			/* pipe file descriptors for input	*/
 int out_pipe;			/* flag that info is piped out		*/
 int in_pipe;			/* flag that info is piped in		*/
 int formatted = FALSE;		/* flag indicating paragraph formatted	*/
