@@ -219,7 +219,7 @@ gen_inprogress_lock (pid_t pid)
   fl.l_start = 0;
   fl.l_len = 0;
 
-  snprintf (lockfile, 130, "%s%s:%s", LOC_INPROGRESSDIR,
+  snprintf (lockfile, 130, "%sinprogress/%s:%s", myconfig->dglroot,
             me->username, ttyrec_filename);
 
   fd = open (lockfile, O_WRONLY | O_CREAT, 0644);
@@ -253,18 +253,19 @@ loadbanner (struct dg_banner *ban)
 
   memset (buf, 0, 80);
 
-  bannerfile = fopen (LOC_BANNER, "r");
+  bannerfile = fopen (myconfig->banner, "r");
 
   if (!bannerfile)
     {
+      size_t len;
       ban->len = 2;
       ban->lines = malloc (sizeof (char *));
       ban->lines[0] =
         strdup ("### dgamelaunch " VERSION
                 " - network console game launcher");
-      ban->lines[1] =
-        strdup
-        ("### NOTE: administrator has not installed a " LOC_BANNER " file");
+      len = strlen(myconfig->banner) + ARRAY_SIZE("### NOTE: administrator has not installed a  file");
+      ban->lines[1] = malloc(len);
+      snprintf(ban->lines[1], len, "### NOTE: administrator has not installed a %s file", myconfig->banner);
       return;
     }
 
@@ -341,9 +342,10 @@ populate_games (int *l)
   struct dirent *pdirent;
   struct stat pstat;
   char fullname[130], ttyrecname[130];
-  char *replacestr;
+  char *replacestr, *dir;
   struct dg_game **games = NULL;
   struct flock fl = { 0 };
+  size_t slen;
 
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
@@ -351,8 +353,12 @@ populate_games (int *l)
   fl.l_len = 0;
 
   len = 0;
+  
+  slen = strlen(myconfig->dglroot) + ARRAY_SIZE("inprogress/") + 1;
+  dir = malloc(slen);
+  snprintf(dir, slen, "%sinprogress/", myconfig->dglroot);
 
-  if (!(pdir = opendir (LOC_INPROGRESSDIR)))
+  if (!(pdir = opendir (dir)))
     graceful_exit (140);
 
   while ((pdirent = readdir (pdir)))
@@ -360,7 +366,7 @@ populate_games (int *l)
       if (!strcmp (pdirent->d_name, ".") || !strcmp (pdirent->d_name, ".."))
         continue;
 
-      snprintf (fullname, 130, "%s%s", LOC_INPROGRESSDIR, pdirent->d_name);
+      snprintf (fullname, 130, "%sinprogress/%s", myconfig->dglroot, pdirent->d_name);
 
       fd = 0;
       /* O_RDWR here should be O_RDONLY, but we need to test for
@@ -370,7 +376,7 @@ populate_games (int *l)
         {
 
           /* stat to check idle status */
-          snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR, pdirent->d_name);
+          snprintf (ttyrecname, 130, "%sttyrec/%s", myconfig->dglroot, pdirent->d_name);
           replacestr = strchr (ttyrecname, ':');
           if (!replacestr)
             graceful_exit (145);
@@ -482,7 +488,7 @@ inprogressmenu ()
           if ((menuchoice - 97) >= 0 && (menuchoice - 97) < i)
             {
               /* valid choice has been made */
-              snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
+              snprintf (ttyrecname, 130, "%sttyrec/%s", myconfig->dglroot,
                         games[menuchoice - 97]->ttyrec_fn);
               chosen_name = strdup (games[menuchoice - 97 + offset]->name);
 
@@ -591,10 +597,10 @@ domailuser (char *username)
 
   assert (loggedin);
 
-  len = ARRAY_SIZE (LOC_SPOOLDIR) + strlen (username) + 1;
+  len = strlen(myconfig->spool) + strlen (username) + 1;
   spool_fn = malloc (len + 1);
   time (&now);
-  snprintf (spool_fn, len, "%s/%s", LOC_SPOOLDIR, username);
+  snprintf (spool_fn, len, "%s/%s", myconfig->spool, username);
 
   /* print the enter your message line */
   clear ();
@@ -806,7 +812,7 @@ loginprompt ()
   if (passwordgood (pw_buf))
     {
       loggedin = 1;
-      snprintf (rcfilename, 80, "%s%s.nethackrc", LOC_DGLDIR, me->username);
+      snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
     }
 }
 
@@ -916,7 +922,7 @@ newuser ()
 
   loggedin = 1;
 
-  snprintf (rcfilename, 80, "%s%s.nethackrc", LOC_DGLDIR, me->username);
+  snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
   write_canned_rcfile (rcfilename);
 
   writefile (1);
@@ -1068,8 +1074,12 @@ void
 write_canned_rcfile (char *target)
 {
   FILE *canned, *newfile;
-  char buf[1024];
-  size_t bytes;
+  char buf[1024], *rfn;
+  size_t bytes, len;
+
+  len = strlen(myconfig->dglroot) + strlen(myconfig->rcfile) + 1;
+  rfn = malloc(len);
+  snprintf (rfn, len, "%s%s", myconfig->dglroot, myconfig->rcfile);
 
   if (!(newfile = fopen (target, "w")))
     {
@@ -1081,8 +1091,10 @@ write_canned_rcfile (char *target)
       return;
     }
 
-  if (!(canned = fopen (LOC_CANNED, "r")))
+  if (!(canned = fopen (rfn, "r")))
     goto bail;
+
+  free(rfn);
 
   while ((bytes = fread (buf, 1, 1024, canned)) > 0)
     {
@@ -1213,9 +1225,18 @@ purge_stale_locks (void)
 {
   DIR *pdir;
   struct dirent *dent;
+  char* dir;
+  size_t len;
 
-  if (!(pdir = opendir (LOC_INPROGRESSDIR)))
+  len = strlen(myconfig->dglroot) + ARRAY_SIZE("inprogress/") + 1;
+  dir = malloc(len);
+  snprintf(dir, len, "%sinprogress/", myconfig->dglroot);
+  
+  
+  if (!(pdir = opendir (dir)))
     graceful_exit (200);
+
+  free(dir);
 
   while ((dent = readdir (pdir)) != NULL)
     {
@@ -1237,10 +1258,10 @@ purge_stale_locks (void)
       if (strncmp (dent->d_name, me->username, colon - dent->d_name))
         continue;
 
-      len = strlen (dent->d_name) + ARRAY_SIZE (LOC_INPROGRESSDIR) + 1;
+      len = strlen (dent->d_name) + strlen(myconfig->dglroot) + 12;
       fn = malloc (len);
 
-      snprintf (fn, len, "%s%s", LOC_INPROGRESSDIR, dent->d_name);
+      snprintf (fn, len, "%sinprogress/%s", myconfig->dglroot, dent->d_name);
 
       if (!(ipfile = fopen (fn, "r")))
         graceful_exit (202);
@@ -1300,13 +1321,13 @@ int
 main (void)
 {
   /* for chroot and program execution */
-  uid_t newuid = SHED_UID;
-  gid_t newgid = SHED_GID;
   char atrcfilename[81], *spool;
   unsigned int len;
   struct rlimit rl = { RLIM_INFINITY, RLIM_INFINITY };
 
   int userchoice = 0;
+
+  create_config();
 
   /* coredumper */
   setrlimit (RLIMIT_CORE, &rl);
@@ -1327,7 +1348,7 @@ main (void)
 
 
   /* chroot */
-  if (chroot (LOC_CHROOT))
+  if (chroot (myconfig->chroot))
     {
       perror ("cannot change root directory");
       graceful_exit (1);
@@ -1340,19 +1361,19 @@ main (void)
     }
 
   /* shed privs. this is done immediately after chroot. */
-  if (setgroups (1, &newgid) == -1)
+  if (setgroups (1, &myconfig->shed_gid) == -1)
     {
       perror ("setgroups");
       graceful_exit (1);
     }
 
-  if (setgid (newgid) == -1)
+  if (setgid (myconfig->shed_gid) == -1)
     {
       perror ("setgid");
       graceful_exit (1);
     }
 
-  if (setuid (newuid) == -1)
+  if (setuid (myconfig->shed_uid) == -1)
     {
       perror ("setuid");
       graceful_exit (1);
@@ -1404,9 +1425,9 @@ main (void)
   /* environment */
   snprintf (atrcfilename, 81, "@%s", rcfilename);
 
-  len = ARRAY_SIZE (LOC_SPOOLDIR) + strlen (me->username) + 1;
+  len = strlen(myconfig->spool) + strlen (me->username) + 1;
   spool = malloc (len + 1);
-  snprintf (spool, len, "%s/%s", LOC_SPOOLDIR, me->username);
+  snprintf (spool, len, "%s/%s", myconfig->spool, me->username);
 
   setenv ("NETHACKOPTIONS", atrcfilename, 1);
   setenv ("MAIL", spool, 1);

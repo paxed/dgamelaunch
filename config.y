@@ -50,6 +50,7 @@ KeyPair: KeyType '=' TYPE_VALUE {
   switch ($1)
   {
     case TYPE_SGROUP:
+      myconfig->shed_group = strdup($3);
       if ((gr = getgrnam($3)) != NULL)
         myconfig->shed_gid = gr->gr_gid;
       else
@@ -57,6 +58,7 @@ KeyPair: KeyType '=' TYPE_VALUE {
       
       break;
     case TYPE_SUSER:
+      myconfig->shed_user = strdup($3);
       if ((usr = getpwnam($3)) != NULL)
         myconfig->shed_uid = usr->pw_uid;
       else

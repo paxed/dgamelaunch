@@ -109,12 +109,12 @@ ttyrec_main (char *username)
   void finish ();
   char dirname[100];
 
-  snprintf (dirname, 100, "%s%s", LOC_TTYRECDIR, username);
+  snprintf (dirname, 100, "%sttyrec/%s", myconfig->dglroot, username);
 
   if (access (dirname, F_OK) != 0)
     mkdir (dirname, 0755);
 
-  snprintf (dirname, 100, "%s%s/%s", LOC_TTYRECDIR, username,
+  snprintf (dirname, 100, "%sttyrec/%s/%s", myconfig->dglroot, username,
             ttyrec_filename);
 
   if ((fscript = fopen (dirname, "w")) == NULL)
@@ -291,7 +291,7 @@ dooutput ()
 void
 doshell (char *username)
 {
-  char *argv1 = LOC_NETHACK;
+  char *argv1 = myconfig->nethack;
   char *argv2 = "-u";
   char *myargv[10];
 
@@ -308,7 +308,7 @@ doshell (char *username)
   myargv[2] = username;
   myargv[3] = 0;
 
-  execvp (LOC_NETHACK, myargv);
+  execvp (myconfig->nethack, myargv);
 
   fail ();
 }
