@@ -405,6 +405,7 @@ inprogressmenu ()
               refresh ();
               endwin ();
               ttyplay_main (ttyrecname, 1, 0);
+	      initncurses();
             }
         }
 
@@ -486,7 +487,12 @@ domailuser (char *username)
   FILE *user_spool = NULL;
   time_t now;
   int mail_empty = 1;
-  struct flock fl = { F_WRLCK, SEEK_SET, 0, 0, getpid () };
+  struct flock fl = { 0 };
+  
+  fl.l_type = F_WRLCK;
+  fl.l_whence = SEEK_SET;
+  fl.l_start = 0;
+  fl.l_len = 0;
 
   assert (loggedin);
 
@@ -532,7 +538,16 @@ domailuser (char *username)
   mvaddstr (9, 1, "Getting a lock on the mailspool...");
   refresh ();
 
-  while (fcntl (fileno (user_spool), F_SETLK, &fl) == -1);
+  while (fcntl (fileno (user_spool), F_SETLK, &fl) == -1)
+  {
+    if (errno != EAGAIN)
+    {
+      mvaddstr (10, 1, "Received a weird error from fcntl, so I'm giving up.");
+      getch();
+      return;
+    }
+    sleep (1);
+  }
 
   fprintf (user_spool, "%s:%s\n", me->username, message);
 

@@ -1,17 +1,6 @@
---- ./include/flag.h~	2003-12-30 00:36:39.000000000 -0800
-+++ ./include/flag.h	2003-12-30 00:37:45.000000000 -0800
-@@ -27,6 +27,9 @@
- 	boolean  beginner;
- #ifdef MAIL
- 	boolean  biff;		/* enable checking for mail */
-+# ifdef SIMPLE_MAIL		/* simple mail format used for dgamelaunch */
-+	boolean  simplemail;
-+# endif
- #endif
- 	boolean  botl;		/* partially redo status line */
- 	boolean  botlx;		/* print an entirely new bottom line */
---- ./include/decl.h~	2003-12-30 00:47:53.000000000 -0800
-+++ ./include/decl.h	2003-12-30 00:48:51.000000000 -0800
+diff -urN orig/nethack-3.4.3/include/decl.h nethack-3.4.3/include/decl.h
+--- orig/nethack-3.4.3/include/decl.h	2003-12-07 15:39:13.000000000 -0800
++++ nethack-3.4.3/include/decl.h	2004-01-03 15:57:34.000000000 -0800
 @@ -385,6 +385,10 @@
  };
  #endif /* AUTOPICKUP_EXCEPTIONS */
@@ -23,9 +12,43 @@
  #undef E
  
  #endif /* DECL_H */
---- ./src/mail.c~	2003-12-30 00:21:28.000000000 -0800
-+++ ./src/mail.c	2003-12-30 00:52:04.000000000 -0800
-@@ -36,6 +36,8 @@
+diff -urN orig/nethack-3.4.3/include/flag.h nethack-3.4.3/include/flag.h
+--- orig/nethack-3.4.3/include/flag.h	2003-12-07 15:39:13.000000000 -0800
++++ nethack-3.4.3/include/flag.h	2004-01-03 15:57:34.000000000 -0800
+@@ -175,6 +175,9 @@
+ 	uchar	bouldersym;	/* symbol for boulder display */
+ 	boolean travel1;	/* first travel step */
+ 	coord	travelcc;	/* coordinates for travel_cache */
++#ifdef SIMPLE_MAIL
++	boolean simplemail;	/* simple mail format $NAME:$MESSAGE */
++#endif
+ #ifdef WIZARD
+ 	boolean  sanity_check;	/* run sanity checks */
+ 	boolean  mon_polycontrol;	/* debug: control monster polymorphs */
+diff -urN orig/nethack-3.4.3/include/unixconf.h nethack-3.4.3/include/unixconf.h
+--- orig/nethack-3.4.3/include/unixconf.h	2003-12-07 15:39:13.000000000 -0800
++++ nethack-3.4.3/include/unixconf.h	2004-01-03 15:57:34.000000000 -0800
+@@ -193,7 +193,6 @@
+ # endif
+ #endif
+ 
+-#define MAILCKFREQ	50
+ #endif	/* MAIL */
+ 
+ 
+diff -urN orig/nethack-3.4.3/src/mail.c nethack-3.4.3/src/mail.c
+--- orig/nethack-3.4.3/src/mail.c	2003-12-07 15:39:13.000000000 -0800
++++ nethack-3.4.3/src/mail.c	2004-01-03 16:07:21.000000000 -0800
+@@ -5,6 +5,8 @@
+ #include "hack.h"
+ 
+ #ifdef MAIL
++#include <fcntl.h>
++#include <errno.h>
+ #include "mail.h"
+ 
+ /*
+@@ -36,6 +38,8 @@
  STATIC_DCL boolean FDECL(md_rush,(struct monst *,int,int));
  STATIC_DCL void FDECL(newmail, (struct mail_info *));
  
@@ -34,12 +57,16 @@
  extern char *viz_rmin, *viz_rmax;	/* line-of-sight limits (vision.c) */
  
  #ifdef OVL0
-@@ -464,11 +466,11 @@
+@@ -464,11 +468,15 @@
  void
  ckmailstatus()
  {
++#ifdef SIMPLE_MAIL
 +	if (mailckfreq == 0)
-+	  mailckfreq = (flags.simplemail ? 5 : 10);
++	  mailckfreq = (iflags.simplemail ? 5 : 10);
++#else
++	mailckfreq = 10;
++#endif
 +
  	if(!mailbox || u.uswallow || !flags.biff
 -#  ifdef MAILCKFREQ
@@ -50,7 +77,7 @@
  		return;
  
  	laststattime = moves;
-@@ -501,9 +503,34 @@
+@@ -501,9 +509,67 @@
  readmail(otmp)
  struct obj *otmp;
  {
@@ -59,25 +86,58 @@
  	register const char *mr = 0;
 +#endif /* DEF_MAILREADER */
 +#ifdef SIMPLE_MAIL
-+	if (flags.simplemail)
++	if (iflags.simplemail)
 +	{
 +		FILE* mb = fopen(mailbox, "r");
-+		char curline[80], *tmp;
++		char curline[80], *msg;
++		boolean seen_one_already = FALSE;
++		struct flock fl = { 0 };
++
++		fl.l_type = F_RDLCK;
++		fl.l_whence = SEEK_SET;
++		fl.l_start = 0;
++		fl.l_len = 0;
 +
 +		if (!mb)
 +			goto bail;
-+      
-+		while (fgets(curline, 80, mb) != NULL);
 +
-+		pline("This scroll is from '%s'.", strtok(curline, ":"));
-+		tmp = strtok(NULL, ":");
++		/* Allow this call to block. */
++		if (fcntl (fileno (mb), F_SETLKW, &fl) == -1)
++		  goto bail;
++		
++		errno = 0;
++		
++		while (fgets(curline, 80, mb) != NULL)
++		{
++		  fl.l_type = F_UNLCK;
++		  fcntl (fileno(mb), F_UNLCK, &fl);
++		  
++		  pline("There is a%s message on this scroll.",
++		      seen_one_already ? "nother" : "");
++		  
++		  msg = strchr(curline, ':');
++		  
++		  if (!msg)
++		    goto bail;
++		  
++		  *msg = '\0';
++		  msg++;
++		  
++		  pline ("This message is from '%s'.", curline);
 +
-+		if (!tmp)
-+			goto bail;
-+    
-+		tmp[strlen(tmp) - 1] = '\0'; /* kill newline */
-+		pline("It reads: \"%s\".", tmp);
++		  msg[strlen(msg) - 1] = '\0'; /* kill newline */
++		  pline ("It reads: \"%s\".", msg);
++
++		  seen_one_already = TRUE;
++		  errno = 0;
++
++		  fl.l_type = F_RDLCK;
++		  fcntl(fileno(mb), F_SETLKW, &fl);
++		}
  
++		fl.l_type = F_UNLCK;
++		fcntl(fileno(mb), F_UNLCK, &fl);
++		
 +		fclose(mb);
 +		return;
 +	}
@@ -86,7 +146,7 @@
  	display_nhwindow(WIN_MESSAGE, FALSE);
  	if(!(mr = nh_getenv("MAILREADER")))
  		mr = DEF_MAILREADER;
-@@ -512,15 +538,19 @@
+@@ -512,15 +578,21 @@
  		(void) execl(mr, mr, (char *)0);
  		terminate(EXIT_FAILURE);
  	}
@@ -105,12 +165,14 @@
  	getmailstatus();
 +	return;
 +
++#ifdef SIMPLE_MAIL
 +bail:
 +	pline("It appears to be all gibberish."); /* bail out _professionally_ */
++#endif
  }
  
  # endif /* UNIX */
-@@ -587,10 +617,7 @@
+@@ -587,10 +659,7 @@
  	static int laststattime = 0;
  	
  	if(u.uswallow || !flags.biff
@@ -122,8 +184,9 @@
  		return;
  
  	laststattime = moves;
---- ./sys/unix/unixmain.c~	2003-12-30 00:39:39.000000000 -0800
-+++ ./sys/unix/unixmain.c	2003-12-30 00:42:13.000000000 -0800
+diff -urN orig/nethack-3.4.3/sys/unix/unixmain.c nethack-3.4.3/sys/unix/unixmain.c
+--- orig/nethack-3.4.3/sys/unix/unixmain.c	2003-12-07 15:39:13.000000000 -0800
++++ nethack-3.4.3/sys/unix/unixmain.c	2004-01-03 15:57:34.000000000 -0800
 @@ -54,7 +54,9 @@
  	register char *dir;
  #endif
@@ -142,19 +205,9 @@
 +#ifdef SIMPLE_MAIL
 +	/* figure this out early */
 +	e_simple = nh_getenv("SIMPLEMAIL");
-+	flags.simplemail = (e_simple ? 1 : 0);
++	iflags.simplemail = (e_simple ? 1 : 0);
 +#endif
 +
  	hname = argv[0];
  	hackpid = getpid();
  	(void) umask(0777 & ~FCMASK);
---- include/unixconf.h~	2003-12-30 00:58:53.000000000 -0800
-+++ include/unixconf.h	2003-12-30 00:59:01.000000000 -0800
-@@ -193,7 +193,6 @@
- # endif
- #endif
- 
--#define MAILCKFREQ	50
- #endif	/* MAIL */
- 
- 
