@@ -54,7 +54,7 @@ COMMENT		^#.*
 
 {MALSTRING} {
   /* yytext already contains a newline, no need for one here */
-  fprintf(stderr, "%s: unterminated string constant at line %d, start column %d: %s\n", config, line, col - yyleng + 1, yytext);
+  fprintf(stderr, "%s:%d:%d: unterminated string constant: %s\n", config, line, col - yyleng + 1, yytext);
 }
 
 {WHITE}		{ }
