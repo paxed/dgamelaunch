@@ -1023,8 +1023,7 @@ newuser ()
 int
 passwordgood (char *cpw)
 {
-  if (me == NULL)
-    return 0;
+  assert (me != NULL);
 
   if (!strncmp (crypt (cpw, cpw), me->password, 13))
     return 1;
