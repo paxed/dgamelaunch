@@ -695,6 +695,7 @@ domailuser (char *username)
   fclose (user_spool);
 
   mvaddstr (9, 1, "Message sent successfully         ");
+  move(9, 26); /* Pedantry! */
   refresh ();
   sleep (2);
 

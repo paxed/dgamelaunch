@@ -3,8 +3,8 @@
  Brett Carrington <brettcar@segvio.org>,
  Jilles Tjoelker <jilles@stack.nl>
 
-dgamelaunch itself falls under the GNU
-General Public License, which follows here.
+dgamelaunch itself, virus.c and last_char_is.c fall under the GNU
+General Public License, which follows here in its entirety.
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
