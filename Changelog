@@ -1,4 +1,6 @@
 1.5 (???)
+	* Make sure writefile does not get called when using it as a
+	  password prompt for new-users [CRITICAL]
 	* Allow user to change his or her email address in the console.
 	* Remove some useless cruft in ttywait() [ttyplay.c]
 

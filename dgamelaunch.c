@@ -671,7 +671,7 @@ changepw (int dowrite)
   free(me->password);
   me->password = strdup (crypt (buf, buf));
 
-  if (dowrite == 1)
+  if (dowrite)
     writefile (0);
 
   return 1;
