@@ -844,12 +844,16 @@ loginprompt (int from_ttyplay)
       loggedin = 1;
       snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
     }
-  else if (from_ttyplay == 1)
+  else 
   {
-    mvaddstr(9, 1, "Login failed. Returning to game.");
-    refresh();
-    sleep(2);
-  }
+    me = NULL;
+    if (from_ttyplay == 1)
+    {
+      mvaddstr(9, 1, "Login failed. Returning to game.");
+      refresh();
+      sleep(2);
+    }
+  } 
 }
 
 /* ************************************************************* */
