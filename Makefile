@@ -38,7 +38,7 @@ $(NAME): $(OBJS)
 
 clean:
 	rm -f $(NAME) nethackstub
-	rm -f *.o .#* *~ y.tab.* lex.yy.c
+	rm -f editors/*.o *.o .#* *~ y.tab.* lex.yy.c
 	
 install:
 	$(INSTALL) -m 755 $(NAME) $(SBINDIR)
