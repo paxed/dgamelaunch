@@ -689,7 +689,7 @@ drawmenu ()
       mvaddstr (banner.len + 5, 1, "e) Change email address");
       mvaddstr (banner.len + 6, 1, "o) Edit option file");
       mvaddstr (banner.len + 7, 1, "w) Watch games in progress");
-      mvaddstr (banner.len + 8, 1, "p) Play nethack!");
+      mvprintw (banner.len + 8, 1, "p) Play %s!", myconfig->game_name);
       mvaddstr (banner.len + 9, 1, "q) Quit");
       mvaddstr (banner.len + 11, 1, "=> ");
     }
@@ -1391,8 +1391,6 @@ backup_savefile (void)
   return n >= 0;
 }
 
-/* TODO: Some of the messages here (sorry no nethack for you!) are nethack specific
- * as may be some code... don't think so though. Globalize it. */ 
 int
 purge_stale_locks (void)
 {
@@ -1453,7 +1451,8 @@ purge_stale_locks (void)
 
 #define HUP_WAIT 10 /* seconds before HUPPING */
 	mvprintw (3, 1,
-	    "There are some stale Nethack processes, will recover in %d  seconds.", HUP_WAIT);
+	    "There are some stale %s processes, will recover in %d  seconds.",
+            myconfig->game_name, HUP_WAIT);
 	mvaddstr (4, 1,
 	    "Press a key NOW if you don't want this to happen!");
 
@@ -1494,8 +1493,8 @@ purge_stale_locks (void)
           sleep (1);
           if (seconds == 10)
             {
-              mvaddstr (3, 1,
-                        "Couldn't terminate one of your stale Nethack processes gracefully.");
+              mvprintw (3, 1,
+                        "Couldn't terminate one of your stale %s processes gracefully.", myconfig->game_name);
               mvaddstr (4, 1, "Force its termination? [yn] ");
               if (tolower (getch ()) == 'y')
                 {
@@ -1505,8 +1504,8 @@ purge_stale_locks (void)
               else
                 {
                   endwin ();
-                  fprintf (stderr, "Sorry, no nethack for you now, please "
-                           "contact the admin.\n");
+                  fprintf (stderr, "Sorry, no %s for you now, please "
+                           "contact the admin.\n", myconfig->game_name);
                   graceful_exit (1);
                 }
             }

@@ -58,7 +58,8 @@ COMMENT		^#.*
 "maxusers"	{ return TYPE_MAX; }
 
 "chroot_path"	{ return TYPE_PATH_CHROOT; }
-"nethack"	{ return TYPE_PATH_NETHACK; }
+"game_name"     { return TYPE_NAME_GAME; }
+"game_path"	{ return TYPE_PATH_GAME; }
 "dglroot"	{ return TYPE_PATH_DGLDIR; }
 "spooldir"	{ return TYPE_PATH_SPOOL; }
 "banner"	{ return TYPE_PATH_BANNER; }

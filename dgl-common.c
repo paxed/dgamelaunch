@@ -18,7 +18,8 @@ extern int yyparse ();
 struct dg_config *myconfig = NULL;
 struct dg_config defconfig = {
   /* chroot = */ "/var/lib/dgamelaunch/",
-  /* nethack = */ "/bin/nethack",
+  /* game_path = */ "/bin/nethack",
+  /* game_name = */ "NetHack",
   /* dglroot = */  "/dgldir/",
   /* lockfile = */ "/dgl-lock",
   /* passwd = */ "/dgl-login",
@@ -232,7 +233,8 @@ create_config ()
   if (myconfig->max == 0 && !set_max) myconfig->max = defconfig.max;
   if (!myconfig->banner) myconfig->banner = defconfig.banner;
   if (!myconfig->chroot) myconfig->chroot = defconfig.chroot;
-  if (!myconfig->nethack) myconfig->nethack = defconfig.nethack;
+  if (!myconfig->game_path) myconfig->game_path = defconfig.game_path;
+  if (!myconfig->game_name) myconfig->game_name = defconfig.game_name;
   if (!myconfig->dglroot) myconfig->dglroot = defconfig.dglroot;
   if (!myconfig->rcfile) myconfig->rcfile = defconfig.rcfile;
   if (!myconfig->spool) myconfig->spool = defconfig.spool;

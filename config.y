@@ -26,7 +26,7 @@ static const char* lookup_token (int t);
 }
 
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX
-%token TYPE_PATH_NETHACK TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
+%token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
 %token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_SAVEFILEFMT
 %token TYPE_MALSTRING
@@ -113,9 +113,14 @@ KeyPair: KeyType '=' TYPE_VALUE {
       myconfig->chroot = strdup ($3);
       break;
 
-    case TYPE_PATH_NETHACK:
-      if (myconfig->nethack) free(myconfig->nethack);
-      myconfig->nethack = strdup ($3);
+    case TYPE_PATH_GAME:
+      if (myconfig->game_path) free(myconfig->game_path);
+      myconfig->game_path = strdup ($3);
+      break;
+
+    case TYPE_NAME_GAME:
+      if (myconfig->game_name) free (myconfig->game_name);
+      myconfig->game_name = strdup($3);
       break;
 
     case TYPE_PATH_DGLDIR:
@@ -214,7 +219,8 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_SGID	{ $$ = TYPE_SGID; }
 	| TYPE_MAX	{ $$ = TYPE_MAX; }
 	| TYPE_PATH_CHROOT	{ $$ = TYPE_PATH_CHROOT; }
-	| TYPE_PATH_NETHACK	{ $$ = TYPE_PATH_NETHACK; }
+	| TYPE_PATH_GAME	{ $$ = TYPE_PATH_GAME; }
+        | TYPE_NAME_GAME        { $$ = TYPE_NAME_GAME; }
 	| TYPE_PATH_DGLDIR	{ $$ = TYPE_PATH_DGLDIR; }
 	| TYPE_PATH_SPOOL	{ $$ = TYPE_PATH_SPOOL; }
 	| TYPE_PATH_BANNER	{ $$ = TYPE_PATH_BANNER; }
@@ -236,11 +242,13 @@ const char* lookup_token (int t)
     case TYPE_SGID: return "shed_gid";
     case TYPE_MAX: return "maxusers";
     case TYPE_PATH_CHROOT: return "chroot_path";
-    case TYPE_PATH_NETHACK: return "nethack";
+    case TYPE_PATH_GAME: return "game_path";
+    case TYPE_NAME_GAME: return "game_name";
     case TYPE_PATH_DGLDIR: return "dglroot";
     case TYPE_PATH_SPOOL: return "spooldir";
     case TYPE_PATH_BANNER: return "banner";
     case TYPE_PATH_CANNED: return "rc_template";
+    case TYPE_PATH_SAVEFILEFMT: return "savefilefmt";
     default: abort();
   }
 }

@@ -45,7 +45,8 @@ struct dg_game
 struct dg_config
 {
   char* chroot;
-  char* nethack;
+  char* game_path;
+  char* game_name;
   char* dglroot;
   char* lockfile;
   char* passwd;

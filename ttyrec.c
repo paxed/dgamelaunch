@@ -262,7 +262,7 @@ dooutput ()
 void
 doshell (char *username)
 {
-  char *argv1 = myconfig->nethack;
+  char *argv1 = myconfig->game_path;
   char *argv2 = "-u";
   char *myargv[10];
 
@@ -279,7 +279,7 @@ doshell (char *username)
   myargv[2] = username;
   myargv[3] = 0;
 
-  execvp (myconfig->nethack, myargv);
+  execvp (myconfig->game_path, myargv);
 
   fail ();
 }
