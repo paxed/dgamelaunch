@@ -2,9 +2,13 @@ VERSION = 1.3.10.1
 NAME = dgamelaunch
 exclusions = CVS .cvsignore
 
+ifndef optimize
+  optimize = -O0
+endif
+
 CC = gcc
 LDFLAGS = 
-CFLAGS = -g3 -O0 -Wall -W -Wno-unused-parameter $(DEFS)
+CFLAGS = -g3 $(optimize) -Wall -W -Wno-unused-parameter $(DEFS)
 DEFS = -DVERSION=\"$(VERSION)\"
 SRCS = virus.c ttyrec.c dgamelaunch.c io.c ttyplay.c stripgfx.c
 OBJS = $(SRCS:.c=.o)
