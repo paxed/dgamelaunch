@@ -181,7 +181,7 @@ create_config ()
 	myconfig->shed_gid = defconfig.shed_gid;
     }
 
-    if (myconfig->max == 0) myconfig->max = defconfig.max;
+    if (myconfig->max == -1) myconfig->max = defconfig.max;
     if (!myconfig->banner) myconfig->banner = defconfig.banner;
     if (!myconfig->chroot) myconfig->chroot = defconfig.chroot;
     if (!myconfig->nethack) myconfig->nethack = defconfig.nethack;
@@ -504,7 +504,7 @@ inprogressmenu ()
         }
 
       mvaddstr (23, 1,
-                "Watch which game? (r refreshes, q quits, >/< for more/less) => ");
+                "Watch which game? ('r' refreshes, 'q' quits, '>'/'<' for more/less) => ");
       refresh ();
 
       switch ((menuchoice = tolower (getch ())))
@@ -1139,7 +1139,7 @@ write_canned_rcfile (char *target)
     {
     bail:
       mvaddstr (13, 1,
-                "You don't know how to write that! You write \"%s\" was here and the scroll disappears.");
+                "You don't know how to write that! You write \"%s was here\" and the scroll disappears.");
       mvaddstr (14, 1,
                 "(Sorry, but I couldn't open one of the nethackrc files. This is a bug.)");
       return;
@@ -1356,15 +1356,16 @@ purge_stale_locks (void)
 	clear ();
 	drawbanner (1, 1);
 
-	mvaddstr (3, 1,
-	    "There are some stale Nethack processes, will recover in 5 seconds.");
+#define HUP_WAIT 10 /* seconds before HUPPING */
+	mvprintw (3, 1,
+	    "There are some stale Nethack processes, will recover in %d  seconds.", HUP_WAIT);
 	mvaddstr (4, 1,
 	    "Press a key NOW if you don't want this to happen!");
 
 	move (3, 58); /* pedantry */
 	halfdelay(10);
 	
-	for (seconds = 5; seconds > 0; seconds--)
+	for (seconds = HUP_WAIT - 1; seconds >= 0; seconds--)
 	{
 	  if (getch() != ERR)
 	  {
@@ -1372,7 +1373,7 @@ purge_stale_locks (void)
 	    cbreak();
 	    return 0;
 	  }
-	  mvaddch (3, 57, (char)(seconds + '0') - 1);
+	  mvprintw (3, 57, "%d%s", seconds, (seconds > 9) ? "" : " ");
 	}
 
 	nocbreak();
