@@ -14,11 +14,13 @@ max=19
 rm -f "$chrootdir"/dgldir/inprogress/*
 rm -f "$chrootdir$hackdir"/save/*[0-9]test[0-9]*
 
+echo -n "Starting processes:"
 export conffile i
 i=1
 while [ $i -le $max ]; do
 	xterm -e sh -c '(sleep 1; echo "ltest$i"; echo aa; echo -n py i; cat) | ./dgamelaunch -f "$conffile" '&
+	echo -n " $!"
 	sleep 1
 	i=$(($i+1))
 done
-
+echo
