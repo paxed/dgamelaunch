@@ -1,6 +1,10 @@
-/* nethacklaunch.c
+/* dgamelaunch.c
  *
  * (c)2001-3 M. Drew Streib <dtype@dtype.org>
+ * also parts (c) 2003 Joshua Kwan <joshk@triplehelix.org>,
+ * Brett Carrington <brettcar@segvio.org>,
+ * Jilles Tjoelker <jilles@stack.nl>
+ *
  * This program is free software; you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
  * the Free Software Foundation; either version 2 of the License, or 
@@ -17,7 +21,7 @@
  */
 
 /*
- * See this in program action at http://dtype.org/nethack/
+ * See this program in action at http://alt.org/nethack/
  *
  * This is a little wrapper for nethack (and soon other programs) that
  * will allow them to be run from a telnetd session, chroot, shed privs,
