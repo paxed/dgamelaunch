@@ -319,6 +319,14 @@ inprogressmenu ()
 
   while (1)
     {
+      if (len == 0)
+        offset = 0;
+      else
+        {
+	  while (offset >= len && offset >= 14)
+	    offset -= 14;
+	}
+
       clear ();
       drawbanner (1, 1);
       mvprintw (3, 1,
