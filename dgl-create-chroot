@@ -26,7 +26,7 @@ mkdir -p $CHROOT_PATH/dgldir/inprogress
 mkdir -p $CHROOT_PATH/dgldir/rcfiles
 mkdir -p $CHROOT_PATH/dgldir/ttyrec
 chown -R $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/dgldir
-
+chown -R $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/var/mail
 touch $CHROOT_PATH/dgl-login
 touch $CHROOT_PATH/dgl-lock
 chown $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/dgl-*
