@@ -987,6 +987,7 @@ newuser ()
       if (strlen (buf) == 0)
       {
 	free(me);
+	me = NULL;
         return;
       }
     }
