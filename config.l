@@ -1,8 +1,5 @@
 /* Lexical analyzer for dgamelaunch's configuration file. */
 
-%option nounput
-%option noyywrap
-
 %{
 
 #include <stdio.h>
@@ -27,13 +24,12 @@ WHITE		[\t ]*
 COMMENT		^#.*
 LONGCOMMENT	"/*"
 
-%%             /* BEGIN RULES SECTION */
+%%
 
 {NUMBER} { yylval.i = atoi(yytext); return TYPE_NUMBER; }
 {VALUE}	{
   yytext[yyleng - 1] = '\0'; /* Kill the trailing quote */
-  yytext++; /* Kill the leading quote */
-  yylval.s = strdup(yytext);
+  yylval.s = strdup(yytext + 1); /* kill leading quote */
   return TYPE_VALUE;
 }
 
