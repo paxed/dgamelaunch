@@ -1,11 +1,18 @@
+ dgamelaunch is copyright (C) 2001-2003 M. Drew Streib
+ also parts (C) 2003-4 Joshua Kwan <joshk@triplehelix.org>,
+ Brett Carrington <brettcar@segvio.org>,
+ Jilles Tjoelker <jilles@stack.nl>
+
 dgamelaunch itself, virus.c, and last_char_is.c fall under the GNU
 General Public License, which follows here.
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
- Copyright (C) 2001-2003 M. Drew Streib
- Everyone is permitted to copy and distribute verbatim copies
+Copyright (C) 1989, 1991 Free Software Foundation, Inc.
+59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 
 			    Preamble
