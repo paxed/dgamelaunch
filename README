@@ -76,10 +76,18 @@ service telnet
   wait      = no
   user      = root
   server    = /usr/sbin/in.telnetd
-  server_args     = -L /opt/nethack/nethack.dtype.org/dgamelaunch
+  server_args     = -h -L /opt/nethack/nethack.dtype.org/dgamelaunch
   rlimit_cpu      = 3600
   bind      = 64.71.163.206
 }
+
+An classic inetd line would look like this
+
+telnet stream tcp nowait root.root /usr/sbin/tcpd /usr/sbin/in.telnetd -h -L /usr/sbin/dgamelaunch
+
+In both cases, the -L specifies an alternate login program (telnetlogin is
+invoked by default) and -h prevents revealing of a login banner (for example,
+"Debian GNU/Linux testing/unstable influx") before starting the login shell.
 
 6) Populate /chrootdir/etc/terminfo with terminfo files. I think that most
 modern ncurses will default to terminfo when it is available. Mine seemed
