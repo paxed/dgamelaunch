@@ -7,12 +7,6 @@
 #include <sys/types.h>
 #include <time.h>
 
-/* Default - should work everywhere */
-#if defined(__linux__) || defined(BSD)
-# define USE_OPENPTY
-# define NOSTREAMS
-#endif
-
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif

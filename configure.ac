@@ -14,6 +14,7 @@ AC_PROG_YACC
 case "$(uname -s)" in
   Linux | *BSD)
     LIBS="$LIBS -lutil -lcrypt"
+    AC_DEFINE(NOSTREAMS, 1, [Use SVR4 streams support in ttyrec.])
   ;;
 esac
 
@@ -29,10 +30,11 @@ AC_ARG_ENABLE(enable-virus,
 [AC_SUBST(EDITOR, virus.c)], [AC_SUBST(EDITOR, ee.c)])
 
 AC_ARG_WITH(config-file,
-[AS_HELP_STRING([--with-config-file=PATH], [Define the path to the default configuration file.])]
-[configfile=$withval], [configfile=/etc/dgamelaunch.conf])
+[AS_HELP_STRING([--with-config-file=PATH], [Define the path to the default configuration file.])],
+[configfile=$withval], [configfile="/etc/dgamelaunch.conf"])
 
 AC_DEFINE_UNQUOTED(DEFCONFIG, "$configfile", [Path to the default config file.])
 
+AC_CHECK_FUNCS(openpty)
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT

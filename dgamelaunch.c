@@ -129,7 +129,7 @@ mysetenv (const char* name, const char* value, int overwrite)
 void
 ttyrec_getpty ()
 {
-#ifdef USE_OPENPTY
+#ifdef HAVE_OPENPTY
   if (openpty (&master, &slave, NULL, NULL, NULL) == -1)
     graceful_exit (62);
 #else
