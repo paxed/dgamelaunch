@@ -1,4 +1,4 @@
-1.4.5 (2004/06/11)
+1.4.5 (2004/06/12)
 	* Reset offset if necessary to show at least one game to avoid things
 	  like "(15-14 of 14)".
 	* Provide several examples for dgl-create-chroot.conf.
@@ -7,9 +7,12 @@
 	  configuration file.
 	* Added ^W for delete word in mygetnstr().
         * Begun generalization of code so that someone can get it to work
-          with stuff like Slash'EM etc. easier.
+          with stuff like Slash'EM etc. more easily.
         * Allow automatic authorization using the USER environment variable
-          that one can auto-set in .telnetrc.
+          that one can auto-set in .telnetrc. Idea by Jeremy Chadwick
+          <jdc@parodius.com>.
+        * Enable NHEXT and NHAUTH support for Slash'EM, contributed by
+          J. Ali Harlow <ali@juiblex.co.uk>.
 
 1.4.4 (2004/03/07)
 	* Show total number of games in progress below the list, useful if
