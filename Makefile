@@ -36,7 +36,7 @@ else
   endif
 endif
 
-ifeq (Darwin,$(shell uname -s)) # XXX hope that's MacOS X
+ifeq (Darwin,$(shell uname -s)) 
   LCRYPT =
 else
   LCRYPT = -lcrypt
