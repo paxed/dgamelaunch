@@ -327,7 +327,7 @@ inprogressmenu ()
 	    offset -= 14;
 	}
 
-      clear ();
+      erase ();
       drawbanner (1, 1);
       mvprintw (3, 1,
                 "During playback, hit 'q' to return here, 'm' to send mail (requires login),");
