@@ -49,7 +49,7 @@
  |	proprietary information which is protected by
  |	copyright.  All rights are reserved.
  |
- |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.3 2004/01/23 18:33:07 joshk Exp $
+ |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.4 2004/01/23 18:48:44 joshk Exp $
  |
  */
 
@@ -62,7 +62,7 @@ char *ee_long_notice[] = {
 	"copyright.  All rights are reserved."
 	};
 
-char *version = "@(#) ee, version 1.4.1  $Revision: 1.3 $";
+char *version = "@(#) ee, version 1.4.1  $Revision: 1.4 $";
 
 #define catgetlocal(a, b) (b)
 
@@ -289,7 +289,6 @@ void leave_op P_((void));
 void redraw P_((void));
 int Blank_Line P_((struct text *test_line));
 void Format P_((void));
-void ee_init P_((void));
 void echo_string P_((char *string));
 int first_word_len P_((struct text *test_line));
 void Auto_Format P_((void));
@@ -490,7 +489,10 @@ char *argv[];
 	int counter;
 
 	for (counter = 1; counter < 24; counter++)
+	{
+	  if (!(counter == SIGKILL || counter == SIGSTOP))
 		signal(counter, SIG_IGN);
+	}
 
 	signal(SIGCHLD, SIG_DFL);
 	signal(SIGSEGV, SIG_DFL);
@@ -518,7 +520,6 @@ char *argv[];
 	edit = TRUE;
 	gold = case_sen = FALSE;
 	strings_init();
-	ee_init();
 	if (argc > 0 )
 		get_options(argc, argv);
 	set_up_term();
@@ -3766,124 +3767,6 @@ Format()	/* format the paragraph according to set margins	*/
 	midscreen(scr_vert, point);
 	werase(com_win);
 	wrefresh(com_win);
-}
-
-unsigned char *init_name[3] = {
-	"/usr/local/lib/init.ee", 
-	NULL, 
-	".init.ee"
-	};
-
-void 
-ee_init()	/* check for init file and read it if it exists	*/
-{
-	FILE *init_file;
-	unsigned char *string;
-	unsigned char *str1;
-	unsigned char *str2;
-	char *home;
-	int counter;
-	int temp_int;
-
-	string = getenv("HOME");
-	str1 = home = malloc(strlen(string)+10);
-	strcpy(home, string);
-	strcat(home, "/.init.ee");
-	init_name[1] = home;
-	string = malloc(512);
-
-	for (counter = 0; counter < 3; counter++)
-	{
-		if (!(access(init_name[counter], 4)))
-		{
-			init_file = fopen(init_name[counter], "r");
-			while ((str2 = fgets(string, 512, init_file)) != NULL)
-			{
-				str1 = str2 = string;
-				while (*str2 != '\n')
-					str2++;
-				*str2 = (char) NULL;
-
-				if (unique_test(string, init_strings) != 1)
-					continue;
-
-				if (compare(str1, CASE, FALSE))
-					case_sen = TRUE;
-				else if (compare(str1, NOCASE, FALSE))
-					case_sen = FALSE;
-				else if (compare(str1, EXPAND, FALSE))
-					expand_tabs = TRUE;
-				else if (compare(str1, NOEXPAND, FALSE))
-					expand_tabs = FALSE;
-				else if (compare(str1, INFO, FALSE))
-					info_window = TRUE;
-				else if (compare(str1, NOINFO, FALSE))
-					info_window = FALSE;   
-				else if (compare(str1, MARGINS, FALSE))
-					observ_margins = TRUE;
-				else if (compare(str1, NOMARGINS, FALSE))
-					observ_margins = FALSE;
-				else if (compare(str1, AUTOFORMAT, FALSE))
-				{
-					auto_format = TRUE;
-					observ_margins = TRUE;
-				}
-				else if (compare(str1, NOAUTOFORMAT, FALSE))
-					auto_format = FALSE;
-				else if (compare(str1, Echo, FALSE))
-				{
-					str1 = next_word(str1);
-					if (*str1 != (char) NULL)
-						echo_string(str1);
-				}
-				else if (compare(str1, RIGHTMARGIN, FALSE))
-				{
-					str1 = next_word(str1);
-					if ((*str1 >= '0') && (*str1 <= '9'))
-					{
-						temp_int = atoi(str1);
-						if (temp_int > 0)
-							right_margin = temp_int;
-					}
-				}
-				else if (compare(str1, HIGHLIGHT, FALSE))
-					nohighlight = FALSE;
-				else if (compare(str1, NOHIGHLIGHT, FALSE))
-					nohighlight = TRUE;
-				else if (compare(str1, EIGHTBIT, FALSE))
-					eightbit = TRUE;
-				else if (compare(str1, NOEIGHTBIT, FALSE))
-				{
-					eightbit = FALSE;
-					ee_chinese = FALSE;
-				}
-				else if (compare(str1, EMACS_string, FALSE))
-					emacs_keys_mode = TRUE;
-				else if (compare(str1, NOEMACS_string, FALSE))
-					emacs_keys_mode = FALSE;
-				else if (compare(str1, chinese_cmd, FALSE))
-				{
-					ee_chinese = TRUE;
-					eightbit = TRUE;
-				}
-				else if (compare(str1, nochinese_cmd, FALSE))
-					ee_chinese = FALSE;
-			}
-			fclose(init_file);
-		}
-	}
-	free(string);
-	free(home);
-
-	string = getenv("LANG");
-	if (string != NULL)
-	{
-		if (strcmp(string, "zh_TW.big5") == 0)
-		{
-			ee_chinese = TRUE;
-			eightbit = TRUE;
-		}
-	}
 }
 
 void 
