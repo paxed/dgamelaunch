@@ -163,6 +163,11 @@ create_config ()
       return;
     }
 
+    if (!myconfig) /* a parse error occurred */
+    {
+      myconfig = &defconfig;
+      return;
+    }
     /* Fill the rest with defaults */
     if (!myconfig->shed_user && myconfig->shed_uid == -1)
     {
