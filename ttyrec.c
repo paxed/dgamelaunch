@@ -173,11 +173,7 @@ doinput ()
 void
 finish ()
 {
-#if defined(SVR4)
   int status;
-#else /* !SVR4 */
-  union wait status;
-#endif /* !SVR4 */
   register int pid;
   register int die = 0;
 
