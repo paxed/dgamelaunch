@@ -26,7 +26,7 @@ static const char* lookup_token (int t);
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX
 %token TYPE_PATH_NETHACK TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
-%token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE
+%token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_MALSTRING
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER
 %type  <kt> KeyType
@@ -154,6 +154,7 @@ KeyPair: KeyType '=' TYPE_VALUE {
 
   free($3);
 }
+	| KeyType '=' TYPE_MALSTRING {}
 	| KeyType '=' TYPE_NUMBER {
   if (!myconfig)
   {
@@ -238,5 +239,5 @@ const char* lookup_token (int t)
 void yyerror(char const* s)
 {
   if (!silent)
-    fprintf(stderr, "%s: couldn't parse \"%s\" at line %d, column %d: %s\n", config, yytext, line, col, s);
+    fprintf(stderr, "%s:%d:%d: couldn't parse \"%s\": %s\n", config, line, col, yytext, s);
 }

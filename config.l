@@ -15,7 +15,8 @@ unsigned int line = 1, col = 0;
 
 %}
 
-NUMBER		-?[0-9]+
+NEGNUMBER	-[0-9]+
+NUMBER		[^-][0-9]+
 VALUE		\".*\"
 MALSTRING	\"[^\"\n]*\n
 WHITE		[\t ]*
@@ -23,27 +24,14 @@ COMMENT		^#.*
 
 %%
 
-{NUMBER} { 
-  unsigned int x;
-  errno = 0;
-  
-  if (atoi(yytext) < 0)
-  {
-    fprintf(stderr,"%s:%d: negative value not accepted! Fix it now!\n",
+{NEGNUMBER} {
+  fprintf(stderr,"%s:%d: negative value not accepted! Fix it now!\n",
       config, line);
-    graceful_exit(1);
-  }
-  
-  x = strtoul(yytext, NULL, 10);
-  
-  if (errno == ERANGE)
-  {
-    fprintf(stderr, "%s:%d: %s is too big! Fix it now!\n",
-      config, line, yytext);
-    graceful_exit(1);
-  }
-  
-  yylval.i = x;
+  graceful_exit(1);
+}
+
+{NUMBER} { 
+  yylval.i = strtoul(yytext, NULL, 10);
   return TYPE_NUMBER;
 }
 
@@ -54,8 +42,10 @@ COMMENT		^#.*
 }
 
 {MALSTRING} {
+  yytext[yyleng - 1] = '\0'; /* remove trailing newline */
   /* yytext already contains a newline, no need for one here */
   fprintf(stderr, "%s:%d:%d: unterminated string constant: %s\n", config, line, col - yyleng + 1, yytext);
+  return TYPE_MALSTRING; 
 }
 
 {WHITE}		{ }
@@ -80,7 +70,7 @@ COMMENT		^#.*
 \n		{ line++; col = 0; }
 
 . {
-  fprintf(stderr, "%s: unrecognized token \"%s\" at line %d, column %d\n", config, yytext, line, col);
+  fprintf(stderr, "%s:%d:%d unrecognized token \"%s\"\n", config, line, col, yytext);
 }
 
 %%
