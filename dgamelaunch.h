@@ -13,6 +13,10 @@
 # define NOSTREAMS
 #endif
 
+#ifndef ARRAY_SIZE
+# define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+#endif
+
 struct dg_user
 {
   char *username;
@@ -89,6 +93,11 @@ extern void writefile(int requirenew);
 extern void graceful_exit(int status);
 extern int purge_stale_locks(void);
 extern void menuloop(void);
+#if !defined(BSD) && !defined(__linux__)
+extern int mysetenv (const char* name, const char* value, int overwrite);
+#else
+# define mysetenv setenv
+#endif
 
 /* strlcpy.c */
 extern size_t strlcpy (char *dst, const char *src, size_t siz);

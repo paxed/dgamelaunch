@@ -41,18 +41,23 @@ LDFLAGS =
 CFLAGS = -g3 $(optimize) -Wall -Wno-unused $(DEFS)
 INSTALL = install -c
 DEFS = -DVERSION=\"$(VERSION)\" -DDEFCONFIG=\"$(DEFCONFIG)\"
-SRCS = $(EDITOR) ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c stripgfx.c strlcpy.c strlcat.c y.tab.c lex.yy.c
+SRCS = $(EDITOR) dgl-common.c ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c stripgfx.c strlcpy.c strlcat.c y.tab.c lex.yy.c
+EXTRA_SRCS = nethackstub.c
 OBJS = $(SRCS:.c=.o)
+WALL_OBJS = y.tab.o lex.yy.o dgl-common.o dgl-wall.o strlcat.o strlcpy.o
 LIBS = -lcurses -lcrypt $(LUTIL) -ll
 
-all: $(NAME)
+all: $(NAME) dgl-wall
 
 $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
+dgl-wall: $(WALL_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(WALL_OBJS) $(LIBS)
+	
 clean:
-	rm -f $(NAME) nethackstub
-	rm -f editors/*.o *.o .#* *~ y.tab.* lex.yy.c
+	rm -f $(NAME) nethackstub dgl-wall
+	rm -f editors/*.o *.o .#* *~ y.tab.* lex.yy.c Makefile.dep
 	
 install:
 	$(INSTALL) -m 755 $(NAME) $(SBINDIR)
@@ -70,24 +75,30 @@ y.tab.c y.tab.h: config.y
 lex.yy.o: lex.yy.c
 y.tab.o: y.tab.c
 
-dist: clean
+dist: dep clean
 	rm -rf $(NAME)-$(VERSION)
 	(cd .. && ln -sf $(CURDIR) $(NAME)-$(VERSION))
 	(cd .. && tar $(addprefix --exclude ,$(exclusions)) -chzf $(NAME)-$(VERSION).tar.gz $(NAME)-$(VERSION))
 	rm -f ../$(NAME)-$(VERSION)
 	@echo "Created source release $(NAME)-$(VERSION).tar.gz"
-	
-# Dependencies - we may auto-generate later
+
+dep: y.tab.c lex.yy.c
+	@sed -e '/^# Source code dependencies/,$$d' < Makefile > Makefile.dep
+	@echo "# Source code dependencies" >> Makefile.dep
+	$(CC) -MM $(SRCS) $(EXTRA_SRCS) >> Makefile.dep
+	mv Makefile.dep Makefile
+
+# Source code dependencies
 ee.o: ee.c
-io.o: io.c ttyrec.h
-last_char_is.o: last_char_is.c
-mygetnstr.o: mygetnstr.c
-nethackstub.o: nethackstub.c
-stripgfx.o: stripgfx.c stripgfx.h
-strlcat.o: strlcat.c
-strlcpy.o: strlcpy.c
-ttyplay.o: ttyplay.c dgamelaunch.h ttyplay.h ttyrec.h io.h stripgfx.h
+dgl-common.o: dgl-common.c dgamelaunch.h
 ttyrec.o: ttyrec.c dgamelaunch.h ttyrec.h io.h
-virus.o: virus.c last_char_is.c
-y.tab.o: y.tab.c dgamelaunch.h
 dgamelaunch.o: dgamelaunch.c dgamelaunch.h ttyplay.h ttyrec.h y.tab.h
+io.o: io.c ttyrec.h
+ttyplay.o: ttyplay.c dgamelaunch.h ttyplay.h ttyrec.h io.h stripgfx.h
+mygetnstr.o: mygetnstr.c
+stripgfx.o: stripgfx.c stripgfx.h
+strlcpy.o: strlcpy.c
+strlcat.o: strlcat.c
+y.tab.o: y.tab.c dgamelaunch.h
+lex.yy.o: lex.yy.c y.tab.h dgamelaunch.h
+nethackstub.o: nethackstub.c
