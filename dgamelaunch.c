@@ -1131,9 +1131,9 @@ write_canned_rcfile (char *target)
   char buf[1024], *rfn;
   size_t bytes, len;
 
-  len = strlen(myconfig->dglroot) + strlen(myconfig->rcfile) + 1;
+  len = strlen(myconfig->rcfile) + 2;
   rfn = malloc(len);
-  snprintf (rfn, len, "%s%s", myconfig->dglroot, myconfig->rcfile);
+  snprintf (rfn, len, "/%s", myconfig->rcfile);
 
   if (!(newfile = fopen (target, "w")))
     {
@@ -1179,7 +1179,6 @@ editoptions ()
   pid_t editor;
 
   rcfile = fopen (rcfilename, "r");
-  printf (" read");
   if (!rcfile)                  /* should not really happen except for old users */
     write_canned_rcfile (rcfilename);
 
