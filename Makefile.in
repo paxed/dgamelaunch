@@ -44,7 +44,9 @@ distclean: clean
 	rm -rf autom4te.cache
 	
 install: all
-	$(INSTALL) -m 755 $(NAME) $(sbindir)
+	mkdir -p $(DESTDIR)$(sbindir)
+	$(INSTALL) -m 755 $(NAME) $(DESTDIR)$(sbindir)
+	mkdir -p $(DESTDIR)$(mandir)/man8
 	$(INSTALL) -m 644 $(MAN8) $(mandir)/man8
 	
 indent:
