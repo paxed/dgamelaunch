@@ -6,7 +6,7 @@ account and start playing any game which suits your fancy - currently, though,
 it only supports NetHack (see http://www.nethack.org).
 
 It requires the ncurses library and development headers to build and should
-compile without issue on Linux and FreeBSD 4/5. Other platforms have not been
+compile without issue on Linux and FreeBSD 4.x. Other platforms have not been
 tested yet.
 
 dgamelaunch was originally developed by M. Drew Streib <dtype@dtype.org> but
@@ -17,13 +17,12 @@ Mailing list: http://alt.org/mailman/listinfo/nethack/
 BASIC SETUP INSTRUCTIONS
 ========================
 
-1) Setup a chroot jail. There is a helpful script included to accomplish
-this, called dgl-create-chroot, in the source directory. The default settings
-are viewable by editing the script; to customize the installation, look at
+1) Setup a chroot jail. There is a helpful script included to accomplish this,
+called dgl-create-chroot, in the source directory. The default settings are
+viewable by editing the script; to customize the installation, look at
 dgl-create-chroot.conf.example (also in the source directory) and edit it to
 suit your needs, and save it into the same directory as dgl-create-chroot as
-dgl-create-chroot.conf. Depending on what you choose to do you may need to
-run the script as root.
+dgl-create-chroot.conf. It's very likely you need to run the script as root.
 
 If you decide to not use dgl-create-chroot, you're on your own and we assume
 you have enough clue to figure out exactly what's needed for the chroot to
@@ -40,16 +39,20 @@ compression.)
 3) Edit dgamelaunch.conf. This will contain information for dgamelaunch
 about what uid/username, gid/group to shed privileges to at runtime. It
 must also contain the path to nethack, and needs to know certain aspects
-of your chroot. If you used dgl-create-chroot, the defaults are appropriate,
-except of course that you will need to install the nethack binary into the
-specified location.
+of your chroot.
+
+Note that using a username in dgamelaunch.conf will cause (part of) your
+passwd database to be loaded into dgamelaunch's memory space. If you use BSD,
+this will also include encrypted passwords. Therefore, it's recommended to
+put the uid in the dgamelaunch.conf. The same applies to groups, but openpty(3)
+often looks up the tty group anyway.
 
 4) Setup dgamelaunch as one of the following:
         a) The shell for a single login.
         b) An (x)inetd service.
 
 If you choose a login shell make sure dgamelaunch is setuid root. (that is,
-chmod 755 dgamelaunch.) It will shed privs right after entering the chroot
+chmod 4755 dgamelaunch.) It will shed privs right after entering the chroot
 jail though.
 
 Example xinetd lines:
@@ -79,7 +82,13 @@ It goes without saying that the argument after -L must point to dgamelaunch's
 exact location. Also, the location of dgamelaunch.conf is variable and of
 course should be customized by you.
 
-5) Test your compilation of dgamelaunch by running it as root. If this 
-works, a shell login or (x)inetd will work with the correct configuration. 
+It appears that the -L option is not very widely supported. FreeBSD's
+telnetd uses -p instead, and you can't give arguments (arguments appropriate
+to standard login are used), so it's necessary to start a shell script from
+it.  Some other telnetds do not support anything like this at all.
+
+5) Test your compilation of dgamelaunch by running it as root. If this
+works, a shell login or (x)inetd will work with the correct configuration.
 If you have problems with dgamelaunch's display make sure that your chroot's
-/etc/terminfo directory is populated.
+/etc/terminfo directory (or whatever directory your ncurses uses) is
+populated.
