@@ -1670,7 +1670,7 @@ int
 main (int argc, char** argv)
 {
   /* for chroot and program execution */
-  char atrcfilename[81], *spool, *auth = getenv("USER");
+  char atrcfilename[81], *spool, *p, *auth = NULL;
   unsigned int len;
   int c;
   int nhext = 0, nhauth = 0;
@@ -1690,6 +1690,12 @@ main (int argc, char** argv)
   compat_init_setproctitle(argc, argv);
   argv = saved_argv;
 #endif
+
+  p = getenv("USER");
+
+  if (p && *p != '\0')
+    auth = strdup(p);
+  /* else auth is still NULL */
 
   __progname = basename(strdup(argv[0]));
 
