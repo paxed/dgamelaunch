@@ -87,6 +87,7 @@ extern void freefile(void);
 extern void initcurses(void);
 extern void loginprompt(int from_ttyplay);
 extern void newuser(void);
+extern void autologin(char *user, char *pass);
 extern int passwordgood(char *cpw);
 extern int readfile(int nolock);
 extern int userexist(char *cname);

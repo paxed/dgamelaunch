@@ -786,6 +786,21 @@ initcurses ()
 /* ************************************************************* */
 
 void
+autologin (char* user, char *pass)
+{
+  int me_index = -1;
+  if ((me_index = userexist(user)) != -1)
+  {
+    me = users[me_index];
+    if (passwordgood(pass))
+    {
+      loggedin = 1;
+      snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
+    }
+  }
+}
+
+void
 loginprompt (int from_ttyplay)
 {
   char user_buf[22], pw_buf[22];
@@ -1652,7 +1667,7 @@ int
 main (int argc, char** argv)
 {
   /* for chroot and program execution */
-  char atrcfilename[81], *spool;
+  char atrcfilename[81], *spool, *auth = getenv("USER");
   unsigned int len;
   int c;
   int nhext = 0, nhauth = 0;
@@ -1760,6 +1775,25 @@ main (int argc, char** argv)
   if (nhauth)
     graceful_exit (authenticate ());
 
+  if (auth)
+  {
+    char *user, *pass, *p;
+
+    p = strchr(auth, ':');
+
+    if (p)
+    {
+      pass = p + 1;
+
+      if (pass != '\0')
+      {
+        *p = '\0';
+        user = auth;
+        autologin(user, pass);
+      }
+    }
+  }
+  
   initcurses ();
   menuloop();
 
