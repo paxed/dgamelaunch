@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
-#include <getopt.h>
 #include <string.h>
 #include "dgamelaunch.h"
 
