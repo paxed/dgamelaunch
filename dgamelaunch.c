@@ -50,7 +50,7 @@
 #include <sys/wait.h>
 #include <sys/ioctl.h>          /* ttyrec */
 #include <sys/stat.h>
-
+#include <libgen.h>
 #include <stdlib.h>
 #include <curses.h>
 
