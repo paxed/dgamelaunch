@@ -58,6 +58,11 @@
 
 #ifdef __linux__
 # include <pty.h>
+# include <libiberty.h>
+#endif
+
+#ifndef ARRAY_SIZE
+# define ARRAY_SIZE(x) sizeof(x) / sizeof(x[0])
 #endif
 
 #include <grp.h>
@@ -207,7 +212,7 @@ loadbanner (struct dg_banner *ban)
                 {
                   strncat (bufnew, VERSION, 80 - i);
                   b += 8;       /* skip the whole $VERSION string */
-                  i += sizeof (VERSION) / sizeof (VERSION[0]);
+                  i += ARRAY_SIZE(VERSION);
                 }
 
               if (strlen (b) == 0)
@@ -484,9 +489,7 @@ domailuser (char *username)
 
   assert (loggedin);
 
-  len =
-    (sizeof (LOC_SPOOLDIR) / sizeof (LOC_SPOOLDIR[0])) + strlen (username) +
-    1;
+  len = ARRAY_SIZE(LOC_SPOOLDIR) +  strlen (username) + 1;
   spool_fn = malloc (len + 1);
   time (&now);
   snprintf (spool_fn, len, "%s/%s", LOC_SPOOLDIR, username);
@@ -1153,9 +1156,7 @@ main (void)
   /* environment */
   snprintf (atrcfilename, 81, "@%s", rcfilename);
 
-  len =
-    (sizeof (LOC_SPOOLDIR) / sizeof (LOC_SPOOLDIR[0])) +
-    strlen (me->username) + 1;
+  len = ARRAY_SIZE(LOC_SPOOLDIR) + strlen (me->username) + 1;
   spool = malloc (len + 1);
   snprintf (spool, len, "%s/%s", LOC_SPOOLDIR, me->username);
 
