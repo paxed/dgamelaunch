@@ -211,7 +211,13 @@ void
 ttyrec_getmaster ()
 {
   (void) tcgetattr (0, &tt);
-  (void) ioctl (0, TIOCGWINSZ, (char *) &win);
+  if (-1 == ioctl (0, TIOCGWINSZ, (char *) &win))
+    {
+      win.ws_row = 24;
+      win.ws_col = 80;
+      win.ws_xpixel = win.ws_col * 8;
+      win.ws_ypixel = win.ws_row * 8;
+    }
 #ifdef USE_OPENPTY
   if (openpty (&master, &slave, NULL, &tt, &win) == -1)
 #else
@@ -1396,6 +1402,8 @@ purge_stale_locks (void)
       if (!colon)
         graceful_exit (201);
 
+      if (colon - dent->d_name != strlen(me->username))
+        continue;
       if (strncmp (dent->d_name, me->username, colon - dent->d_name))
         continue;
 
