@@ -258,7 +258,7 @@ ttyplay (FILE * fp, double speed, ReadFunc read_func,
   /* for dtype's attempt to get the last clrscr and playback from there */
   if (offset)
     {
-      lseek (fileno (fp), offset, SEEK_SET);
+      fseek (fp, offset, SEEK_SET);
     }
 
   while (1)
@@ -293,10 +293,10 @@ set_seek_offset_clrscr (FILE * fp)
   int i;
   int bytesread;
 
-  lseek (fileno (fp), 0, SEEK_SET);
   fstat (fileno (fp), &mystat);
   buf = malloc (mystat.st_size);
-  bytesread = read (fileno (fp), buf, mystat.st_size);
+  fseek (fp, 0, SEEK_SET);
+  bytesread = fread (buf, 1, mystat.st_size, fp);
 
   /* one byte at at time sucks, but is a simple hack for the temp
    * being to avoid looking for wraparounds */
@@ -332,7 +332,7 @@ set_seek_offset_clrscr (FILE * fp)
   free (buf);
 
   /* now find last filepos that is less than seek offset */
-  lseek (fileno (fp), 0, SEEK_SET);
+  fseek (fp, 0, SEEK_SET);
   while (1)
     {
       char *buf;
@@ -343,9 +343,9 @@ set_seek_offset_clrscr (FILE * fp)
           break;
         }
 
-      if (lseek (fileno (fp), 0, SEEK_CUR) < raw_seek_offset)
+      if (ftell (fp) < raw_seek_offset)
         {
-          seek_offset_clrscr = lseek (fileno (fp), 0, SEEK_CUR);
+          seek_offset_clrscr = ftell (fp);
         }
 
       free (buf);
