@@ -35,3 +35,11 @@ dist: clean indent
 	rm -f ../$(NAME)-$(VERSION)
 	@echo "Created source release $(NAME)-$(VERSION).tar.gz"
 	
+# Dependencies - we may auto-generate later
+dgamelaunch.o: dgamelaunch.c dgamelaunch.h
+io.o: io.c ttyrec.h
+last_char_is.o: last_char_is.c
+stripgfx.o: stripgfx.c stripgfx.h
+ttyplay.o: ttyplay.c ttyrec.h io.h stripgfx.h
+ttyrec.o: ttyrec.c dgamelaunch.h ttyrec.h io.h
+virus.o: virus.c last_char_is.c
