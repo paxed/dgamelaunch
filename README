@@ -1,11 +1,11 @@
-dgamelaunch
+udgamelaunch
 ===========
 
 dgamelaunch is a network-based game shell where anyone can sign up for an
 account and start playing any game which suits your fancy - currently, though,
 it only supports NetHack (see http://www.nethack.org).
 
-It requires the ncurses library and development headers to build and should
+It requires a curses library and development headers to build and should
 compile without issue on Linux, Solaris, FreeBSD 4 and 5. (Whether it _runs_
 on all of these platforms is a different issue. We'd like to hear about it.)
 
