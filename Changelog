@@ -1,12 +1,7 @@
 1.4 (2003/12/27)
-	* Major cleanups - remove most uses of strcpy() and strcat(), except
-	  in virus.c, replace with snprintf.
+	* Major cleanups - remove most uses of strcpy() and strcat()
 	* Add support for mailing users while they are playing.
 	  [nh343-simple_mail.diff is needed]
-	* Rip out some crazy getopt code that was causing virus to go crazy
-	  after a "q!" Since dgamelaunch only passes up to argv[1] to virus
-	  *ever*, just make it use argv[1] and panic if argc < 2, which should
-	  never happen anyway.
 	* Add a confirmation to the change password screen so people like me
 	  don't change their passwords by accident all the time.
 	* Remove many unused variables and make some functions void because
@@ -37,6 +32,7 @@
 	* Port to FreeBSD 5 and Solaris (as of yet, untested)
 	* Switched to own version of getnstr() that always accepts both
 	  ^H and ^?
+	* Replace virus with ee!!
 
 1.3.10 (2003/10/22)
 	* Added a mode flag to the open call for inprogress lock files.

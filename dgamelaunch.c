@@ -53,6 +53,7 @@
 #include <sys/types.h>
 #include <sys/file.h>           /* for flock() */
 #include <sys/time.h>
+#include <sys/wait.h>
 
 #ifndef __FreeBSD__
 # include <crypt.h>
@@ -88,7 +89,7 @@
 extern FILE* yyin;
 extern int yyparse ();
 
-extern int vi_main (int argc, char **argv);
+extern int ee_main (int argc, char **argv);
 extern int ttyplay_main (char *ttyfile, int mode, int rstripgfx);
 extern int ttyrec_main (char *);
 extern int master;
@@ -716,7 +717,7 @@ drawmenu ()
     {
       mvprintw (banner.len + 2, 1, "Logged in as: %s", me->username);
       mvaddstr (banner.len + 4, 1, "c) Change password");
-      mvaddstr (banner.len + 5, 1, "o) Edit option file (requires vi use)");
+      mvaddstr (banner.len + 5, 1, "o) Edit option file (uses ee)");
       mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
       mvaddstr (banner.len + 7, 1, "p) Play nethack!");
       mvaddstr (banner.len + 8, 1, "q) Quit");
@@ -1175,20 +1176,37 @@ editoptions ()
 {
   FILE *rcfile;
   char *myargv[3];
+  pid_t editor;
 
   rcfile = fopen (rcfilename, "r");
   printf (" read");
   if (!rcfile)                  /* should not really happen except for old users */
     write_canned_rcfile (rcfilename);
 
-  /* use virus to edit */
+  /* use ee to edit */
 
   myargv[0] = "";
   myargv[1] = rcfilename;
   myargv[2] = 0;
 
   endwin ();
-  vi_main (2, myargv);
+
+  editor = fork();
+
+  if (editor == -1)
+  {
+    perror("fork");
+    graceful_exit(114);
+  }
+  else if (editor == 0)
+  {
+    ee_main (2, myargv);
+    exit(0);
+  }
+  else
+    waitpid(editor, NULL, 0);
+    
+
   refresh ();
 }
 
