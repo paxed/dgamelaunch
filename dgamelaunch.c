@@ -31,6 +31,7 @@
 #define _GNU_SOURCE
 
 #include "dgamelaunch.h"
+#include "config.h"
 #include "ttyplay.h"
 #include "ttyrec.h"
 
@@ -246,7 +247,7 @@ loadbanner (struct dg_banner *ban)
       ban->len = 2;
       ban->lines = malloc (sizeof (char *));
       ban->lines[0] =
-        strdup ("### dgamelaunch " VERSION
+        strdup ("### dgamelaunch " PACKAGE_VERSION
                 " - network console game launcher");
       len = strlen(myconfig->banner) + ARRAY_SIZE("### NOTE: administrator has not installed a  file");
       ban->lines[1] = malloc(len);
@@ -277,9 +278,9 @@ loadbanner (struct dg_banner *ban)
                 bufnew[i] = *(b++);
               else
                 {
-                  strlcat (bufnew, VERSION, 80);
-                  b += 8;       /* skip the whole $VERSION string */
-                  i += ARRAY_SIZE (VERSION) - 1;
+                  strlcat (bufnew, PACKAGE_VERSION, 80);
+                  b += 8;       /* skip the whole $PACKAGE_VERSION string */
+                  i += ARRAY_SIZE (PACKAGE_VERSION) - 1;
 		  break;
                 }
 

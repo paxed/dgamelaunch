@@ -1,63 +1,25 @@
-VERSION = 1.4.5
-# Hardcoded path to config file
-DEFCONFIG = /etc/dgamelaunch.conf
-NAME = dgamelaunch
+NAME = @PACKAGE_NAME@
+VERSION = @PACKAGE_VERSION@
+
 exclusions = CVS .svn .cvsignore tags
-PREFIX = /usr
-SBINDIR = $(PREFIX)/sbin
-ifeq ($(PREFIX),/usr)
-  MANDIR = $(PREFIX)/share/man
-else
-  MANDIR = $(PREFIX)/man
-endif
+prefix = @prefix@
+sbindir = @sbindir@
+mandir = @mandir@
+
+CC = @CC@
+LIBS = @LIBS@ 
+CFLAGS = @CFLAGS@
+INSTALL = @INSTALL@
+LEX = @LEX@
+YACC = @YACC@
+
 MAN8 = dgamelaunch.8
+EDITOR = @EDITOR@
 
-ifndef optimize
-  optimize = -O0
-endif
-
-ifneq (,$(shell which flex 2>/dev/null))
-  LEX = flex
-else
-  LEX = lex
-endif
-
-ifneq (,$(shell which bison 2>/dev/null))
-  YACC = bison -y
-else
-  YACC = yacc
-endif
-
-ifeq (Linux,$(shell uname -s))
-  LUTIL = -lutil
-else
-  ifeq (BSD,$(shell uname -s | sed -e 's/.*BSD/BSD/g'))
-    LUTIL = -lutil
-  endif
-endif
-
-ifeq (Darwin,$(shell uname -s)) 
-  LCRYPT =
-else
-  LCRYPT = -lcrypt
-endif
-
-ifeq (1,$(VIRUS))
-  EDITOR = virus.c
-else
-  EDITOR = ee.c
-endif
-
-CC = gcc
-LDFLAGS = 
-CFLAGS = -g3 $(optimize) -Wall -Wno-unused $(DEFS)
-INSTALL = install -c
-DEFS = -DVERSION=\"$(VERSION)\" -DDEFCONFIG=\"$(DEFCONFIG)\"
 SRCS = $(EDITOR) dgl-common.c ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c stripgfx.c strlcpy.c strlcat.c y.tab.c lex.yy.c
 EXTRA_SRCS = nethackstub.c
 OBJS = $(SRCS:.c=.o)
 WALL_OBJS = y.tab.o lex.yy.o dgl-common.o dgl-wall.o strlcat.o strlcpy.o
-LIBS = -lcurses $(LCRYPT) $(LUTIL) -ll
 
 all: $(NAME) dgl-wall
 
@@ -70,10 +32,12 @@ dgl-wall: $(WALL_OBJS)
 clean:
 	rm -f $(NAME) nethackstub dgl-wall
 	rm -f editors/*.o *.o .#* *~ y.tab.* lex.yy.c Makefile.dep
+	rm -f Makefile config.h config.log config.status
+	rm -rf autom4te.cache
 	
 install:
-	$(INSTALL) -m 755 $(NAME) $(SBINDIR)
-	$(INSTALL) -m 644 $(MAN8) $(MANDIR)/man8
+	$(INSTALL_PROGRAM) -m 755 $(NAME) $(sbindir)
+	$(INSTALL_PROGRAM) -m 644 $(MAN8) $(mandir)/man8
 	
 indent:
 	indent -nut -ts2 *.c *.h
@@ -88,8 +52,10 @@ y.tab.c y.tab.h: config.y
 lex.yy.o: lex.yy.c
 y.tab.o: y.tab.c
 
-dist: dep clean
+dist: dep clean 
 	rm -rf $(NAME)-$(VERSION)
+	autoheader
+	autoconf
 	(cd .. && ln -sf $(CURDIR) $(NAME)-$(VERSION))
 	(cd .. && tar $(addprefix --exclude ,$(exclusions)) -chzf $(NAME)-$(VERSION).tar.gz $(NAME)-$(VERSION))
 	rm -f ../$(NAME)-$(VERSION)
