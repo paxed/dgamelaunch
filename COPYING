@@ -3,7 +3,7 @@
  Brett Carrington <brettcar@segvio.org>,
  Jilles Tjoelker <jilles@stack.nl>
 
-dgamelaunch itself, virus.c, and last_char_is.c fall under the GNU
+dgamelaunch itself falls under the GNU
 General Public License, which follows here.
 
 		    GNU GENERAL PUBLIC LICENSE
@@ -479,3 +479,6 @@ in particular, your modified NetHack or program containing parts of NetHack
 must remain freely available as provided in this License Agreement.  In
 other words, go ahead and share NetHack, but don't try to stop anyone else
 from sharing it farther.
+
+ee.c falls under Hugh Mahon's own license. It is quite long, so please refer
+to ee.c for the full text. However, it is an OSI-approved license.
