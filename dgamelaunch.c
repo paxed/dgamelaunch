@@ -539,7 +539,7 @@ inprogressmenu ()
               refresh ();
               endwin ();
               ttyplay_main (ttyrecname, 1, 0);
-              initncurses ();
+              initcurses ();
             }
         }
 
@@ -748,11 +748,14 @@ freefile ()
   /* free existing mem, clear existing entries */
   for (i = 0; i < f_num; i++)
     {
-      free (users[i]->password);
-      free (users[i]->username);
-      free (users[i]->email);
-      free (users[i]->env);
-      free (users[i]);
+      if (users[i] != me)
+      {
+	free (users[i]->password);
+	free (users[i]->username);
+	free (users[i]->email);
+	free (users[i]->env);
+	free (users[i]);
+      }
     }
 
   if (users)
@@ -765,7 +768,7 @@ freefile ()
 /* ************************************************************* */
 
 void
-initncurses ()
+initcurses ()
 {
   initscr ();
   cbreak ();
@@ -776,20 +779,6 @@ initncurses ()
 }
 
 /* ************************************************************* */
-
-struct dg_user *
-deep_copy (struct dg_user *src)
-{
-  struct dg_user *dest = malloc (sizeof (struct dg_user));
-
-  dest->username = strdup (src->username);
-  dest->email = strdup (src->email);
-  dest->env = strdup (src->env);
-  dest->password = strdup (src->password);
-  dest->flags = src->flags;
-
-  return dest;
-}
 
 void
 loginprompt ()
@@ -826,7 +815,7 @@ loginprompt ()
 
       if ((me_index = userexist (user_buf)) != -1)
         {
-          me = deep_copy (users[me_index]);
+          me = users[me_index];
           error = 0;
         }
     }
@@ -1457,7 +1446,7 @@ main (int argc, char** argv)
   if (readfile (0))
     graceful_exit (110);
 
-  initncurses ();
+  initcurses ();
   while ((userchoice != 'p') | (!loggedin))
     {
       drawmenu ();

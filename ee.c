@@ -49,7 +49,7 @@
  |	proprietary information which is protected by
  |	copyright.  All rights are reserved.
  |
- |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.8 2004/01/26 08:09:39 joshk Exp $
+ |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.9 2004/01/26 08:29:04 joshk Exp $
  |
  */
 
@@ -62,7 +62,7 @@ char *ee_long_notice[] = {
 	"copyright.  All rights are reserved."
 	};
 
-char *version = "@(#) ee, version 1.4.1  $Revision: 1.8 $";
+char *version = "@(#) ee, version 1.4.1  $Revision: 1.9 $";
 
 #include <curses.h>
 #include <signal.h>
@@ -2846,14 +2846,13 @@ struct menu_entries menu_list[];
 		if (input == -1)
 			exit(0);
 
-		if (((tolower(input) >= 'a') && (tolower(input) <= 'z')) || 
-		    ((input >= '0') && (input <= '9')))
+		if (isalnum(tolower(input)))
 		{
-			if ((tolower(input) >= 'a') && (tolower(input) <= 'z'))
+			if (isalpha(tolower(input)))
 			{
 				temp = 1 + tolower(input) - 'a';
 			}
-			else if ((input >= '0') && (input <= '9'))
+			else if (isdigit(input))
 			{
 				temp = (2 + 'z' - 'a') + (input - '0');
 			}

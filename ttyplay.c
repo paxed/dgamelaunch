@@ -47,7 +47,7 @@
 #include "stripgfx.h"
 
 extern void domailuser (char *);
-extern void initncurses (void);
+extern void initcurses (void);
 extern char *chosen_name;
 extern int loggedin;
 
@@ -208,7 +208,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
             case 'm':
               if (loggedin)
                 {
-                  initncurses ();
+                  initcurses ();
                   domailuser (chosen_name);
 		  /* XXX jilles: just quit out after mail for now */
 #if 0
