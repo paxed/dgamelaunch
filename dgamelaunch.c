@@ -1121,6 +1121,9 @@ graceful_exit (int status)
 /* ************************************************************* */
 /* ************************************************************* */
 
+
+/* TODO: Some of the messages here (sorry no nethack for you!) are nethack specific
+ * as may be some code... don't think so though. Globalize it. */ 
 void
 purge_stale_locks (void)
 {
