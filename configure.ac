@@ -32,7 +32,7 @@ AC_ARG_WITH(config-file,
 [AS_HELP_STRING([--with-config-file=PATH], [Define the path to the default configuration file.])]
 [configfile=$withval], [configfile=/etc/dgamelaunch.conf])
 
-AC_DEFINE_UNQUOTED(DEFCONFIG, "$withval", [Path to the default config file.])
+AC_DEFINE_UNQUOTED(DEFCONFIG, "$configfile", [Path to the default config file.])
 
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT
