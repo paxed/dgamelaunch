@@ -619,7 +619,7 @@ deep_copy (struct dg_user *src)
 }
 
 void
-login ()
+loginprompt ()
 {
   char user_buf[22], pw_buf[22];
   int error = 2, me_index = -1;
@@ -1107,7 +1107,7 @@ main (void)
           break;
         case 'l':
           if (!loggedin)        /* not visible to loggedin */
-            login ();
+            loginprompt ();
           break;
         }
     }
