@@ -1483,6 +1483,11 @@ main (int argc, char** argv)
   for (i = 1; i < argc; i++)
   {
     if (!strcmp(argv[i], "-q")) silent = 1;
+    if (*argv[i] == '-')
+    {
+      i++;
+      continue;
+    }
     else 
     {
       if (config)
