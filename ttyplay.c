@@ -49,7 +49,6 @@
 #include "io.h"
 #include "stripgfx.h"
 
-off_t seek_offset_clrscr;
 int stripped = NO_GRAPHICS;
 
 struct timeval
@@ -264,10 +263,11 @@ ttyplay (FILE * fp, double speed, ReadFunc read_func,
   return r;
 }
 
-void
-set_seek_offset_clrscr (FILE * fp)
+static off_t
+find_seek_offset_clrscr (FILE * fp)
 {
   off_t raw_seek_offset = 0;
+  off_t seek_offset_clrscr;
   char *buf;
   struct stat mystat;
   int state = 0;
@@ -312,6 +312,7 @@ set_seek_offset_clrscr (FILE * fp)
 
   free (buf);
 
+  seek_offset_clrscr = 0;
   /* now find last filepos that is less than seek offset */
   fseek (fp, 0, SEEK_SET);
   while (1)
@@ -332,6 +333,7 @@ set_seek_offset_clrscr (FILE * fp)
       free (buf);
     }
 
+  return seek_offset_clrscr;
 }
 
 #if 0 /* not used anymore */
@@ -359,11 +361,7 @@ ttypeek (FILE * fp, double speed)
   do
   {
     setvbuf (fp, NULL, _IOFBF, 0);
-    set_seek_offset_clrscr (fp);
-    if (seek_offset_clrscr)
-      {
-        ttyplay (fp, 0, ttyread, ttywrite, ttynowait, seek_offset_clrscr);
-      }
+    ttyplay (fp, 0, ttyread, ttywrite, ttynowait, find_seek_offset_clrscr (fp));
     clearerr (fp);
     setvbuf (fp, NULL, _IONBF, 0);
     fflush (stdout);
@@ -383,8 +381,6 @@ ttyplay_main (char *ttyfile, int mode)
 
   populate_gfx_array (stripped);
 
-  seek_offset_clrscr = 0;
-
   input = efopen (ttyfile, "r");
 
   tcgetattr (0, &old);          /* Get current terminal state */
@@ -400,6 +396,7 @@ ttyplay_main (char *ttyfile, int mode)
     ttyplayback (input, speed, read_func, wait_func);
 
   tcsetattr (0, TCSANOW, &old); /* Return terminal state */
+  fclose (input);
 
   return 0;
 }
