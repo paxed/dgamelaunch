@@ -2,6 +2,9 @@
 	* Fix some signed/unsigned warnings.
 	* Fix make install check for PREFIX -> $(PREFIX).
         * Bind with Satan / start using autoconf.
+        * Fix dgl-create-chroot's copying of terminfo - the terminfo dir
+          might be full of symlinks, so dereference them by passing -L to
+          cp. It's SUSv3, honest!
 
 1.4.5 (2004/06/14)
 	* Reset offset if necessary to show at least one game to avoid things

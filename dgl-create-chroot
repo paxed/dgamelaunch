@@ -122,7 +122,8 @@ fi
 if [ -n "$termdata" ]; then
 	mkdir -p $chroot_path`dirname $termdata`
 	if [ -d $termdata/. ]; then
-		cp -R $termdata/. $chroot_path$termdata
+		# $termdata might be full of symlinks, like Debian is
+		cp -L -R $termdata/. $chroot_path$termdata
 	else
 		cp $termdata $chroot_path`dirname $termdata`
 	fi
