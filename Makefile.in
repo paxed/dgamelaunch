@@ -2,6 +2,7 @@ NAME = @PACKAGE_NAME@
 VERSION = @PACKAGE_VERSION@
 
 exclusions = CVS .svn .cvsignore tags autogen.sh
+exec_prefix = @exec_prefix@
 prefix = @prefix@
 sbindir = @sbindir@
 mandir = @mandir@
