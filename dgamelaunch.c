@@ -186,7 +186,7 @@ inprogressmenu ()
 			clear ();
 			mvaddstr (1, 1, VER1);
 			mvaddstr (3, 1,
-								"(Press 'q' during game playback to return to this menu.)");
+								"During playback, hit 'q' to return here, 'm' to contact the player.");
 			mvaddstr (4, 1,
 								"(Use capital letter of selection to strip DEC graphics, VERY experimental!)");
 			mvaddstr (5, 1, "The following games are in progress:");
