@@ -1160,9 +1160,11 @@ purge_stale_locks (void)
         graceful_exit (203);
 
       fclose (ipfile);
-      unlink (fn);
 
-      free(fn);
+      clear ();
+      drawbanner (1, 1);
+      mvaddstr (3, 1, "There is a stale Nethack process, attempting to recover...");
+      refresh ();
 
       pid = atoi (buf);
 
@@ -1178,8 +1180,6 @@ purge_stale_locks (void)
           sleep (1);
           if (seconds == 10)
             {
-              clear ();
-              drawbanner (1, 1);
               mvaddstr (3, 1,
                         "Couldn't terminate one of your stale Nethack processes gracefully.");
               mvaddstr (4, 1, "Force its termination? [yn] ");
@@ -1197,7 +1197,10 @@ purge_stale_locks (void)
 		}
             }
         }
-      unlink (dent->d_name);
+
+      /* Don't remove the lock file until the process is dead. */
+      unlink (fn);
+      free (fn);
     }
 
   closedir (pdir);
