@@ -16,7 +16,7 @@ unsigned int line = 1, col = 0;
 %}
 
 NEGNUMBER	-[0-9]+
-NUMBER		[^-][0-9]+
+NUMBER		[0-9]+
 VALUE		\".*\"
 MALSTRING	\"[^\"\n]*\n
 WHITE		[\t ]*
