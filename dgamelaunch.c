@@ -510,7 +510,7 @@ inprogressmenu ()
         }
 
       mvaddstr (23, 1,
-                "Watch which game? ('r' refreshes, 'q' quits, '>'/'<' for more/less) => ");
+                "Watch which game? (any key refreshes, 'q' quits, '>'/'<' for more/less) => ");
       refresh ();
 
       switch ((menuchoice = tolower (getch ())))
