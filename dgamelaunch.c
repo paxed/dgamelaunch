@@ -226,12 +226,11 @@ inprogressmenu ()
 									strncpy (m_date, replacestr + 1, 10);
 									strncpy (m_time, replacestr + 12, 8);
 
-									i++;
-									
 									mvprintw (7 + i, 1, "%c) %-15s %s %s (%ldm %lds idle)",
 													 i + 97, m_name, m_date, m_time,
 													 (time (&ctime) - pstat.st_mtime) / 60,
 													 (time (&ctime) - pstat.st_mtime) % 60);
+									i++;
 								}
 						}
 					else
