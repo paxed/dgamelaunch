@@ -6,7 +6,7 @@
  {
 +#  ifdef SIMPLE_MAIL
 +  FILE* mb = fopen(mailbox, "r");
-+  char curline[93], from[20], buf[80], *tmp;
++  char curline[80], from[20], buf[93], *tmp;
 +
 +  /* for use with strtok*/
 +  strcpy(curline, buf);
