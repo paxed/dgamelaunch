@@ -569,7 +569,7 @@ change_email ()
 
   clear();
 
-  while (true)
+  for (;;)
   {
     drawbanner(1,1);
 
