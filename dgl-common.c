@@ -41,12 +41,12 @@ char *chosen_name;
 struct dg_game **
 populate_games (int *l)
 {
-  int fd, len;
+  int fd, len, n;
   DIR *pdir;
   struct dirent *pdirent;
   struct stat pstat;
-  char fullname[130], ttyrecname[130];
-  char *replacestr, *dir;
+  char fullname[130], ttyrecname[130], pidws[80];
+  char *replacestr, *dir, *p;
   struct dg_game **games = NULL;
   struct flock fl = { 0 };
   size_t slen;
@@ -108,6 +108,30 @@ populate_games (int *l)
               strlcpy (games[len]->time, replacestr + 12, 9);
 
               games[len]->idle_time = pstat.st_mtime;
+
+	      n = read(fd, pidws, sizeof(pidws) - 1);
+	      if (n > 0)
+	        {
+		  pidws[n] = '\0';
+		  p = pidws;
+		}
+	      else
+		p = "";
+	      while (*p != '\0' && *p != '\n')
+	        p++;
+	      if (*p != '\0')
+	        p++;
+	      games[len]->ws_row = atoi(p);
+	      while (*p != '\0' && *p != '\n')
+	        p++;
+	      if (*p != '\0')
+	        p++;
+	      games[len]->ws_col = atoi(p);
+	      if (games[len]->ws_row < 4 || games[len]->ws_col < 4)
+	        {
+		  games[len]->ws_row = 24;
+		  games[len]->ws_col = 80;
+	        }
 
               len++;
             }

@@ -39,6 +39,7 @@ struct dg_game
   char *date;
   char *time;
   time_t idle_time;
+  int ws_row, ws_col; /* Window size */
 };
 
 struct dg_config

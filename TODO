@@ -3,3 +3,6 @@
 - Localization of variables, code clean up
 
 - Use /var/run/nologin and/or dgl-specific nologin file
+
+- Honor window size changes (currently the player has to relogin if window
+  size changes)

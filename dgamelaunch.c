@@ -165,12 +165,13 @@ gen_ttyrec_filename ()
 char*
 gen_inprogress_lock (pid_t pid, char* ttyrec_filename)
 {
-  char *lockfile = NULL, pidbuf[16];
+  char *lockfile = NULL, filebuf[80];
   int fd;
   size_t len;
   struct flock fl = { 0 };
 
-  snprintf (pidbuf, 16, "%d", pid);
+  snprintf (filebuf, sizeof(filebuf), "%d\n%d\n%d\n",
+		  pid, win.ws_row, win.ws_col);
 
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
@@ -187,7 +188,7 @@ gen_inprogress_lock (pid_t pid, char* ttyrec_filename)
   if (fcntl (fd, F_SETLKW, &fl) == -1)
     graceful_exit (68);
 
-  write (fd, pidbuf, strlen (pidbuf));
+  write (fd, filebuf, strlen (filebuf));
 
   return lockfile;
 }
@@ -330,8 +331,9 @@ inprogressmenu ()
           if (i + offset >= len)
             break;
 
-          mvprintw (7 + i, 1, "%c) %-15s %s %s (%ldm %lds idle)",
+          mvprintw (7 + i, 1, "%c) %-15s (%3dx%3d) %s %s (%ldm %lds idle)",
                     i + 97, games[i + offset]->name,
+		    games[i + offset]->ws_col, games[i + offset]->ws_row,
                     games[i + offset]->date, games[i + offset]->time,
                     (time (&ctime) - games[i + offset]->idle_time) / 60,
                     (time (&ctime) - games[i + offset]->idle_time) % 60);

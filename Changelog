@@ -1,6 +1,10 @@
 1.4.4 (????/??/??)
 	* Show total number of games in progress below the list, useful if
 	  there are more than fits on the screen.
+	* Use client-supplied window size again; try to detect broken
+	  clients and force them to 80x24.
+	* Pass window size to watchers via inprogress file; show it on the
+	  list.
 
 1.4.3 (2004/02/28)
 	* Make ttyplay use the 'strip' value it remembered from last view.
