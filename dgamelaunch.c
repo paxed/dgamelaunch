@@ -1439,6 +1439,7 @@ main (int argc, char** argv)
   purge_stale_locks ();
 
   endwin ();
+  signal(SIGWINCH, SIG_DFL);
 
   /* environment */
   snprintf (atrcfilename, 81, "@%s", rcfilename);
