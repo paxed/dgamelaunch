@@ -133,7 +133,7 @@ KeyPair: KeyType '=' TYPE_VALUE {
         /* Naive user protection - do not allow running as user root */
 	if ($3 == 0)
 	{
-	  fprintf(stderr, "%s: I refuse to run as root! Aborting.\n", config);
+	  fprintf(stderr, "%s: I refuse to run as uid 0 (root)! Aborting.\n", config);
 	  graceful_exit(1);
 	}
         myconfig->shed_uid = $3;
