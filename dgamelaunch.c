@@ -1132,6 +1132,9 @@ purge_stale_locks (void)
       pid_t pid;
       int seconds = 0;
 
+      if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
+	  continue;
+
       colon = strchr (dent->d_name, ':');
       /* should never happen */
       if (!colon)
