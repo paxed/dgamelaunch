@@ -70,12 +70,6 @@ extern int slave;
 extern struct termios tt;
 extern struct winsize win;
 
-/* local functions */
-static void writefile (int);
-static void write_canned_rcfile (char *);
-static int userexist (char *);
-static int passwordgood (char *, char *);
-
 /* global variables */
 
 int caught_sighup = 0;
@@ -139,7 +133,7 @@ gen_inprogress_lock ()
 /* ************************************************************* */
 
 void
-catch_sighup ()
+catch_sighup (int signum)
 {
   caught_sighup = 1;
   if (pid_game)

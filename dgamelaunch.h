@@ -42,4 +42,29 @@ struct dg_game
 #define LOC_SPOOLDIR		"/var/mail"
 #define LOC_CANNED		"/dgl-default-rcfile"
 #define LOC_BANNER		"/dgl-banner"
+
+/* dgamelaunch.c function prototypes */
+extern void ttyrec_getmaster(void);
+extern void gen_ttyrec_filename(void);
+extern void gen_inprogress_lock(void);
+extern void catch_sighup(int signum);
+extern void loadbanner(struct dg_banner *ban);
+extern void drawbanner(unsigned int start_line, unsigned int howmany);
+extern struct dg_game **populate_games(int *l);
+extern void inprogressmenu(void);
+extern void changepw(void);
+extern void domailuser(char *username);
+extern void drawmenu(void);
+extern void freefile(void);
+extern void initncurses(void);
+extern struct dg_user *deep_copy(struct dg_user *src);
+extern void login(void);
+extern void newuser(void);
+extern int passwordgood(char *cname, char *cpw);
+extern int readfile(int nolock);
+extern int userexist(char *cname);
+extern void write_canned_rcfile(char *target);
+extern void editoptions(void);
+extern void writefile(int requirenew);
+
 #endif
