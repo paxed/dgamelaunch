@@ -274,36 +274,41 @@ loadbanner (struct dg_banner *ban)
 
   while (fgets (buf, 80, bannerfile) != NULL)
     {
-      char *loc;
+      char *loc, *b = buf;
+      char bufnew[80];
+      
+      memset (bufnew, 0, 80);
 
       ban->len++;
       ban->lines = realloc (ban->lines, sizeof (char *) * ban->len);
 
-      if ((loc = strstr (buf, "$VERSION")) != NULL)
-        {
-          char bufnew[80];
-          char *b = buf;
-          int i;
-
-          memset (bufnew, 0, 80);
-
-          for (i = 0; i < 80; i++)
+      if (strstr(b, "$VERSION"))
+      {
+	int i = 0; 
+	while ((loc = strstr (b, "$VERSION")) != NULL)
+	{
+          for (; i < 80; i++)
             {
               if (loc != b)
                 bufnew[i] = *(b++);
               else
                 {
-                  strlcat (bufnew, VERSION, 80 - i);
+                  strlcat (bufnew, VERSION, 80);
                   b += 8;       /* skip the whole $VERSION string */
-                  i += ARRAY_SIZE (VERSION) - 2;
+                  i += ARRAY_SIZE (VERSION) - 1;
+		  break;
                 }
 
               if (strlen (b) == 0)
                 break;
-            }
-
-          ban->lines[ban->len - 1] = strdup (bufnew);
-        }
+	    }
+	}
+        
+	if (*b)
+	  strlcat(bufnew, b, 80);
+	
+	ban->lines[ban->len - 1] = strdup (bufnew);
+      }
       else
         ban->lines[ban->len - 1] = strdup (buf);
 
