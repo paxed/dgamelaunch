@@ -188,11 +188,23 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
         {                       /* a user hits a character? */
           char c;
           read (STDIN_FILENO, &c, 1); /* drain the character */
+	  static int stripped = NO_GRAPHICS;
+
           switch (c)
             {
             case 'q':
               return READ_EOF;
               break;
+	    case 's':
+	      switch (stripped)
+	      {
+		case NO_GRAPHICS: populate_gfx_array ((stripped = DEC_GRAPHICS)); break;
+		case DEC_GRAPHICS: populate_gfx_array ((stripped = IBM_GRAPHICS)); break;
+		case IBM_GRAPHICS: populate_gfx_array ((stripped = NO_GRAPHICS)); break;
+	      }
+	      return READ_RESTART;
+	      break;
+
             case 'm':
 	      if (!loggedin)
 	      {
@@ -219,13 +231,10 @@ ttywrite (char *buf, int len)
 {
   int i;
 
-  if (bstripgfx)
-    {
-      for (i = 0; i < len; i++)
-        {
-          buf[i] = strip_gfx (buf[i]);
-        }
-    }
+  for (i = 0; i < len; i++)
+  {
+    buf[i] = strip_gfx (buf[i]);
+  }
 
   fwrite (buf, 1, len, stdout);
 }
@@ -389,10 +398,7 @@ ttyplay_main (char *ttyfile, int mode, int rstripgfx)
   FILE *input = stdin;
   struct termios old, new;
 
-  /* strip graphics mode flag */
-  bstripgfx = rstripgfx;
-  if (bstripgfx)
-    populate_gfx_array (DEC_GRAPHICS);
+  populate_gfx_array (NO_GRAPHICS);
 
   seek_offset_clrscr = 0;
 
