@@ -1,6 +1,8 @@
 VERSION = 1.3.10.1
 NAME = dgamelaunch
 exclusions = CVS .cvsignore tags
+PREFIX = /usr
+SBINDIR = $(PREFIX)/sbin
 
 ifndef optimize
   optimize = -O0
@@ -9,6 +11,7 @@ endif
 CC = gcc
 LDFLAGS = 
 CFLAGS = -g3 $(optimize) -Wall $(DEFS)
+INSTALL = install -c
 DEFS = -DVERSION=\"$(VERSION)\"
 SRCS = virus.c ttyrec.c dgamelaunch.c io.c ttyplay.c stripgfx.c strlcpy.c strlcat.c y.tab.o lex.yy.o
 OBJS = $(SRCS:.c=.o)
@@ -20,21 +23,21 @@ $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean:
-	rm -f dgamelaunch
+	rm -f $(NAME)
 	rm -f *.o .#* *~ y.tab.* lex.yy.c
 	
 install:
-	cp dgamelaunch /usr/sbin
+	$(INSTALL) -m 755 $(NAME) $(SBINDIR)
 	
 indent:
 	indent -nut -ts2 *.c *.h
 	rm -f *~
 
 lex.yy.c: config.l
-	flex $<
+	lex $<
 
 y.tab.c: config.y
-	bison -d -y $<
+	yacc -d $<
 
 lex.yy.o: lex.yy.c
 y.tab.o: y.tab.c
@@ -47,7 +50,7 @@ dist: clean indent
 	@echo "Created source release $(NAME)-$(VERSION).tar.gz"
 	
 # Dependencies - we may auto-generate later
-dgamelaunch.o: dgamelaunch.c dgamelaunch.h
+dgamelaunch.o: dgamelaunch.c dgamelaunch.h y.tab.o
 io.o: io.c ttyrec.h
 last_char_is.o: last_char_is.c
 stripgfx.o: stripgfx.c stripgfx.h
