@@ -1,4 +1,4 @@
-VERSION = 1.4
+VERSION = 1.5pre1
 NAME = dgamelaunch
 exclusions = CVS .svn .cvsignore tags
 PREFIX = /usr

@@ -1,4 +1,7 @@
-1.4 (2003/12/27)
+1.5 (???)
+	* Allow user to change his or her email address in the console.
+
+1.4 (2004/02/03)
 	* Major cleanups - remove most uses of strcpy() and strcat()
 	* A number of virus bugs have been fixed regarding getopt() and
 	  other minor issues.
