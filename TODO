@@ -3,5 +3,3 @@
 - Localization of variables, code clean up
 
 - Return to watching game after sending mail?
-
-- passwd and lockfile are required in the configuration file
