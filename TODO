@@ -7,8 +7,5 @@
 - Honor window size changes (currently the player has to relogin if window
   size changes)
 
-- nethack destroys the game if you send SIGHUP while it's at "Restoring
-  save file...--More--"
-
 - A way (config file or compile time) to disable things like registration or
   mail
