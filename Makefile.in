@@ -19,7 +19,7 @@ MKDEP_DIRECT = @MKDEP_DIRECT@
 MAN8 = dgamelaunch.8
 EDITOR = @EDITOR@
 
-STATIC_SRCS = $(EDITOR) dgl-common.c ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c stripgfx.c strlcpy.c strlcat.c
+STATIC_SRCS = $(EDITOR) dgl-common.c ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c stripgfx.c strlcpy.c strlcat.c @SETPROCTITLE_C@
 DYN_SRCS = y.tab.c lex.yy.c
 EXTRA_SRCS = nethackstub.c
 DEP_SRCS := $(STATIC_SRCS) $(EXTRA_SRCS) dgl-wall.c

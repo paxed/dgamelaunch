@@ -3,6 +3,7 @@
 #ifndef __DGAMELAUNCH_H
 #define __DGAMELAUNCH_H
 
+#include "config.h"
 #include <sys/param.h>
 #include <sys/types.h>
 #include <time.h>
@@ -96,6 +97,10 @@ extern void ttyrec_getpty(void);
 extern int mysetenv (const char* name, const char* value, int overwrite);
 #else
 # define mysetenv setenv
+#endif
+#ifndef HAVE_SETPROCTITLE
+void compat_init_setproctitle(int argc, char *argv[]);
+void setproctitle(const char *fmt, ...);
 #endif
 
 /* strlcpy.c */

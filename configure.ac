@@ -77,6 +77,23 @@ AC_ARG_WITH(config-file,
 
 AC_DEFINE_UNQUOTED(DEFCONFIG, "$configfile", [Path to the default config file.])
 
-AC_CHECK_FUNCS([openpty setenv setproctitle])
+AC_CHECK_HEADERS([sys/pstat.h])
+AC_CHECK_FUNCS([openpty setenv setproctitle pstat])
+
+if test "$ac_cv_func_setproctitle" = no; then
+  SETPROCTITLE_C=setproctitle.c
+  if test "$ac_cv_func_pstat" = yes; then
+    AC_DEFINE(SPT_TYPE,SPT_PSTAT,[Type of setproctitle emulation to use.])
+  else
+    AC_DEFINE(SPT_TYPE,SPT_REUSEARGV)
+  fi
+else
+  SETPROCTITLE_C=""
+fi
+
+
+
+AC_SUBST(SETPROCTITLE_C)
+
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT

@@ -88,6 +88,7 @@ extern int editor_main (int argc, char **argv);
 
 /* global variables */
 
+char * __progname;
 char rcfilename[80];
 
 int f_num = 0;
@@ -792,9 +793,7 @@ autologin (char* user, char *pass)
     {
       loggedin = 1;
       snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
-#ifdef HAVE_SETPROCTITLE
       setproctitle ("%s", me->username);
-#endif
     }
   }
 }
@@ -857,9 +856,7 @@ loginprompt (int from_ttyplay)
     {
       loggedin = 1;
       snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
-#ifdef HAVE_SETPROCTITLE
       setproctitle ("%s", me->username);
-#endif
     }
   else 
   {
@@ -1008,9 +1005,7 @@ newuser ()
   loggedin = 1;
 
   snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
-#ifdef HAVE_SETPROCTITLE
   setproctitle ("%s", me->username);
-#endif
 
   if (access (rcfilename, R_OK) == -1)
     write_canned_rcfile (rcfilename);
@@ -1676,6 +1671,24 @@ main (int argc, char** argv)
   int c;
   int nhext = 0, nhauth = 0;
 
+#ifndef HAVE_SETPROCTITLE
+  /* save argc, argv */
+  char** saved_argv;
+  int saved_argc, i;
+
+  saved_argc = argc;
+
+  saved_argv = malloc(sizeof(char**) * (argc + 1));
+  for (i = 0; i < argc; i++)
+    saved_argv[i] = strdup(argv[i]);
+  saved_argv[i] = '\0';
+  
+  compat_init_setproctitle(argc, argv);
+  argv = saved_argv;
+#endif
+
+  __progname = basename(strdup(argv[0]));
+
   while ((c = getopt(argc, argv, "qh:pf:ae")) != -1)
   {
     switch (c)
@@ -1710,9 +1723,7 @@ main (int argc, char** argv)
     size_t len = strlen(argv[optind]);
     memset(argv[optind++], 0, len);
   }
-#ifdef HAVE_SETPROCTITLE
   setproctitle ("(not logged in)");
-#endif
 
   create_config();
 
@@ -1815,9 +1826,7 @@ main (int argc, char** argv)
   while (!purge_stale_locks())
     menuloop();
 
-#ifdef HAVE_SETPROCTITLE
   setproctitle ("%s [playing]", me->username);
-#endif
 
   endwin ();
   signal(SIGWINCH, SIG_DFL);
