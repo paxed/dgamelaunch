@@ -36,6 +36,12 @@ else
   endif
 endif
 
+ifeq (Darwin,$(shell uname -s)) # XXX hope that's MacOS X
+  LCRYPT =
+else
+  LCRYPT = -lcrypt
+endif
+
 ifeq (1,$(VIRUS))
   EDITOR = virus.c
 else
@@ -51,7 +57,7 @@ SRCS = $(EDITOR) dgl-common.c ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c 
 EXTRA_SRCS = nethackstub.c
 OBJS = $(SRCS:.c=.o)
 WALL_OBJS = y.tab.o lex.yy.o dgl-common.o dgl-wall.o strlcat.o strlcpy.o
-LIBS = -lcurses $(LUTIL) -ll
+LIBS = -lcurses $(LCRYPT) $(LUTIL) -ll
 
 all: $(NAME) dgl-wall
 
