@@ -81,7 +81,6 @@
 #include <unistd.h>
 #include <termios.h>
 
-#include "y.tab.h"
 extern FILE* yyin;
 extern int yyparse ();
 

@@ -7,7 +7,7 @@ AC_PREREQ(2.53)
 
 AC_CONFIG_HEADER(config.h)
 
-AC_PROG_CC
+AC_PROG_CC(cc gcc)
 AC_STDC_HEADERS
 AC_PROG_LEX
 
@@ -24,7 +24,23 @@ esac
 
 if test "$ac_cv_c_compiler_gnu" = yes; then
   CFLAGS="$CFLAGS -Wall -Wno-unused"
+  MKDEP="$CC -MM"
+  MKDEP_DIRECT="> .depend"
+else
+  AC_CHECK_PROG(MKDEP, mkdep, mkdep,)
+  if test -z "$MKDEP"; then
+    AC_CHECK_PROG(MKDEP, makedepend, makedepend,)
+    if test -n "$MKDEP"; then
+      MKDEP=":> .depend; $MKDEP -f.depend"
+      MKDEP_DIRECT=">/dev/null 2>&1" # noisy prick of a program
+    else
+      MKDEP=:
+    fi
+  fi
 fi
+
+AC_SUBST(MKDEP)
+AC_SUBST(MKDEP_DIRECT)
 
 AC_PROG_INSTALL
 AC_SEARCH_LIBS(initscr, [curses ncurses])

@@ -429,7 +429,7 @@ char *argv[];
 	signal(SIGINT, edit_abort);
 	d_char = malloc(3);	/* provide a buffer for multi-byte chars */
 	d_word = malloc(150);
-	*d_word = (char) NULL;
+	*d_word = '\0';
 	d_line = NULL;
 	dlt_line = txtalloc();
 	dlt_line->line = d_line;
@@ -648,7 +648,7 @@ int disp;
 				d_char[0] = *point;
 				d_char[1] = *(point + 1);
 			}
-			d_char[del_width] = (unsigned char) NULL;
+			d_char[del_width] = '\0';
 		}
 		while (temp_pos <= curr_line->line_length)
 		{
@@ -676,7 +676,7 @@ int disp;
 		if (in == 8)
 		{
 			d_char[0] = '\n';
-			d_char[1] = (unsigned char) NULL;
+			d_char[1] = '\0';
 		}
 		tp = point;
 		temp_pos = 1;
@@ -688,7 +688,7 @@ int disp;
 			tp++;
 			temp2++;
 		}
-		*tp = (char) NULL;
+		*tp = '\0';
 		free(temp_buff->line);
 		free(temp_buff);
 		temp_buff = curr_line;
@@ -814,7 +814,7 @@ int column;
 		waddch(window, character);
 		return(1);
 	}
-	for (i2 = 0; (string[i2] != (char) NULL) && (((column+i2+1)-horiz_offset) < last_col); i2++)
+	for (i2 = 0; (string[i2] != '\0') && (((column+i2+1)-horiz_offset) < last_col); i2++)
 		waddch(window, string[i2]);
 	return(strlen((char*)string));
 }
@@ -939,13 +939,13 @@ int disp;
 			temp++;
 		}
 		temp=point;
-		*temp = (char) NULL;
+		*temp = '\0';
 		temp = resiz_line((1 - temp_nod->line_length), curr_line, position);
 		curr_line->line_length = 1 + temp - curr_line->line;
 	}
 	curr_line->line_length = position;
 	curr_line = temp_nod;
-	*extra = (char) NULL;
+	*extra = '\0';
 	position = 1;
 	point= curr_line->line;
 	if (disp)
@@ -983,9 +983,9 @@ struct text *txtalloc()		/* allocate space for line structure	*/
 unsigned char *next_word(string)		/* move to next word in string		*/
 unsigned char *string;
 {
-	while ((*string != (char) NULL) && ((*string != 32) && (*string != 9)))
+	while ((*string != '\0') && ((*string != 32) && (*string != 9)))
 		string++;
-	while ((*string != (char) NULL) && ((*string == 32) || (*string == 9)))
+	while ((*string != '\0') && ((*string == 32) || (*string == 9)))
 		string++;
 	return(string);
 }
@@ -1019,7 +1019,7 @@ control()			/* use control for commands		*/
 	if (in == 1)		/* control a	*/
 	{
 		string = get_string(ascii_code_str, TRUE);
-		if (*string != (char) NULL)
+		if (*string != '\0')
 		{
 			in = atoi((char*)string);
 			wmove(text_win, scr_vert, (scr_horz - horiz_offset));
@@ -1127,7 +1127,7 @@ emacs_control()
 	else if (in == 15)	/* control o	*/
 	{
 		string = get_string(ascii_code_str, TRUE);
-		if (*string != (char) NULL)
+		if (*string != '\0')
 		{
 			in = atoi((char*)string);
 			wmove(text_win, scr_vert, (scr_horz - horiz_offset));
@@ -1673,9 +1673,9 @@ int advance;		/* if true, skip leading spaces and tabs	*/
 		}
 		wrefresh(com_win);
 		if (esc_flag)
-			in = (char) NULL;
+			in = '\0';
 	} while ((in != '\n') && (in != '\r'));
-	*nam_str = (char) NULL;
+	*nam_str = '\0';
 	nam_str = tmp_string;
 	if (((*nam_str == ' ') || (*nam_str == 9)) && (advance))
 		nam_str = next_word(nam_str);
@@ -1700,7 +1700,7 @@ int sensitive;
 	strng1 = string1;
 	strng2 = string2;
 	tmp = 0;
-	if ((strng1 == NULL) || (strng2 == NULL) || (*strng1 == (char) NULL) || (*strng2 == (char) NULL))
+	if ((strng1 == NULL) || (strng2 == NULL) || (*strng1 == '\0') || (*strng2 == '\0'))
 		return(FALSE);
 	equal = TRUE;
 	while (equal)
@@ -1717,7 +1717,7 @@ int sensitive;
 		}
 		strng1++;
 		strng2++;
-		if ((*strng1 == (char) NULL) || (*strng2 == (char) NULL) || (*strng1 == ' ') || (*strng2 == ' '))
+		if ((*strng1 == '\0') || (*strng2 == '\0') || (*strng1 == ' ') || (*strng2 == ' '))
 			break;
 		tmp++;
 	}
@@ -1867,7 +1867,7 @@ check_fp()		/* open or close files according to flags */
 		wmove(com_win, 0, 0);
 		wclrtoeol(com_win);
 		text_changes = TRUE;
-		if ((tmp_file != NULL) && (*tmp_file != (char) NULL))
+		if ((tmp_file != NULL) && (*tmp_file != '\0'))
 			wprintw(com_win, file_read_fin_msg, tmp_file);
 	}
 	wrefresh(com_win);
@@ -2006,7 +2006,7 @@ int *append;	/* TRUE if must append more text to end of current line	*/
 			point++;
 			str1++;
 		}
-		*point = (char) NULL;
+		*point = '\0';
 		*append = FALSE;
 		if ((num == length) && (*str2 != '\n'))
 			*append = TRUE;
@@ -2044,10 +2044,10 @@ ee_finish()	/* prepare to exit edit session	*/
 	 |	portion of file_op()
 	 */
 
-	if ((file_name == NULL) || (*file_name == (char) NULL))
+	if ((file_name == NULL) || (*file_name == '\0'))
 		file_name = get_string(save_file_name_prompt, TRUE);
 
-	if ((file_name == NULL) || (*file_name == (char) NULL))
+	if ((file_name == NULL) || (*file_name == '\0'))
 	{
 		wmove(com_win, 0, 0);
 		wprintw(com_win, file_not_saved_msg);
@@ -2114,7 +2114,7 @@ delete_text()
 		free(curr_line->next_line);
 	}
 	curr_line->next_line = NULL;
-	*curr_line->line = (char) NULL;
+	*curr_line->line = '\0';
 	curr_line->line_length = 1;
 	curr_line->line_number = 1;
 	point = curr_line->line;
@@ -2217,7 +2217,7 @@ int display_message;
 	int iter;
 	int found;
 
-	if ((srch_str == NULL) || (*srch_str == (char) NULL))
+	if ((srch_str == NULL) || (*srch_str == '\0'))
 		return(FALSE);
 	if (display_message)
 	{
@@ -2242,7 +2242,7 @@ int display_message;
 			if (case_sen)	/* if case sensitive		*/
 			{
 				srch_3 = srch_str;
-			while ((*srch_2 == *srch_3) && (*srch_3 != (char) NULL))
+			while ((*srch_2 == *srch_3) && (*srch_3 != '\0'))
 				{
 					found = TRUE;
 					srch_2++;
@@ -2252,14 +2252,14 @@ int display_message;
 			else		/* if not case sensitive	*/
 			{
 				srch_3 = u_srch_str;
-			while ((toupper(*srch_2) == *srch_3) && (*srch_3 != (char) NULL))
+			while ((toupper(*srch_2) == *srch_3) && (*srch_3 != '\0'))
 				{
 					found = TRUE;
 					srch_2++;
 					srch_3++;
 				}
 			}	/* end else	*/
-			if (!((*srch_3 == (char) NULL) && (found)))
+			if (!((*srch_3 == '\0') && (found)))
 			{
 				found = FALSE;
 				if (iter < srch_line->line_length)
@@ -2327,19 +2327,19 @@ search_prompt()		/* prompt and read search string (srch_str)	*/
 {
 	if (srch_str != NULL)
 		free(srch_str);
-	if ((u_srch_str != NULL) && (*u_srch_str != (char) NULL))
+	if ((u_srch_str != NULL) && (*u_srch_str != '\0'))
 		free(u_srch_str);
 	srch_str = get_string(search_prompt_str, FALSE);
 	gold = FALSE;
 	srch_3 = srch_str;
 	srch_1 = u_srch_str = malloc(strlen((char*)srch_str) + 1);
-	while (*srch_3 != (char) NULL)
+	while (*srch_3 != '\0')
 	{
 		*srch_1 = toupper(*srch_3);
 		srch_1++;
 		srch_3++;
 	}
-	*srch_1 = (char) NULL;
+	*srch_1 = '\0';
 	search(TRUE);
 }
 
@@ -2375,7 +2375,7 @@ undel_char()			/* undelete last deleted character	*/
 	{
 		in = d_char[0];
 		insert(in);
-		if (d_char[1] != (unsigned char) NULL)
+		if (d_char[1] != '\0')
 		{
 			in = d_char[1];
 			insert(in);
@@ -2417,7 +2417,7 @@ del_word()			/* delete word in front of cursor	*/
 		d_word2++;
 		d_word3++;
 	}
-	*d_word2 = (char) NULL;
+	*d_word2 = '\0';
 	d_wrd_len = difference = d_word2 - d_word;
 	d_word2 = point;
 	while (tposit < curr_line->line_length)
@@ -2428,7 +2428,7 @@ del_word()			/* delete word in front of cursor	*/
 		d_word3++;
 	}
 	curr_line->line_length -= difference;
-	*d_word2 = (char) NULL;
+	*d_word2 = '\0';
 	draw_line(scr_vert, scr_horz,point,position,curr_line->line_length);
 	d_char[0] = tmp_char[0];
 	d_char[1] = tmp_char[1];
@@ -2481,7 +2481,7 @@ undel_word()		/* undelete last deleted word		*/
 	}
 	curr_line->line_length += d_wrd_len;
 	tmp_old_ptr = point;
-	*tmp_ptr = (char) NULL;
+	*tmp_ptr = '\0';
 	tmp_ptr = tmp_space;
 	tposit = 1;
 	/*
@@ -2494,7 +2494,7 @@ undel_word()		/* undelete last deleted word		*/
 		tmp_ptr++;
 		tmp_old_ptr++;
 	}
-	*tmp_old_ptr = (char) NULL;
+	*tmp_old_ptr = '\0';
 	free(tmp_space);
 	draw_line(scr_vert, scr_horz, point, position, curr_line->line_length);
 }
@@ -2520,8 +2520,7 @@ del_line()			/* delete from cursor to end of line	*/
 		tposit++;
 	}
 	dlt_line->line_length = 1 + tposit - position;
-	*dl1 = (char) NULL;
-	*point = (char) NULL;
+	*dl1 = *point = '\0';
 	curr_line->line_length = position;
 	wclrtoeol(text_win);
 	if (curr_line->next_line != NULL)
@@ -2556,7 +2555,7 @@ undel_line()			/* undelete last deleted line		*/
 		ud1++;
 		ud2++;
 	}
-	*ud1 = (char) NULL;
+	*ud1 = '\0';
 	draw_line(scr_vert, scr_horz,point,position,curr_line->line_length);
 }
 
@@ -3182,9 +3181,9 @@ int arg;
 			flag = FALSE;
 
 		string = in_file_name;
-		if ((string == NULL) || (*string == (char) NULL))
+		if ((string == NULL) || (*string == '\0'))
 			string = get_string(save_file_name_prompt, TRUE);
-		if ((string == NULL) || (*string == (char) NULL))
+		if ((string == NULL) || (*string == '\0'))
 		{
 			wmove(com_win, 0, 0);
 			wprintw(com_win, file_not_saved_msg);
@@ -3274,7 +3273,7 @@ char *string;
 	int Counter;
 
 		temp = string;
-		while (*temp != (char) NULL)
+		while (*temp != '\0')
 		{
 			if (*temp == '\\')
 			{
@@ -3329,7 +3328,7 @@ struct text *test_line;
 		return(0);
 
 	pnt = test_line->line;
-	if ((pnt == NULL) || (*pnt == (char) NULL) || 
+	if ((pnt == NULL) || (*pnt == '\0') || 
 	    (*pnt == '.') || (*pnt == '>'))
 		return(0);
 
@@ -3338,16 +3337,16 @@ struct text *test_line;
 		pnt = next_word(pnt);
 	}
 
-	if (*pnt == (char) NULL)
+	if (*pnt == '\0')
 		return(0);
 
 	counter = 0;
-	while ((*pnt != (char) NULL) && ((*pnt != ' ') && (*pnt != '\t')))
+	while ((*pnt != '\0') && ((*pnt != ' ') && (*pnt != '\t')))
 	{
 		pnt++;
 		counter++;
 	}
-	while ((*pnt != (char) NULL) && ((*pnt == ' ') || (*pnt == '\t')))
+	while ((*pnt != '\0') && ((*pnt == ' ') || (*pnt == '\t')))
 	{
 		pnt++;
 		counter++;
@@ -3362,9 +3361,9 @@ char * string, *substring;
 {
 	char *full, *sub;
 
-	for (sub = substring; (sub != NULL) && (*sub != (char)NULL); sub++)
+	for (sub = substring; (sub != NULL) && (*sub != '\0'); sub++)
 	{
-		for (full = string; (full != NULL) && (*full != (char)NULL); 
+		for (full = string; (full != NULL) && (*full != '\0'); 
 				full++)
 		{
 			if (*sub == *full)
