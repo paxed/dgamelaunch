@@ -450,7 +450,7 @@ changepw ()
 
       noecho ();
       getnstr (buf, 20);
-      echo ();                  /* Putting echo back on just for saftey and because it can't hurt. */
+      echo ();                  /* Putting echo back on just for safety and because it can't hurt. */
 
       if (buf && *buf == '\0')
         return;
