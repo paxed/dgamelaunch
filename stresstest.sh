@@ -20,7 +20,7 @@ i=1
 while [ $i -le $max ]; do
 	xterm -e sh -c '(sleep 1; echo "ltest$i"; echo aa; echo -n py i; cat) | ./dgamelaunch -f "$conffile" '&
 	echo -n " $!"
-	sleep 1
+	sleep 0.1
 	i=$(($i+1))
 done
 echo
