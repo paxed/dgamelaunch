@@ -1,3 +1,8 @@
 - Flags for operators/staff/admins or (optionally) user-bans.
 
 - Localization of variables, code clean up
+
+- Return to watching game after sending mail?
+
+- Still appears to call getpwnam(3) and getgrnam(3) polluting memory space,
+  even though uid/gid and no user/group given in configuration file.
