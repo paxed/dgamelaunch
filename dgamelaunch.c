@@ -137,6 +137,11 @@ create_config ()
       fclose(config_file);
       free (config);
     }
+    else
+    {
+      myconfig = &defconfig;
+      return;
+    }
 
     /* Fill the rest with defaults */
     if (!myconfig->shed_user && myconfig->shed_uid == 0)
@@ -314,9 +319,9 @@ loadbanner (struct dg_banner *ban)
 
       memset (buf, 0, 80);
 
-      if (ban->len == 14)       /* menu itself needs 10 lines, 24 - 10 */
-        break;
-    }
+      if (ban->len == 12)       /* menu itself needs 12 lines, 24 - 12 */
+         break;
+  }
 
   fclose (bannerfile);
 }
