@@ -42,7 +42,7 @@ y.tab.c: config.y
 lex.yy.o: lex.yy.c
 y.tab.o: y.tab.c
 
-dist: clean indent
+dist: clean
 	rm -rf $(NAME)-$(VERSION)
 	(cd .. && ln -sf $(CURDIR) $(NAME)-$(VERSION))
 	(cd .. && tar $(addprefix --exclude ,$(exclusions)) -chzf $(NAME)-$(VERSION).tar.gz $(NAME)-$(VERSION))
