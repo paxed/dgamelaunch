@@ -31,7 +31,7 @@ $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean:
-	rm -f $(NAME)
+	rm -f $(NAME) nethackstub
 	rm -f *.o .#* *~ y.tab.* lex.yy.c
 	
 install:
