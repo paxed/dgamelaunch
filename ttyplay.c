@@ -161,6 +161,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
   int counter = 0;
   fd_set readfs;
   struct timeval zerotime;
+  static int stripped = NO_GRAPHICS;
 
   zerotime.tv_sec = 0;
   zerotime.tv_usec = 0;
@@ -188,7 +189,6 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
         {                       /* a user hits a character? */
           char c;
           read (STDIN_FILENO, &c, 1); /* drain the character */
-	  static int stripped = NO_GRAPHICS;
 
           switch (c)
             {
