@@ -7,7 +7,9 @@
 #include <time.h>
 
 /* Default - should work everywhere */
-#define USE_OPENPTY
+#if defined(__linux__) || defined(BSD)
+# define USE_OPENPTY
+#endif
 #define NOSTREAMS
 
 struct dg_user

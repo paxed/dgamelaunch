@@ -40,7 +40,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
-#include <ncurses.h>
+#include <curses.h>
 #include "ttyrec.h"
 #include "io.h"
 #include "stripgfx.h"

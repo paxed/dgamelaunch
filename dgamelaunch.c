@@ -49,7 +49,7 @@
 /* program stuff */
 
 #include <stdlib.h>
-#include <ncurses.h>
+#include <curses.h>
 #include <sys/types.h>
 #include <sys/file.h>           /* for flock() */
 #include <sys/time.h>

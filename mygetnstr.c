@@ -31,7 +31,7 @@
  * OF SUCH DAMAGE.
  */
 
-#include <ncurses.h>
+#include <curses.h>
 
 /* Assumes noecho(). */
 /* As with getnstr(), maxlen does not include the '\0' character. */
