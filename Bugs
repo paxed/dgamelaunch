@@ -1,3 +1,6 @@
+* On some (X11?) terminals changing the window size closes the dgamelaunch
+session, probably because of sending negotation strings it doesn't understand?
+
 * Only the first 15 games in progress are shown on the games in progress
 screen.
 
