@@ -20,12 +20,16 @@
  * This program can be used instead of nethack to test dgamelaunch.
  */
 
-static const char rcsid[] = "$Id: nethackstub.c,v 1.3 2004/01/05 17:44:30 joshk Exp $";
+static const char rcsid[] = "$Id: nethackstub.c,v 1.4 2004/01/06 13:33:36 jilles Exp $";
 
 #include <sys/types.h>
-#include <string.h>
+
 #include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <signal.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 void
@@ -46,6 +50,61 @@ sigterm(int sig)
 #undef S
 }
 
+void
+checkmail()
+{
+    char *mailfile;
+    char buf[256];
+    int in, n;
+    struct flock fl;
+    
+    mailfile = getenv("MAIL");
+    if (getenv("SIMPLEMAIL"))
+    {
+	in = open(mailfile, O_RDWR);
+	if (in != -1)
+	{
+	    fl.l_start = 0;
+	    fl.l_len = 0;
+	    fl.l_pid = getpid();
+	    fl.l_type = F_WRLCK;
+	    fl.l_whence = SEEK_SET;
+	    if (fcntl(in, F_SETLK, &fl) != -1)
+	    {
+		while ((n = read(in, buf, sizeof buf)) > 0)
+		{
+		    write(STDOUT_FILENO, buf, n);
+		}
+#define S "End of mail - press return to unlock mailfile\n"
+		write(STDOUT_FILENO, S, -1 + sizeof S);
+#undef S
+		read(STDIN_FILENO, buf, sizeof buf);
+		ftruncate(in, (off_t)0);
+		/* File will be unlocked automatically when closed */
+	    }
+	    else
+	    {
+#define S "Cannot lock mailfile\n"
+		write(STDOUT_FILENO, S, -1 + sizeof S);
+#undef S
+	    }
+	    close(in);
+	}
+	else
+	{
+#define S "Cannot open mailfile\n"
+    write(STDOUT_FILENO, S, -1 + sizeof S);
+#undef S
+	}
+    }
+    else
+    {
+#define S "No SIMPLEMAIL\n"
+    write(STDOUT_FILENO, S, -1 + sizeof S);
+#undef S
+    }
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -53,7 +112,8 @@ main(int argc, char *argv[])
     int showusage = 1, n, i;
     struct sigaction SA;
 
-#define S "nethackstub started with arguments:\n"
+    /* Clear the screen for the benefit of dgamelaunch's check. */
+#define S " \033[H\033[Jnethackstub started with arguments:\n"
     write(STDOUT_FILENO, S, -1 + sizeof S);
 #undef S
     for (i = 1; i < argc; i++)
@@ -75,11 +135,13 @@ main(int argc, char *argv[])
     {
 	if (showusage)
 	{
-#define S "i: close stdin - o: close stdout/stderr - q: quit\n"
+#define S "i: close stdin - o: close stdout/stderr - m: check mail - q: quit\n"
 	    write(STDOUT_FILENO, S, -1 + sizeof S);
 #undef S
 	}
 	n = read(STDIN_FILENO, buf, sizeof buf);
+	if (n == -1 && errno == EINTR)
+	    continue;
 	if (n <= 0)
 	    break;
 	for (i = 0; i < n; i++)
@@ -92,6 +154,9 @@ main(int argc, char *argv[])
 		case 'o':
 		    close(STDOUT_FILENO);
 		    close(STDERR_FILENO);
+		    break;
+		case 'm':
+		    checkmail();
 		    break;
 		case 'q':
 		    return 0;
