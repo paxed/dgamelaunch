@@ -511,7 +511,7 @@ void
 domailuser (char *username)
 {
   unsigned int len, i;
-  char *spool_fn, message[80];
+  char *spool_fn, message[81];
   FILE *user_spool = NULL;
   time_t now;
   int mail_empty = 1;

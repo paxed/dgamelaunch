@@ -18,7 +18,7 @@ int
 main (int argc, char** argv)
 {
   int c, i, len;
-  char buf[80], *ptr = buf, *from = NULL;
+  char buf[82], *ptr = buf, *from = NULL;
   struct dg_game ** games = NULL;
   struct flock fl = { 0 };
   struct passwd* pw = getpwuid(getuid());
@@ -41,6 +41,8 @@ main (int argc, char** argv)
       case 'F':
 	from = strdup(optarg);
 	break;
+      default:
+	goto usage;
     }
   }
   
@@ -49,19 +51,20 @@ main (int argc, char** argv)
 
   while (optind < argc)
   {
-    if (strlen(buf) >= 80)
-    {
-      fprintf(stderr, "Error: Message is too long! (80 chars max)\n");
-      return 1;
-    }
-    else if (strlen(buf) != 0)
-      strlcat (buf, " ", 80);
-    strlcat (buf, argv[optind++], 80);
+    if (strlen(buf) != 0)
+      strlcat (buf, " ", sizeof(buf));
+    strlcat (buf, argv[optind++], sizeof(buf));
+  }
+  if (strlen(buf) > 80)
+  {
+    fprintf(stderr, "Error: Message is too long! (80 chars max)\n");
+    return 1;
   }
 
   if (strlen(buf) == 0)
   {
-    fprintf(stderr, "Error: no message?\n");
+usage:
+    fprintf(stderr, "Usage: %s [-f config] [-F fromname] message\n", argv[0]);
     return 1;
   }
 
