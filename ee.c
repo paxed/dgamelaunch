@@ -2759,7 +2759,7 @@ struct menu_entries menu_list[];
 	int counter;
 	int length;
 	int input;
-	int temp;
+	int temp = 0;
 	int list_size;
 	int top_offset;		/* offset from top where menu items start */
 	int vert_pos;		/* vertical position			  */
