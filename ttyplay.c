@@ -198,13 +198,15 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
 	      {
 		initcurses();
 		loginprompt(1);
+		if (!loggedin) return READ_RESTART;
 	      }
               if (loggedin)
-                {
-                  initcurses ();
-                  domailuser (chosen_name);
-                  return READ_RESTART;
-                }
+	      {
+		initcurses ();
+		domailuser (chosen_name);
+                return READ_RESTART;
+	      }
+	      
               break;
             }
         }

@@ -482,7 +482,7 @@ inprogressmenu ()
       clear ();
       drawbanner (1, 1);
       mvprintw (3, 1,
-                "During playback, hit 'q' to return here, 'm' to send mail (requires login");
+                "During playback, hit 'q' to return here, 'm' to send mail (requires login)");
       mvaddstr (4, 1,
                 "(Use capital letter of selection to strip DEC graphics, VERY experimental!)");
       mvaddstr (5, 1, "The following games are in progress:");
@@ -846,6 +846,12 @@ loginprompt (int from_ttyplay)
       loggedin = 1;
       snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
     }
+  else if (from_ttyplay == 1)
+  {
+    mvaddstr(9, 1, "Login failed. Returning to game.");
+    refresh();
+    sleep(2);
+  }
 }
 
 /* ************************************************************* */
