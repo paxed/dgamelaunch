@@ -403,85 +403,6 @@ domailuser (char *username)
 }
 
 void
-mailuser ()
-{
-	char buf[20], *user = NULL;
-	int error = 2;
-
-	clear ();
-	mvaddstr (1, 1, VER1);
-	mvaddstr (5, 1,
-						"To whom would you like to send a message? (Blank entry returns)");
-	mvaddstr (7, 1, "=> ");
-
-	while (error)
-		{
-			if (error == 1)
-				mvaddstr (9, 1, "There is no such user. Try again.  ");
-			else if (error == 3)
-				mvaddstr (9, 1, "That user is not playing right now.");
-
-			mvaddstr (7, 1, "=>                     ");
-			move (7, 4);
-			getnstr (buf, 20);
-
-			if (buf && *buf == '\0')
-				return;
-
-			if (userexist (buf) != -1)
-				{
-					DIR *ip = opendir (LOC_INPROGRESSDIR);
-					struct dirent *dent;
-
-					error = 3;						/* unless set by loop below, assume not playing */
-
-					while ((dent = readdir (ip)) != NULL)
-						{
-							char *trname = strdup (dent->d_name);
-							int len =
-								(sizeof (LOC_INPROGRESSDIR) / sizeof (LOC_INPROGRESSDIR[0])) +
-								strlen (dent->d_name);
-							char *fullpath = malloc (len + 1);
-							int fd;
-
-							snprintf (fullpath, len, "%s%s", LOC_INPROGRESSDIR,
-												dent->d_name);
-
-							fd = open (fullpath, O_RDONLY);
-							user = strdup (strtok (trname, ":"));
-
-							/* if it's locked, it's in session */
-							if (!strcmp (buf, user))
-								{
-									/* could lock? unlock and forget about it */
-									if (flock (fd, LOCK_EX | LOCK_NB) == 0)
-										{
-											flock (fd, LOCK_UN | LOCK_NB);
-											continue;
-										}
-									else					/* no lock, good deal */
-										{
-											error = 0;
-											break;
-										}
-								}
-							close (fd);
-
-							free (user);
-							free (trname);
-						}
-
-					closedir (ip);
-				}
-			else
-				error = 1;
-		}
-
-	if (error == 0)
-		domailuser (user);
-}
-
-void
 drawmenu ()
 {
 	static int flood = 0;
@@ -502,10 +423,9 @@ drawmenu ()
 			mvaddstr (VERLINES + 4, 1, "c) Change password");
 			mvaddstr (VERLINES + 5, 1, "o) Edit option file (requires vi use)");
 			mvaddstr (VERLINES + 6, 1, "w) Watch games in progress");
-			mvaddstr (VERLINES + 7, 1, "m) Contact a current player");
-			mvaddstr (VERLINES + 8, 1, "p) Play nethack!");
-			mvaddstr (VERLINES + 9, 1, "q) Quit");
-			mvaddstr (VERLINES + 11, 1, "=> ");
+			mvaddstr (VERLINES + 7, 1, "p) Play nethack!");
+			mvaddstr (VERLINES + 8, 1, "q) Quit");
+			mvaddstr (VERLINES + 10, 1, "=> ");
 		}
 	else
 		{
@@ -1067,10 +987,6 @@ main (void)
 				case 'o':
 					if (loggedin)
 						editoptions ();
-					break;
-				case 'm':
-					if (loggedin)
-						mailuser ();
 					break;
 				case 'q':
 					endwin ();
