@@ -947,7 +947,7 @@ newuser ()
   if (me)
     free (me);
 
-  me = malloc (sizeof (struct dg_user));
+  me = calloc (1, sizeof (struct dg_user));
 
   while (error)
     {
