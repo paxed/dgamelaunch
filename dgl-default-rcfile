@@ -1,5 +1,7 @@
 # This is an example nethackrc file. You should edit this to suit the needs
-# of your personal nethack build and add some reasonable default options.
+# of your personal nethack build and add some reasonable default options
+# for your users.
+
 # If you compiled dgamelaunch with the `vi' editor enabled instead of ee,
 # perhaps a helpful blurb such as this might help:
 
