@@ -87,8 +87,6 @@ char rcfilename[80];
 char ttyrec_filename[100];
 char *chosen_name;
 
-/* preallocate this mem. bad, but ohwell. is only for pointers */
-/* makes a max number of users compiled in */
 int f_num = 0;
 struct dg_user **users = NULL;
 struct dg_user *me = NULL;
@@ -218,7 +216,12 @@ loadbanner (struct dg_banner *ban)
         ban->lines[ban->len - 1] = strdup (buf);
 
       memset (buf, 0, 80);
+
+      if (ban->len == 14)       /* menu itself needs 10 lines, 24 - 10 */
+        break;
     }
+
+  fclose (bannerfile);
 }
 
 void
@@ -288,7 +291,7 @@ inprogressmenu ()
               /* stat to check idle status */
               snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
                         pdirent->d_name);
-              replacestr = strstr (ttyrecname, ":");
+              replacestr = strchr (ttyrecname, ':');
               if (!replacestr)
                 exit (145);
               replacestr[0] = '/';
@@ -331,13 +334,16 @@ inprogressmenu ()
           snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
                     games[menuchoice - 97]);
           chosen_name = strdup (games[menuchoice - 97]);
-          if (!(replacestr = strstr (chosen_name, ":")))
+          if (!(replacestr = strchr (chosen_name, ':')))
             exit (145);
           else
             *replacestr = '\0';
-          replacestr = strstr (ttyrecname, ":");
+	  
+          replacestr = strchr (ttyrecname, ':');
+	  
           if (!replacestr)
             exit (145);
+
           replacestr[0] = '/';
 
           clear ();
@@ -395,7 +401,7 @@ changepw ()
       if (buf && *buf == '\0')
         return;
 
-      if (strstr (buf, ":") != NULL)
+      if (strchr (buf, ':') != NULL)
         exit (112);
 
       mvaddstr (12, 1, "And again:");
@@ -721,7 +727,7 @@ newuser ()
   refresh ();
   getnstr (buf, 80);
 
-  if (strstr (buf, ":") != NULL)
+  if (strchr (buf, ':') != NULL)
     exit (113);
 
   me->email = strdup (buf);
@@ -1057,7 +1063,7 @@ main (void)
           break;
         case 'q':
           endwin ();
-          exit (1);
+          return 0;
           /* break; */
         case 'r':
           if (!loggedin)        /*not visible to loggedin */
