@@ -135,7 +135,7 @@ ttyread (FILE * fp, Header * h, char **buf, int pread)
   /* length should never be longer than one BUFSIZ */
   if (h->len > BUFSIZ)
     {
-      perror ("hlen");
+      fprintf (stderr, "h->len too big (%d) limit %d\n", h->len, BUFSIZ);
       exit (-21);
     }
 
