@@ -1,58 +1,131 @@
 #!/bin/sh
 
+# Original by joshk@triplehelix.org, modifications by jilles@stack.nl
+
+# settings
+# path for chroot
+chroot_path="/var/lib/dgamelaunch"
+# uid/gid, must agree with dgamelaunch.h
+shed_uid=5
+shed_gid=60
+# extra libraries to copy (that ldd doesn't find, such as ld-elf.so.1 on
+# FreeBSD)
+libs=""
+# compression binary to copy (found in $PATH if unqualified)
+# (leave blank to skip)
+compress_bin="gzip"
+# nethack binary to copy (leave blank to skip)
+nethack_bin="/usr/lib/games/nethack/nethack-console"
+# fixed data to copy (leave blank to skip)
+playground_fixed="/usr/lib/games/nethack"
+# variable data to create (leave blank to skip) (may be equal to previous)
+playground_var="/var/games/nethack"
+# termcap/terminfo (copied recursively) (leave blank to skip)
+termdata="/usr/share/terminfo"
+
+[ -f dgl-create-chroot.conf ] && . dgl-create-chroot.conf
+
+findlibs()
+{
+	for i in "$@"; do
+		# () to ignore errors
+		( ldd "$i" 2>/dev/null | awk '{ if ($2=="=>") print $3; }' )
+	done
+}
+findinpath()
+{
+	local IFS
+	IFS=:
+	for dir in $PATH; do
+		if [ -f "$dir/$1" ]; then
+			echo "$dir/$1"
+			return 0
+		fi
+	done
+	return 1
+}
+
 set -e
+umask 022
 
-CHROOT_PATH=/var/lib/dgamelaunch
+echo "Setting up the chroot in: $chroot_path"
 
-# Only in the chroot
-CHROOT_UID=5
-CHROOT_GID=60
-
-echo "Setting up the chroot in: $CHROOT_PATH"
-
-mkdir -p $CHROOT_PATH/lib $CHROOT_PATH/bin $CHROOT_PATH/etc $CHROOT_PATH/var/mail
-
-# Required libraries
-cp -L /lib/libc.so.6 $CHROOT_PATH/lib
-cp -L /lib/libncurses.so.5 $CHROOT_PATH/lib
-cp -L /lib/ld-linux.so.2 $CHROOT_PATH/lib
+mkdir -p $chroot_path/bin $chroot_path/etc $chroot_path/var/mail
 
 # Passwd file
-echo "games:!:5:60:games:/nonexistent:/bin/sh" > $CHROOT_PATH/etc/passwd
-echo "games:x:60:" > $CHROOT_PATH/etc/group
+echo "games:*:$shed_uid:$shed_gid:games:/nonexistent:" >$chroot_path/etc/passwd
+echo "games:*:$shed_gid:" >$chroot_path/etc/group
 
 # Dungeon directory setup
-mkdir -p $CHROOT_PATH/dgldir/inprogress
-mkdir -p $CHROOT_PATH/dgldir/rcfiles
-mkdir -p $CHROOT_PATH/dgldir/ttyrec
-chown -R $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/dgldir
-chown -R $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/var/mail
-touch $CHROOT_PATH/dgl-login
-touch $CHROOT_PATH/dgl-lock
+mkdir -p $chroot_path/dgldir/inprogress
+mkdir -p $chroot_path/dgldir/rcfiles
+mkdir -p $chroot_path/dgldir/ttyrec
+chown -R $shed_uid:$shed_gid $chroot_path/dgldir
+chown -R $shed_uid:$shed_gid $chroot_path/var/mail
+touch $chroot_path/dgl-login
+touch $chroot_path/dgl-lock
 
 # Might want to remove these two for packaging?
-cp dgl-default-rcfile $CHROOT_PATH/
-cp dgl-banner $CHROOT_PATH/
+cp dgl-default-rcfile $chroot_path
+cp dgl-banner $chroot_path
 
-chown $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/dgl-*
+chown $shed_uid:$shed_gid $chroot_path/dgl-*
 
 # Needs gzip to compress
-cp /bin/gzip $CHROOT_PATH/bin
+if [ -n "$compress_bin" ]; then
+	case "$compress_bin" in
+	/*)	: ;;
+	*)	compress_bin=`findinpath $compress_bin`	;;
+	esac
+	# NetHack wants the compression binary in the exact directory
+	mkdir -p $chroot_path`dirname $compress_bin`
+	cp $compress_bin $chroot_path$compress_bin
+	libs="$libs `findlibs $compress_bin`"
+fi
 
-# Copy the nethack binary over (Debian specific for now)
-cp /usr/lib/games/nethack/nethack-console $CHROOT_PATH/bin/nethack
+# Copy the nethack binary over
+if [ -n "$nethack_bin" ]; then
+	cp $nethack_bin $chroot_path/bin/nethack
+	libs="$libs `findlibs $nethack_bin`"
+fi
 
 # ...and all the data it needs
-mkdir -p $CHROOT_PATH/var/games/nethack/save
-mkdir -p $CHROOT_PATH/usr/lib/games/nethack
-touch $CHROOT_PATH/var/games/nethack/record
-touch $CHROOT_PATH/var/games/nethack/perm
-touch $CHROOT_PATH/var/games/nethack/logfile
+if [ -n "$playground_var" ]; then
+	mkdir -p $chroot_path$playground_var/save
+	touch $chroot_path$playground_var/record
+	touch $chroot_path$playground_var/perm
+	touch $chroot_path$playground_var/logfile
+	chown -R $shed_uid:$shed_gid $chroot_path$playground_var
+fi
 
-chown -R $CHROOT_UID:$CHROOT_GID $CHROOT_PATH/var/games/nethack
-cp -L /usr/lib/games/nethack/license $CHROOT_PATH/usr/lib/games/nethack
-cp -L /usr/lib/games/nethack/nhdat $CHROOT_PATH/usr/lib/games/nethack
+if [ -n "$playground_fixed" ]; then
+	mkdir -p $chroot_path$playground_fixed
+	cp $playground_fixed/license $chroot_path$playground_fixed
+	if [ -e $playground_fixed/nhdat ]; then
+		cp $playground_fixed/nhdat $chroot_path$playground_fixed
+	else
+		(
+			cd $playground_fixed
+			cp *.dat cmdhelp data dungeon help hh history \
+				opthelp options perm recover rumors wizhelp \
+				$chroot_path$playground_fixed
+		)
+	fi
+fi
 
 # Curses junk
-mkdir -p $CHROOT_PATH/usr/share
-cp -Lr /usr/share/terminfo $CHROOT_PATH/usr/share
+if [ -n "$termdata" ]; then
+	mkdir -p $chroot_path`dirname $termdata`
+	cp -RL $termdata $chroot_path`dirname $termdata`
+fi
+
+# Necessary libraries
+# previously libs="/lib/libc.so.6 /lib/libncurses.so.5 /lib/ld-linux.so.2"
+libs=`for lib in $libs; do echo $lib; done | sort | uniq`
+echo "Copying libraries:" $libs
+for lib in $libs; do
+	mkdir -p $chroot_path`dirname $lib`
+	cp $lib $chroot_path$lib
+done
+
+echo "Finished."
