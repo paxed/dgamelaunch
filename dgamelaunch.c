@@ -1024,7 +1024,7 @@ int
 passwordgood (char *cpw)
 {
   if (me == NULL)
-    return 1;
+    return 0;
 
   if (!strncmp (crypt (cpw, cpw), me->password, 13))
     return 1;
