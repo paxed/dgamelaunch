@@ -158,8 +158,8 @@ create_config ()
     }
     else
     {
-      fprintf(stderr, "Warning: can't find or open %s for reading\n", config);
-      myconfig = &defconfig;
+      fprintf(stderr, "ERROR: can't find or open %s for reading\n", config);
+      graceful_exit(104);
       return;
     }
 
