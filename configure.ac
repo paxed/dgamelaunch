@@ -14,7 +14,7 @@ AC_PROG_YACC
 case "$(uname -s)" in
   Linux | *BSD)
     LIBS="$LIBS -lutil -lcrypt"
-    AC_DEFINE(NOSTREAMS, 1, [Use SVR4 streams support in ttyrec.])
+    AC_DEFINE(NOSTREAMS, 1, [Don't use SVR4 streams support in ttyrec.])
   ;;
 esac
 
@@ -35,6 +35,6 @@ AC_ARG_WITH(config-file,
 
 AC_DEFINE_UNQUOTED(DEFCONFIG, "$configfile", [Path to the default config file.])
 
-AC_CHECK_FUNCS(openpty)
+AC_CHECK_FUNCS([openpty setenv])
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT

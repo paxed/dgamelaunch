@@ -100,7 +100,7 @@ struct dg_user **users = NULL;
 struct dg_user *me = NULL;
 struct dg_banner banner;
 
-#if !(defined(__linux__) || defined(BSD))
+#ifndef HAVE_SETENV
 int
 mysetenv (const char* name, const char* value, int overwrite)
 {
@@ -121,7 +121,7 @@ mysetenv (const char* name, const char* value, int overwrite)
 }
 #else /* use native setenv */
 # define mysetenv setenv
-#endif /* !linux && !bsd */
+#endif
 
 /* ************************************************************* */
 /* for ttyrec */
