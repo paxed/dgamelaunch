@@ -1,0 +1,2 @@
+- Allow a runtime-read configuration file to specify all the stuff
+  that is currently hardcoded into dgamelaunch.h.
