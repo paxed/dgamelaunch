@@ -60,10 +60,6 @@
 # include <libutil.h>
 #endif
 
-#if defined(__linux__) || defined(BSD)
-# define mysetenv setenv
-#endif
-
 #ifdef __linux__
 # include <pty.h>
 #endif
@@ -149,6 +145,8 @@ mysetenv (const char* name, const char* value, int overwrite)
   
   return retval;  
 }
+#else /* use native setenv */
+# define mysetenv setenv
 #endif /* !linux && !bsd */
 
 void
