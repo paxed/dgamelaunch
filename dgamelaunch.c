@@ -192,12 +192,14 @@ create_config ()
     }
 
     if (myconfig->max == 0) myconfig->max = defconfig.max;
-    if (!myconfig->banner) myconfig->banner = strdup(defconfig.banner);
-    if (!myconfig->chroot) myconfig->chroot = strdup(defconfig.chroot);
-    if (!myconfig->nethack) myconfig->nethack = strdup(defconfig.nethack);
-    if (!myconfig->dglroot) myconfig->dglroot = strdup(defconfig.dglroot);
-    if (!myconfig->rcfile) myconfig->rcfile = strdup(defconfig.rcfile);
-    if (!myconfig->spool) myconfig->spool = strdup(defconfig.spool);
+    if (!myconfig->banner) myconfig->banner = defconfig.banner;
+    if (!myconfig->chroot) myconfig->chroot = defconfig.chroot;
+    if (!myconfig->nethack) myconfig->nethack = defconfig.nethack;
+    if (!myconfig->dglroot) myconfig->dglroot = defconfig.dglroot;
+    if (!myconfig->rcfile) myconfig->rcfile = defconfig.rcfile;
+    if (!myconfig->spool) myconfig->spool = defconfig.spool;
+    if (!myconfig->passwd) myconfig->passwd = defconfig.passwd;
+    if (!myconfig->lockfile) myconfig->lockfile = defconfig.lockfile;
   }
   else
   {
