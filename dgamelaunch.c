@@ -1040,7 +1040,7 @@ readfile (int nolock)
 
       f_num++;
       /* prevent a buffer overrun here */
-      if (f_num >= MAXUSERS)
+      if (f_num >= myconfig->max)
         graceful_exit (109);
     }
 

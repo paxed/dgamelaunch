@@ -29,6 +29,8 @@
 	* Make sure only one session can be played at once at all and
 	  SIGHUP the rest, ensuring the death of "Destroy old game? [yn]"
 	* Replace two colossal conditionals with calls to isalnum(3).
+	* Shift from static #defines to a configuration file system
+	  powered by lex/yacc.
 
 1.3.10 (2003/10/22)
 	* Added a mode flag to the open call for inprogress lock files.
