@@ -1,3 +1,10 @@
+1.4.7 (2004/??/??)
+	* Make the watching code more efficient (particularly on FreeBSD) and
+	  clean it up a bit.
+	* Fix bug where old cruft was left under the watch list after 'm'
+	  had been used.
+	* Allow ^L and ^R to fully refresh the watch list.
+
 1.4.6 (2004/07/03)
 	* Fix some signed/unsigned warnings.
 	* Fix make install check for PREFIX -> $(PREFIX).
