@@ -18,7 +18,7 @@ int
 main (int argc, char** argv)
 {
   int c, i, len;
-  char* config = NULL, buf[80], *ptr = buf, *from = NULL;
+  char buf[80], *ptr = buf, *from = NULL;
   struct dg_game ** games = NULL;
   struct flock fl = { 0 };
   struct passwd* pw = getpwuid(getuid());
