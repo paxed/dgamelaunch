@@ -149,11 +149,11 @@ unsigned char *srch_1;		/* pointer to start of suspect string	*/
 unsigned char *srch_2;		/* pointer to next character of string	*/
 unsigned char *srch_3;
 unsigned char *in_file_name = NULL;	/* name of input file		*/
-char *tmp_file;	/* temporary file name			*/
+unsigned char *tmp_file;	/* temporary file name			*/
 unsigned char *d_char;		/* deleted character			*/
 unsigned char *d_word;		/* deleted word				*/
 unsigned char *d_line;		/* deleted line				*/
-char in_string[513];	/* buffer for reading a file		*/
+unsigned char in_string[513];	/* buffer for reading a file		*/
 unsigned char *start_at_line = NULL;	/* move to this line at start of session*/
 int in;				/* input character			*/
 
@@ -232,20 +232,20 @@ void down P_((void));
 void function_key P_((void));
 void command_prompt P_((void));
 void command P_((char *cmd_str1));
-int scan P_((char *line, int offset, int column));
-char *get_string P_((char *prompt, int advance));
+int scan P_((unsigned char *line, int offset, int column));
+unsigned char *get_string P_((char *prompt, int advance));
 int compare P_((char *string1, char *string2, int sensitive));
 void goto_line P_((char *cmd_str));
 void midscreen P_((int line, unsigned char *pnt));
 void check_fp P_((void));
-void get_file P_((char *file_name));
+void get_file P_((unsigned char *file_name));
 void get_line P_((int length, unsigned char *in_string, int *append));
 void draw_screen P_((void));
 void ee_finish P_((void));
 int quit P_((int noverify));
 void edit_abort P_((int arg));
 void delete_text P_((void));
-int write_file P_((char *file_name, int fd));
+int write_file P_((unsigned char *file_name, int fd));
 int search P_((int display_message));
 void search_prompt P_((void));
 void del_char P_((void));
@@ -458,7 +458,7 @@ char *argv[];
 	}
 	else
 	{
-	  tmp_file = strdup(argv[1]);
+	  tmp_file = (unsigned char*)strdup(argv[1]);
 	  input_file = recv_file = TRUE;
 	}
 	
@@ -778,7 +778,7 @@ int column;
 {
 	int i1, i2;
 	unsigned char *string;
-	char string2[8];
+	unsigned char string2[8];
 
 	if (character == TAB)
 	{
@@ -792,15 +792,15 @@ int column;
 	}
 	else if ((character >= '\0') && (character < ' '))
 	{
-		string = table[(int) character];
+		string = (unsigned char*)table[(int) character];
 	}
 	else if ((character < 0) || (character >= 127))
 	{
 		if (character == 127)
-			string = "^?";
+			string = (unsigned char*)"^?";
 		else if (!eightbit)
 		{
-			sprintf(string2, "<%d>", (character < 0) ? (character + 256) : character);
+			sprintf((char*)string2, "<%d>", (character < 0) ? (character + 256) : character);
 			string = string2;
 		}
 		else
@@ -816,7 +816,7 @@ int column;
 	}
 	for (i2 = 0; (string[i2] != (char) NULL) && (((column+i2+1)-horiz_offset) < last_col); i2++)
 		waddch(window, string[i2]);
-	return(strlen(string));
+	return(strlen((char*)string));
 }
 
 int 
@@ -1014,14 +1014,14 @@ prev_word()	/* move to start of previous word in text	*/
 void 
 control()			/* use control for commands		*/
 {
-	char *string;
+	unsigned char *string;
 
 	if (in == 1)		/* control a	*/
 	{
 		string = get_string(ascii_code_str, TRUE);
 		if (*string != (char) NULL)
 		{
-			in = atoi(string);
+			in = atoi((char*)string);
 			wmove(text_win, scr_vert, (scr_horz - horiz_offset));
 			insert(in);
 		}
@@ -1092,7 +1092,7 @@ control()			/* use control for commands		*/
 void 
 emacs_control()
 {
-	char *string;
+	unsigned char *string;
 
 	if (in == 1)		/* control a	*/
 		bol();
@@ -1129,7 +1129,7 @@ emacs_control()
 		string = get_string(ascii_code_str, TRUE);
 		if (*string != (char) NULL)
 		{
-			in = atoi(string);
+			in = atoi((char*)string);
 			wmove(text_win, scr_vert, (scr_horz - horiz_offset));
 			insert(in);
 		}
@@ -1451,13 +1451,13 @@ function_key()				/* process function key		*/
 void 
 command_prompt()
 {
-	char *cmd_str;
+	unsigned char *cmd_str;
 	int result;
 
 	info_type = COMMANDS;
 	paint_info_win();
 	cmd_str = get_string(command_str, TRUE);
-	if ((result = unique_test(cmd_str, commands)) != 1)
+	if ((result = unique_test((char*)cmd_str, commands)) != 1)
 	{
 		werase(com_win);
 		wmove(com_win, 0, 0);
@@ -1475,7 +1475,7 @@ command_prompt()
 			free(cmd_str);
 		return;
 	}
-	command(cmd_str);
+	command((char*)cmd_str);
 	wrefresh(com_win);
 	wmove(text_win, scr_vert, (scr_horz - horiz_offset));
 	info_type = CONTROL_KEYS;
@@ -1560,7 +1560,7 @@ char *cmd_str1;
 		in_pipe = TRUE;
 		cmd_str++;
 		if ((*cmd_str == ' ') || (*cmd_str == '\t'))
-			cmd_str = next_word(cmd_str);
+			cmd_str = (char*)next_word((unsigned char*)cmd_str);
 		command(cmd_str);
 		in_pipe = FALSE;
 	}
@@ -1569,7 +1569,7 @@ char *cmd_str1;
 		out_pipe = TRUE;
 		cmd_str++;
 		if ((*cmd_str == ' ') || (*cmd_str == '\t'))
-			cmd_str = next_word(cmd_str);
+			cmd_str = (char*)next_word((unsigned char*)cmd_str);
 		command(cmd_str);
 		out_pipe = FALSE;
 	}
@@ -1585,11 +1585,11 @@ char *cmd_str1;
 
 int 
 scan(line, offset, column)	/* determine horizontal position for get_string	*/
-char *line;
+unsigned char *line;
 int offset;
 int column;
 {
-	char *stemp;
+	unsigned char *stemp;
 	int i;
 	int j;
 
@@ -1605,15 +1605,15 @@ int column;
 	return(j);
 }
 
-char *
+unsigned char *
 get_string(prompt, advance)	/* read string from input on command line */
 char *prompt;		/* string containing user prompt message	*/
 int advance;		/* if true, skip leading spaces and tabs	*/
 {
-	char *string;
-	char *tmp_string;
-	char *nam_str;
-	char *g_point;
+	unsigned char *string;
+	unsigned char *tmp_string;
+	unsigned char *nam_str;
+	unsigned char *g_point;
 	int tmp_int;
 	int g_horz, g_position, g_pos;
 	int esc_flag;
@@ -1625,7 +1625,7 @@ int advance;		/* if true, skip leading spaces and tabs	*/
 	wrefresh(com_win);
 	nam_str = tmp_string;
 	clear_com_win = TRUE;
-	g_horz = g_position = scan(prompt, strlen(prompt), 0);
+	g_horz = g_position = scan((unsigned char*)prompt, strlen(prompt), 0);
 	g_pos = 0;
 	do
 	{
@@ -1679,8 +1679,8 @@ int advance;		/* if true, skip leading spaces and tabs	*/
 	nam_str = tmp_string;
 	if (((*nam_str == ' ') || (*nam_str == 9)) && (advance))
 		nam_str = next_word(nam_str);
-	string = malloc(strlen(nam_str) + 1);
-	strcpy(string, nam_str);
+	string = malloc(strlen((char*)nam_str) + 1);
+	strcpy((char*)string, (char*)nam_str);
 	free(tmp_string);
 	wrefresh(com_win);
 	return(string);
@@ -1809,7 +1809,7 @@ check_fp()		/* open or close files according to flags */
 	if (input_file)
 		in_file_name = tmp_file;
 	
-	temp = stat(tmp_file, &buf);
+	temp = stat((char*)tmp_file, &buf);
 	buf.st_mode &= ~07777;
 	if ((temp != -1) && (buf.st_mode != 0100000) && (buf.st_mode != 0))
 	{
@@ -1823,7 +1823,7 @@ check_fp()		/* open or close files according to flags */
 		else
 			return;
 	}
-	if ((get_fd = open(tmp_file, O_RDONLY)) == -1)
+	if ((get_fd = open((char*)tmp_file, O_RDONLY)) == -1)
 	{
 		wmove(com_win, 0, 0);
 		wclrtoeol(com_win);
@@ -1856,7 +1856,7 @@ check_fp()		/* open or close files according to flags */
 		input_file = FALSE;
 		if (start_at_line != NULL)
 		{
-			line_num = atoi(start_at_line) - 1;
+			line_num = atoi((char*)start_at_line) - 1;
 			move_rel("d", line_num);
 			line_num = 0;
 			start_at_line = NULL;
@@ -1877,7 +1877,7 @@ check_fp()		/* open or close files according to flags */
 
 void 
 get_file(file_name)	/* read specified file into current buffer	*/
-char *file_name;
+unsigned char *file_name;
 {
 	int can_read;		/* file has at least one character	*/
 	int length;		/* length of line read by read		*/
@@ -1890,7 +1890,7 @@ char *file_name;
 		wmove(com_win, 0, 0);
 		wclrtoeol(com_win);
 		wprintw(com_win, reading_file_msg, file_name);
-		if (access(file_name, 2))	/* check permission to write */
+		if (access((char*)file_name, 2))	/* check permission to write */
 		{
 			if ((errno == ENOTDIR) || (errno == EACCES) || (errno == EROFS) || (errno == ETXTBSY) || (errno == EFAULT))
 			{
@@ -2037,7 +2037,7 @@ draw_screen()		/* redraw the screen from current postion	*/
 void 
 ee_finish()	/* prepare to exit edit session	*/
 {
-	char *file_name = in_file_name;
+	unsigned char *file_name = in_file_name;
 
 	/*
 	 |	changes made here should be reflected in the 'save' 
@@ -2068,7 +2068,7 @@ int
 quit(noverify)		/* exit editor			*/
 int noverify;
 {
-	char *ans;
+	unsigned char *ans;
 
 	touchwin(text_win);
 	wrefresh(text_win);
@@ -2126,11 +2126,11 @@ delete_text()
    hack to get safe tempfile handling in ispell.*/
 int 
 write_file(file_name, fd)
-char *file_name;
+unsigned char *file_name;
 int fd;
 {
 	char cr;
-	char *tmp_point;
+	unsigned char *tmp_point;
 	struct text *out_line;
 	int lines, charac;
 	int temp_pos;
@@ -2138,9 +2138,9 @@ int fd;
 
 	charac = lines = 0;
 	if ((fd < 0) &&
-            ((in_file_name == NULL) || strcmp(in_file_name, file_name)))
+            ((in_file_name == NULL) || strcmp((char*)in_file_name, (char*)file_name)))
 	{
-		if ((temp_fp = fopen(file_name, "r")))
+		if ((temp_fp = fopen((char*)file_name, "r")))
 		{
 			tmp_point = get_string(file_exists_prompt, TRUE);
 			if (toupper(*tmp_point) == toupper(*yes_char))
@@ -2158,7 +2158,7 @@ int fd;
 	{
                 if (fd < 0) 
                 {
-                        temp_fp = fopen(file_name, "w");
+                        temp_fp = fopen((char*)file_name, "w");
                 }
                 else
                 {
@@ -2332,7 +2332,7 @@ search_prompt()		/* prompt and read search string (srch_str)	*/
 	srch_str = get_string(search_prompt_str, FALSE);
 	gold = FALSE;
 	srch_3 = srch_str;
-	srch_1 = u_srch_str = malloc(strlen(srch_str) + 1);
+	srch_1 = u_srch_str = malloc(strlen((char*)srch_str) + 1);
 	while (*srch_3 != (char) NULL)
 	{
 		*srch_1 = toupper(*srch_3);
@@ -2575,7 +2575,7 @@ char *direction;
 int lines;
 {
 	int i;
-	char *tmp;
+	unsigned char *tmp;
 
 	if (*direction == 'u')
 	{
@@ -3167,7 +3167,7 @@ int
 file_op(arg)
 int arg;
 {
-	char *string;
+	unsigned char *string;
 	int flag;
 
 	if (arg == SAVE_FILE)
