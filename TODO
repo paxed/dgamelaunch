@@ -4,5 +4,4 @@
 
 - Return to watching game after sending mail?
 
-- Still appears to call getpwnam(3) and getgrnam(3) polluting memory space,
-  even though uid/gid and no user/group given in configuration file.
+- passwd and lockfile are required in the configuration file
