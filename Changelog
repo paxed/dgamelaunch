@@ -1,6 +1,7 @@
 1.4.6 (????/??/??)
 	* Fix some signed/unsigned warnings.
 	* Fix make install check for PREFIX -> $(PREFIX).
+        * Bind with Satan / start using autoconf.
 
 1.4.5 (2004/06/14)
 	* Reset offset if necessary to show at least one game to avoid things
