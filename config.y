@@ -105,21 +105,31 @@ KeyPair: KeyType '=' TYPE_VALUE {
   free($3);
 }
 	| KeyType '=' TYPE_NUMBER {
+  if (!myconfig)
+    myconfig = calloc(1, sizeof(struct dg_config));
+	       
   switch ($1)
   {
     case TYPE_SUID:
-      if (!myconfig->shed_user && getpwuid($3) != NULL)
-        myconfig->shed_uid = $3;
-      else
-        fprintf(stderr, "%s: no such uid %lu\n", config, $3);
+      if (!myconfig->shed_user)
+      {
+        if (getpwuid($3) != NULL)
+          myconfig->shed_uid = $3;
+        else
+          fprintf(stderr, "%s: no such uid %lu\n", config, $3);
+      }
 	
       break;
 
     case TYPE_SGID:
-      if (!myconfig->shed_group && getgrgid($3) != NULL)
-        myconfig->shed_gid = $3;
-      else
-        fprintf(stderr, "%s: no such gid %lu\n", config, $3);
+      if (!myconfig->shed_group)
+      {
+      	if (getgrgid($3) != NULL)
+          myconfig->shed_gid = $3;
+        else
+          fprintf(stderr, "%s: no such gid %lu\n", config, $3);
+      }
+
       break;
 
     case TYPE_MAX:

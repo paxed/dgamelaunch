@@ -29,7 +29,7 @@ LONGCOMMENT	"/*"
 
 %%             /* BEGIN RULES SECTION */
 
-{NUMBER} { yylval.i = atoi(yytext); }
+{NUMBER} { yylval.i = atoi(yytext); return TYPE_NUMBER; }
 {VALUE}	{
   yytext[yyleng - 1] = '\0'; /* Kill the trailing quote */
   yytext++; /* Kill the leading quote */
