@@ -8,6 +8,8 @@
 	* Selecting a game to watch with an uppercase letter attempts to
 	  change the window size to the game's via the \033[8;<r>;<c>t
 	  sequence.
+	* Stricter check on entered email addresses; the same check is now
+	  used for new accounts as well as changes in existing accounts.
 
 1.4.3 (2004/02/28)
 	* Make ttyplay use the 'strip' value it remembered from last view.

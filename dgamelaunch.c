@@ -417,6 +417,47 @@ inprogressmenu ()
 
 /* ************************************************************* */
 
+/*
+ * Check email address, returns 1 if valid, 0 otherwise.
+ * Doesn't recognize addresses with parts in double-quotes.
+ * Addresses with a colon in them are always rejected.
+ */
+int
+check_email (char *s)
+{
+  char *atomchars = "!#$%&'*+-/=?^_`{|}~" "0123456789"
+    "abcdefghijklmnopqrstuvwxyz" "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  int f;
+
+  if (*s == '@')
+    return 0;
+
+  while (*s != '\0' && *s != '@')
+    {
+      if (strchr(atomchars, *s) == NULL)
+        return 0;
+      s++;
+      if (*s == '.')
+        s++;
+    }
+
+  if (*s == '\0')
+    return 0;
+  s++;
+
+  f = 0;
+  while (*s != '\0')
+    {
+      if (strchr(atomchars, *s) == NULL)
+        return 0;
+      s++;
+      if (*s == '.')
+        s++, f = 1;
+    }
+
+  return f;
+}
+
 void
 change_email ()
 {
@@ -442,8 +483,7 @@ change_email ()
       mvaddstr (8, 1, "That's the same one as before. Try again?");
       move(1,1);
     }
-    /* rudimentary check for validity */
-    else if (strchr(buf, '@') < strrchr(buf, '.'))
+    else if (check_email (buf))
     {
       mvprintw (8, 1, "Changing email address to '%s'. Confirm (y/n): ", buf);
       if (getch() == 'y')
@@ -861,32 +901,45 @@ newuser ()
 
   /* email step */
 
-  clear ();
+  error = 2;
+  while (error != 0)
+    {
+      clear ();
 
-  drawbanner (1, 1);
+      drawbanner (1, 1);
 
-  mvaddstr (5, 1, "Please enter your email address.");
-  mvaddstr (6, 1,
-            "This is sent _nowhere_ but will be used if you ask the sysadmin for lost");
-  mvaddstr (7, 1,
-            "password help. Please use a correct one. It only benefits you.");
-  mvaddstr (8, 1, "80 character max. No ':' characters. Blank line aborts.");
-  mvaddstr (10, 1, "=> ");
+      mvaddstr (5, 1, "Please enter your email address.");
+      mvaddstr (6, 1, "This is sent _nowhere_ but will be used if you ask"
+        " the sysadmin for lost");
+      mvaddstr (7, 1, "password help. Please use a correct one. It only"
+        " benefits you.");
+      mvaddstr (8, 1, "80 character max. No ':' characters. Blank line"
+        " aborts.");
+      mvaddstr (10, 1, "=> ");
 
-  refresh ();
-  mygetnstr (buf, 80, 1);
+      if (error == 1)
+        {
+          mvaddstr (12, 1, "There was a problem with your last entry.");
+          move (10, 4);
+        }
 
-  if (strchr (buf, ':') != NULL)
-    graceful_exit (113);
-
-  if (buf && *buf == '\0')
-  {
-    free (me->username);
-    free (me->password);
-    free (me);
-    me = NULL;
-    return;
-  }
+      refresh ();
+      mygetnstr (buf, 80, 1);
+ 
+      if (check_email (buf))
+        error = 0;
+      else
+        error = 1;
+ 
+      if (buf && *buf == '\0')
+      {
+        free (me->username);
+        free (me->password);
+        free (me);
+        me = NULL;
+        return;
+      }
+    }
 
   me->email = strdup (buf);
   me->env = calloc (1, 1);
