@@ -61,7 +61,6 @@
 # include <stropts.h>
 #endif
 #include <stdlib.h>
-#include <fcntl.h>
 
 #include "ttyrec.h"
 #include "io.h"

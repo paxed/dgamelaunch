@@ -1,5 +1,8 @@
 1.4.1 (2004/02/13)
-	* Call fcntl with F_SETLK, not F_UNLCK.
+	* Don't explicitly unlock the lock file before fclosing it;
+	  this creates a race condition where we might not have finished
+	  writing to /dgl-login before we tell people that they can write
+	  to it again.
 	* Make sure writefile does not get called when using it as a
 	  password prompt for new-users
 	* Allow user to change his or her email address in the console.

@@ -459,13 +459,9 @@ populate_games (int *l)
           /* clean dead ones */
           unlink (fullname);
         }
-      fl.l_type = F_UNLCK;
-
-      fcntl (fd, F_SETLK, &fl);
+      close (fd);
 
       fl.l_type = F_WRLCK;
-      
-      close (fd);
     }
 
   closedir (pdir);
@@ -1167,11 +1163,7 @@ readfile (int nolock)
     }
 
   if (!nolock)
-    {
-      fl.l_type = F_UNLCK;
-      fcntl (fileno(fpl), F_SETLK, &fl);
       fclose (fpl);
-    }
   fclose (fp);
   return 0;
 }
