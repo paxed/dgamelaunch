@@ -284,9 +284,10 @@ changepw ()
 	char buf[21];
 	int error = 2;
 
-	if (!loggedin)
-		return;
-
+	/* A precondiction is that struct `me' exists because we can be not-yet-logged-in. */
+	if (!me)
+	 exit(122); /* Die. */
+	
 	while (error)
 		{
 			char repeatbuf[21];
@@ -294,8 +295,7 @@ changepw ()
 
 			mvaddstr (1, 1, VER1);
 
-			mvaddstr (5, 1,
-								"Please enter a new password. Remember that this is sent over the net");
+			mvprintw (5, 1,				"Please enter a%s password. Remember that this is sent over the net", loggedin ? " new" : "");
 			mvaddstr (6, 1,
 								"in plaintext, so make it something new and expect it to be relatively");
 			mvaddstr (7, 1, "insecure.");
@@ -310,8 +310,11 @@ changepw ()
 				}
 
 			refresh ();
+			
+			noecho();
 			getnstr (buf, 20);
-
+			echo(); /* Putting echo back on just for saftey and because it can't hurt. */
+			
 			if (buf && *buf == '\0')
 				return;
 
@@ -320,8 +323,10 @@ changepw ()
 
 			mvaddstr (12, 1, "And again:");
 			mvaddstr (13, 1, "=> ");
-
+	
+			noecho();
 			getnstr (repeatbuf, 20);
+			echo(); /* Here is the important echo(); if the former is removed. */
 
 			if (!strcmp (buf, repeatbuf))
 				error = 0;
@@ -626,24 +631,8 @@ newuser ()
 
 	clear ();
 
-	mvaddstr (1, 1, VER1);
-
-	mvaddstr (5, 1, "Please enter a password.");
-	mvaddstr (6, 1,
-						"This is only trivially encoded at the server. Please use something");
-	mvaddstr (7, 1, "new and expect it to be relatively insecure.");
-	mvaddstr (8, 1, "20 character max. No ':' characters.");
-	mvaddstr (10, 1, "=> ");
-
-	refresh ();
-	getnstr (buf, 20);
-
-	/* we warned em */
-	if (strstr (buf, ":") != NULL)
-		exit (112);
-
-	me->password = strdup (crypt (buf, buf));
-
+	changepw(); /* Calling changepw instead to prompt twice. */
+	
 	/* email step */
 
 	clear ();
