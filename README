@@ -1,30 +1,56 @@
-dgamelaunch attempts to be lean and at least somewhat portable though development is rather Linux-specific. It will most likely compile on a modern Linux distro and you won't need any esoteric headers or libraries.
+dgamelaunch
+===========
 
-The most important thing to be away of are the defines in dgamelaunch.h, they are pretty much self-explanatory. Realize however, these are all in their own chroot jail.
+dgamelaunch is a network-based game shell where anyone can sign up for an
+account and start playing any game which suits your fancy - currently, though,
+it only supports NetHack (see http://www.nethack.org).
 
-dgamelaunch was originally developed by M. Drew Streib <dtype@dtype.org> but is now a collaborative project. Copyright and contact information is in the COPYING file, included with this package.
+It requires the ncurses library and development headers to build and should
+compile without issue on Linux and FreeBSD 4/5. Other platforms have not been
+tested yet.
+
+dgamelaunch was originally developed by M. Drew Streib <dtype@dtype.org> but
+is now a collaborative project. Copyright and contact information is in the 
+COPYING file, included with this package.
 Mailing list: http://alt.org/mailman/listinfo/nethack/
 
 BASIC SETUP INSTRUCTIONS
 ========================
 
-1) Setup a chroot jail. There is a helpful script included to this but it will require modification if you change the defines in dgamelaunch.h
+1) Setup a chroot jail. There is a helpful script included to accomplish
+this, called dgl-create-chroot, in the source directory. The default settings
+are viewable by editing the script; to customize the installation, look at
+dgl-create-chroot.conf.example (also in the source directory) and edit it to
+suit your needs, and save it into the same directory as dgl-create-chroot as
+dgl-create-chroot.conf. Depending on what you choose to do you may need to
+run the script as root.
 
-	dgamelaunch]$ ./dgl-create-chroot
+If you decide to not use dgl-create-chroot, you're on your own and we assume
+you have enough clue to figure out exactly what's needed for the chroot to
+operate correctly.
 
-You will probably want to run this as root as it writes to generally non-world-writable places.
+2) Compile nethack. Make sure the directories in the chroot match up with
+where nethack thinks everything is. You may need to edit the VAR_PLAYGROUND
+variable in include/unixconf.h and/or the HACKDIR variable in include/config.h.
 
-2) Compile nethack. Make sure that it knows where the playground will be, this can be automated through dgl-create-chroot. If you don't understand this, the defaults will probably do. A static compile of nethack is recommended unless you want to copy all the libraries into the jail.
+(Note: Try not to, for security, to put anything else in the chroot. You may
+need to put gzip in there though if you compile nethack to use it for 
+compression.)
 
-(Note: Try not to, for security, to put anything else in the chroot. You may need to put gzip in there though if you compile nethack to use it for compression.)
-
-3) Before you continue double check that the user id's in dgamelaunch.h's defines are the owners of the chroot directory and all it's files. This is required for all files except executables (which can be only by anyone as long as they are executable.)
+3) Edit dgamelaunch.conf. This will contain information for dgamelaunch
+about what uid/username, gid/group to shed privileges to at runtime. It
+must also contain the path to nethack, and needs to know certain aspects
+of your chroot. If you used dgl-create-chroot, the defaults are appropriate,
+except of course that you will need to install the nethack binary into the
+specified location.
 
 4) Setup dgamelaunch as one of the following:
-	a) The shell for a single login.
-	b) An (x)inetd service.
+        a) The shell for a single login.
+        b) An (x)inetd service.
 
-If you choose a login shell make sure dgamelaunch is set-uid root. It will shed privs right after chroot though.
+If you choose a login shell make sure dgamelaunch is setuid root. (that is,
+chmod 755 dgamelaunch.) It will shed privs right after entering the chroot
+jail though.
 
 Example xinetd lines:
 
@@ -35,17 +61,25 @@ service telnet
   wait      = no
   user      = root
   server    = /usr/sbin/in.telnetd
-  server_args     = -h -L /opt/nethack/nethack.dtype.org/dgamelaunch
+  server_args     = -h -L /opt/nethack/nethack.dtype.org/dgamelaunch /etc/dgamelaunch.conf
   rlimit_cpu      = 3600
   bind      = 64.71.163.206
 }
 
 A classic inetd line would look like this:
 
-telnet stream tcp nowait root.root /usr/sbin/tcpd /usr/sbin/in.telnetd -h -L /usr/sbin/dgamelaunch
+telnet stream tcp nowait root.root /usr/sbin/tcpd /usr/sbin/in.telnetd -h -L /usr/sbin/dgamelaunch /etc/dgamelaunch.conf
 
 In both cases, the -L specifies an alternate login program (telnetlogin is
-invoked by default) and -h prevents revealing of a login banner (for example,
-"Debian GNU/Linux testing/unstable influx") before starting the login shell.
+invoked by default) and -h prevents revealing of a login banner (for 
+example, "Debian GNU/Linux testing/unstable influx") before starting the
+login shell.
 
-5) Test your compilation of dgamelaunch by running it as root. If this works, a shell login or (x)inetd will work with the correct configuration. If you have problems with dgamelaunch's display make sure that your chroot's /etc/terminfo directory is populated.
+It goes without saying that the argument after -L must point to dgamelaunch's
+exact location. Also, the location of dgamelaunch.conf is variable and of
+course should be customized by you.
+
+5) Test your compilation of dgamelaunch by running it as root. If this 
+works, a shell login or (x)inetd will work with the correct configuration. 
+If you have problems with dgamelaunch's display make sure that your chroot's
+/etc/terminfo directory is populated.
