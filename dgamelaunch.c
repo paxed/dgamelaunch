@@ -219,22 +219,23 @@ create_config ()
 
 
 void
-ttyrec_getmaster ()
+ttyrec_getpty ()
 {
-  (void) tcgetattr (0, &tt);
-  if (-1 == ioctl (0, TIOCGWINSZ, (char *) &win))
-    {
-      win.ws_row = 24;
-      win.ws_col = 80;
-      win.ws_xpixel = win.ws_col * 8;
-      win.ws_ypixel = win.ws_row * 8;
-    }
 #ifdef USE_OPENPTY
-  if (openpty (&master, &slave, NULL, &tt, &win) == -1)
+  if (openpty (&master, &slave, NULL, NULL, NULL) == -1)
+    graceful_exit (62);
 #else
   if ((master = open ("/dev/ptmx", O_RDWR)) < 0)
-#endif
     graceful_exit (62);
+  grantpt (master);
+  unlockpt (master);
+  if ((slave = open ((const char *) ptsname (master), O_RDWR)) < 0)
+    {
+      graceful_exit (65);
+    }
+#endif
+  ioctl (slave, TIOCSWINSZ, (char *) &win);
+  tcsetattr(slave, TCSANOW, &tt);
 }
 
 /* ************************************************************* */
@@ -1613,17 +1614,22 @@ main (int argc, char** argv)
   /* signal handlers */
   signal (SIGHUP, catch_sighup);
 
-  /* get master tty just before chroot (lives in /dev) */
-  ttyrec_getmaster ();
-#ifndef USE_OPENPTY
-  grantpt (master);
-  unlockpt (master);
-  if ((slave = open ((const char *) ptsname (master), O_RDWR)) < 0)
+  (void) tcgetattr (0, &tt);
+  if (ioctl (0, TIOCGWINSZ, (char *) &win) == 0)
     {
-      graceful_exit (65);
+      if (win.ws_row < 24 || win.ws_col < 80)
+        {
+          fprintf(stderr, "ERROR: dgamelaunch needs at least 80x24 screen.\n");
+	  graceful_exit(1);
+        }
     }
-#endif
+  win.ws_row = 24;
+  win.ws_col = 80;
+  win.ws_xpixel = win.ws_col * 8;
+  win.ws_ypixel = win.ws_row * 8;
 
+  /* get master tty just before chroot (lives in /dev) */
+  ttyrec_getpty ();
 
   /* chroot */
   if (chroot (myconfig->chroot))
