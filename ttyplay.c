@@ -378,7 +378,7 @@ ttyplay_main (char *ttyfile, int mode)
   FILE *input = stdin;
   struct termios old, new;
 
-  populate_gfx_array (NO_GRAPHICS);
+  populate_gfx_array (stripped);
 
   seek_offset_clrscr = 0;
 
