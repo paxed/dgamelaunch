@@ -1478,28 +1478,35 @@ main (int argc, char** argv)
   /* for chroot and program execution */
   char atrcfilename[81], *spool;
   unsigned int len;
-  int i;
+  int c;
 
-  for (i = 1; i < argc; i++)
+  while ((c = getopt(argc, argv, "qh:p")) != -1)
   {
-    if (!strcmp(argv[i], "-q")) silent = 1;
-    if (*argv[i] == '-')
+    switch (c)
     {
-      i++;
-      continue;
+      case 'q':
+	silent = 1; break;
+
+      default:
+	break; /*ignore */
     }
-    else 
+  }
+  
+  if (optind < argc)
+  {
+    while (optind < argc)
     {
       if (config)
       {
 	if (!silent)
-	  fprintf(stderr, "warning: using %s\n", argv[i]);
+	  fprintf(stderr, "warning: using %s\n", argv[optind]);
 	free(config);
       }
-      config = strdup(argv[i]);
+      config = strdup(argv[optind]);
+      optind++;
     }
   }
-  
+
   create_config();
 
   /* signal handlers */
