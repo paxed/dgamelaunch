@@ -615,7 +615,7 @@ change_email ()
 }
 
 int
-changepw ()
+changepw (int dowrite)
 {
   char buf[21];
   int error = 2;
@@ -670,7 +670,9 @@ changepw ()
 
   free(me->password);
   me->password = strdup (crypt (buf, buf));
-  writefile (0);
+
+  if (dowrite == 1)
+    writefile (0);
 
   return 1;
 }
@@ -993,7 +995,7 @@ newuser ()
 
   clear ();
 
-  if (!changepw ())                  /* Calling changepw instead to prompt twice. */
+  if (!changepw (0))                  /* Calling changepw instead to prompt twice. */
   {
     free(me->username);
     free(me);
@@ -1506,7 +1508,7 @@ menuloop (void)
         {
         case 'c':
           if (loggedin)
-            changepw ();
+            changepw (1);
           break;
 	case 'e':
 	  if (loggedin)
