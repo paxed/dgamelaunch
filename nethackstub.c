@@ -20,7 +20,7 @@
  * This program can be used instead of nethack to test dgamelaunch.
  */
 
-static const char rcsid[] = "$Id: nethackstub.c,v 1.1 2004/01/05 14:01:03 jilles Exp $";
+static const char rcsid[] = "$Id: nethackstub.c,v 1.2 2004/01/05 16:10:30 jilles Exp $";
 
 #include <sys/types.h>
 
@@ -51,6 +51,7 @@ main(int argc, char *argv[])
 {
     char buf[256];
     int showusage = 1, n, i;
+    struct sigaction SA;
 
 #define S "nethackstub started with arguments:\n"
     write(STDOUT_FILENO, S, -1 + sizeof S);
@@ -63,8 +64,12 @@ main(int argc, char *argv[])
 #undef S
     }
 
-    signal(SIGHUP, sighup);
-    signal(SIGTERM, sigterm);
+    sigemptyset(&SA.sa_mask);
+    SA.sa_flags = 0;
+    SA.sa_handler = sighup;
+    sigaction(SIGHUP, &SA, NULL);
+    SA.sa_handler = sigterm;
+    sigaction(SIGTERM, &SA, NULL);
 
     for (;;)
     {
