@@ -31,7 +31,7 @@ BASIC SETUP INSTRUCTIONS
 1) Setup a chroot jail. There is a helpful script included to accomplish this,
 called dgl-create-chroot, in the source directory. The default settings are
 viewable by editing the script; to customize the installation, look at
-dgl-create-chroot.conf.example (also in the source directory) and edit it to
+dgl-create-chroot.conf.example.* (also in the source directory) and edit it to
 suit your needs, and save it into the same directory as dgl-create-chroot as
 dgl-create-chroot.conf. It's very likely you need to run the script as root.
 The script will not work with the very limited System V /bin/sh, such found on
@@ -49,10 +49,10 @@ variable in include/unixconf.h and/or the HACKDIR variable in include/config.h.
 need to put gzip in there though if you compile nethack to use it for 
 compression.)
 
-3) Edit etc/dgamelaunch.conf. This will contain information for dgamelaunch
-about what uid/username, gid/group to shed privileges to at runtime. It
-must also contain the path to nethack, and needs to know certain aspects
-of your chroot.
+3) Make a copy of dgamelaunch.conf and edit it. This will contain information
+for dgamelaunch about what uid/username, gid/group to shed privileges to at
+runtime. It must also contain the path to nethack, and needs to know certain
+aspects of your chroot.
 
 Note that using a username in dgamelaunch.conf will cause (part of) your
 passwd database to be loaded into dgamelaunch's memory space. If you use BSD,
@@ -97,14 +97,12 @@ course should be customized by you.
 
 NOTE: It appears that the -L option is not very widely supported. FreeBSD's
 telnetd uses -p instead, and you can't give arguments (arguments appropriate
-to standard login are used), so it's necessary to start a shell script from
-it.  Some other telnetds do not support anything like this at all.
+to standard login are used). Some other telnetds do not support anything
+like this at all.
 
 The -f option, followed by a filename, specifies the path to the config file
-to use for dgamelaunch.
-
-If you specify the right path for DEFCONFIG in the Makefile, you may be able
-to omit this.
+to use for dgamelaunch.  If you specify the right path for DEFCONFIG in the
+Makefile, you may be able to omit this.
 
 For dgamelaunch, the -q option will silence errors pertaining to the server
 configuration. This is recommended for use within inetd to prevent spamming
