@@ -57,9 +57,24 @@ mygetnstr(char *buf, int maxlen, int doecho)
 	    else
 		beep();
 	}
-	else if (c == 21 || c == 24 || c == KEY_DL)
+	else if (c == 21 || c == 24 || c == KEY_DL) /* ^U/^X */
 	{
 	    while (i > 0)
+	    {
+		i--;
+		if (doecho)
+		    addstr("\010 \010");
+	    }
+	}
+	else if (c == 23) /* ^W */
+	{
+	    while (i > 0 && buf[i - 1] == ' ')
+	    {
+		i--;
+		if (doecho)
+		    addstr("\010 \010");
+	    }
+	    while (i > 0 && buf[i - 1] != ' ')
 	    {
 		i--;
 		if (doecho)
