@@ -1,6 +1,3 @@
 - Flags for operators/staff/admins or (optionally) user-bans.
 
 - Localization of variables, code clean up
-
-- Allow a runtime-read configuration file to specify all the stuff
-  that is currently hardcoded into dgamelaunch.h.
