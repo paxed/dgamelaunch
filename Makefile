@@ -1,4 +1,6 @@
 VERSION = 1.4.1
+# Hardcoded path to config file
+DEFCONFIG = /etc/dgamelaunch.conf
 NAME = dgamelaunch
 exclusions = CVS .svn .cvsignore tags
 PREFIX = /usr
@@ -38,7 +40,7 @@ CC = gcc
 LDFLAGS = 
 CFLAGS = -g3 $(optimize) -Wall -Wno-unused $(DEFS)
 INSTALL = install -c
-DEFS = -DVERSION=\"$(VERSION)\"
+DEFS = -DVERSION=\"$(VERSION)\" -DDEFCONFIG=\"$(DEFCONFIG)\"
 SRCS = $(EDITOR) ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c stripgfx.c strlcpy.c strlcat.c y.tab.c lex.yy.c
 OBJS = $(SRCS:.c=.o)
 LIBS = -lcurses -lcrypt $(LUTIL) -ll

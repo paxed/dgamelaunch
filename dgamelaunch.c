@@ -162,45 +162,56 @@ create_config ()
       graceful_exit(104);
       return;
     }
-
-    if (!myconfig) /* a parse error occurred */
-    {
-      myconfig = &defconfig;
-      return;
-    }
-    /* Fill the rest with defaults */
-    if (!myconfig->shed_user && myconfig->shed_uid == -1)
-    {
-      struct passwd *pw;
-      if ((pw = getpwnam(defconfig.shed_user)))
-        myconfig->shed_uid = pw->pw_uid;
-      else
-	myconfig->shed_uid = defconfig.shed_uid;
-    }
-
-    if (!myconfig->shed_group && myconfig->shed_gid == -1)
-    {
-      struct group *gr;
-      if ((gr = getgrnam(defconfig.shed_group)))
-	myconfig->shed_gid = gr->gr_gid;
-      else
-	myconfig->shed_gid = defconfig.shed_gid;
-    }
-
-    if (myconfig->max == 0 && !set_max) myconfig->max = defconfig.max;
-    if (!myconfig->banner) myconfig->banner = defconfig.banner;
-    if (!myconfig->chroot) myconfig->chroot = defconfig.chroot;
-    if (!myconfig->nethack) myconfig->nethack = defconfig.nethack;
-    if (!myconfig->dglroot) myconfig->dglroot = defconfig.dglroot;
-    if (!myconfig->rcfile) myconfig->rcfile = defconfig.rcfile;
-    if (!myconfig->spool) myconfig->spool = defconfig.spool;
-    if (!myconfig->passwd) myconfig->passwd = defconfig.passwd;
-    if (!myconfig->lockfile) myconfig->lockfile = defconfig.lockfile;
   }
   else
   {
+#ifdef DEFCONFIG
+    config = DEFCONFIG;
+    if ((config_file = fopen(DEFCONFIG, "r")) != NULL)
+    {
+      yyin = config_file;
+      yyparse();
+      fclose(config_file);
+    }
+#else
     myconfig = &defconfig;
+    return;
+#endif
   }
+
+  if (!myconfig) /* a parse error occurred */
+  {
+    myconfig = &defconfig;
+    return;
+  }
+  /* Fill the rest with defaults */
+  if (!myconfig->shed_user && myconfig->shed_uid == -1)
+  {
+    struct passwd *pw;
+    if ((pw = getpwnam(defconfig.shed_user)))
+      myconfig->shed_uid = pw->pw_uid;
+    else
+      myconfig->shed_uid = defconfig.shed_uid;
+  }
+
+  if (!myconfig->shed_group && myconfig->shed_gid == -1)
+  {
+    struct group *gr;
+    if ((gr = getgrnam(defconfig.shed_group)))
+      myconfig->shed_gid = gr->gr_gid;
+    else
+      myconfig->shed_gid = defconfig.shed_gid;
+  }
+
+  if (myconfig->max == 0 && !set_max) myconfig->max = defconfig.max;
+  if (!myconfig->banner) myconfig->banner = defconfig.banner;
+  if (!myconfig->chroot) myconfig->chroot = defconfig.chroot;
+  if (!myconfig->nethack) myconfig->nethack = defconfig.nethack;
+  if (!myconfig->dglroot) myconfig->dglroot = defconfig.dglroot;
+  if (!myconfig->rcfile) myconfig->rcfile = defconfig.rcfile;
+  if (!myconfig->spool) myconfig->spool = defconfig.spool;
+  if (!myconfig->passwd) myconfig->passwd = defconfig.passwd;
+  if (!myconfig->lockfile) myconfig->lockfile = defconfig.lockfile;
 }
 
 /* ************************************************************* */
