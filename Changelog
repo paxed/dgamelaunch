@@ -1,3 +1,10 @@
+1.4.2 (???)
+	* Add a compile-time option to define a static location to look
+	  for a configuration file. Will ALWAYS override defconfig values
+	  if it is present, so beware.
+	* Fixed some eerie race conditions that prevented writefile() from
+	  writing a full file all the time. (jilles)
+
 1.4.1 (2004/02/13)
 	* Don't explicitly unlock the lock file before fclosing it;
 	  this creates a race condition where we might not have finished
