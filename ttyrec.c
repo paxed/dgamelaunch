@@ -89,6 +89,7 @@ ttyrec_main (char *username, char* ttyrec_filename)
   snprintf (dirname, 100, "%sttyrec/%s/%s", myconfig->dglroot, username,
             ttyrec_filename);
 
+  atexit(&remove_ipfile);
   if ((fscript = fopen (dirname, "w")) == NULL)
     {
       perror (dirname);
@@ -368,4 +369,11 @@ getslave ()
     }
 #endif /* !NOSTREAMS */
   (void) ioctl (0, TIOCGWINSZ, (char *) &win);
+}
+
+void
+remove_ipfile (void)
+{
+  if (ipfile != NULL)
+    unlink (ipfile);
 }

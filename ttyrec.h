@@ -19,6 +19,7 @@ extern void doinput (void);
 extern void dooutput (void);
 extern void doshell (char *);
 extern void finish (int);
+extern void remove_ipfile (void);
 
 extern int ttyrec_main(char *username, char *ttyrec_filename);
 
