@@ -21,7 +21,9 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-char *vi_Version = "0.0.2+dgamelaunch " VERSION;
+#include "config.h"
+
+char *vi_Version = "0.0.2+dgamelaunch " PACKAGE_VERSION;
 
 /*
  * To compile:
@@ -855,36 +857,36 @@ do_cmd (Byte c)
       crashme = (crashme == 0) ? 1 : 0;
       break;
 #endif /* BB_FEATURE_VI_CRASHME */
-      //case 0x16:    // syn
-      //case 0x17:    // etb
-      //case 0x18:    // can
-      //case 0x1c:    // fs
-      //case 0x1d:    // gs
-      //case 0x1e:    // rs
-      //case 0x1f:    // us
-      //case '!':     // !- 
-      //case '#':     // #- 
-      //case '&':     // &- 
-      //case '(':     // (- 
-      //case ')':     // )- 
-      //case '*':     // *- 
-      //case ',':     // ,- 
-      //case '=':     // =- 
-      //case '@':     // @- 
-      //case 'F':     // F- 
-      //case 'K':     // K- 
-      //case 'Q':     // Q- 
-      //case 'S':     // S- 
-      //case 'T':     // T- 
-      //case 'V':     // V- 
-      //case '[':     // [- 
-      //case '\\':    // \- 
-      //case ']':     // ]- 
-      //case '_':     // _- 
-      //case '`':     // `- 
-      //case 'g':     // g- 
-      //case 'u':     // u- FIXME- there is no undo
-      //case 'v':     // v- 
+      /*case 0x16:    // syn
+        case 0x17:    // etb
+        case 0x18:    // can
+        case 0x1c:    // fs
+        case 0x1d:    // gs
+        case 0x1e:    // rs
+        case 0x1f:    // us
+        case '!':     // !- 
+        case '#':     // #- 
+        case '&':     // &- 
+        case '(':     // (- 
+        case ')':     // )- 
+        case '*':     // *- 
+        case ',':     // ,- 
+        case '=':     // =- 
+        case '@':     // @- 
+        case 'F':     // F- 
+        case 'K':     // K- 
+        case 'Q':     // Q- 
+        case 'S':     // S- 
+        case 'T':     // T- 
+        case 'V':     // V- 
+        case '[':     // [- 
+        case '\\':    // \- 
+        case ']':     // ]- 
+        case '_':     // _- 
+        case '`':     // `- 
+        case 'g':     // g- 
+        case 'u':     // u- FIXME- there is no undo
+        case 'v':     // v- */ 
     default:                   // unrecognised command
       buf[0] = c;
       buf[1] = '\0';
@@ -1622,8 +1624,7 @@ do_cmd (Byte c)
         }
       else
         {
-          // could not recognize object
-          c = c1 = 27;          // error-
+          c = c1 = 27;
           indicate_error (c);
         }
       if (c1 != 27)
@@ -1897,20 +1898,20 @@ colon (Byte * buf)
   int useforce, forced;
   struct stat st_buf;
 
-  // :3154        // if (-e line 3154) goto it  else stay put
-  // :4,33w! foo  // write a portion of buffer to file "foo"
-  // :w           // write all of buffer to current file
-  // :q           // quit
-  // :q!          // quit- dont care about modified file
-  // :'a,'z!sort -u   // filter block through sort
-  // :'f          // goto mark "f"
-  // :'fl         // list literal the mark "f" line
-  // :.r bar      // read file "bar" into buffer before dot
-  // :/123/,/abc/d    // delete lines from "123" line to "abc" line
-  // :/xyz/       // goto the "xyz" line
-  // :s/find/replace/ // substitute pattern "find" with "replace"
-  // :!<cmd>      // run <cmd> then return
-  //
+  /* :3154        // if (-e line 3154) goto it  else stay put
+     :4,33w! foo  // write a portion of buffer to file "foo"
+     :w           // write all of buffer to current file
+     :q           // quit
+     :q!          // quit- dont care about modified file
+     :'a,'z!sort -u   // filter block through sort
+     :'f          // goto mark "f"
+     :'fl         // list literal the mark "f" line
+     :.r bar      // read file "bar" into buffer before dot
+     :/123/,/abc/d    // delete lines from "123" line to "abc" line
+     :/xyz/       // goto the "xyz" line
+     :s/find/replace/ // substitute pattern "find" with "replace"
+     :!<cmd>      // run <cmd> then return
+  */
   if (strlen ((char *) buf) <= 0)
     goto vc1;
   if (*buf == ':')
@@ -4349,8 +4350,8 @@ format_line (Byte * dest, Byte * src, int li)
               c &= 0x7f;        // get rid of hi bit
             }
         }
-      // the co++ is done here so that the column will
-      // not be overwritten when we blank-out the rest of line
+      /* the co++ is done here so that the column will
+         not be overwritten when we blank-out the rest of line */
       dest[co] = c;
       if (src >= end)
         break;
