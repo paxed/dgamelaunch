@@ -781,11 +781,7 @@ newuser ()
 
       for (i = 0; i < strlen (buf); i++)
         {
-          if (!
-              (((buf[i] >= 'a') && (buf[i] <= 'z'))
-               || ((buf[i] >= 'A') && (buf[i] <= 'Z')) || ((buf[i] >= '0')
-                                                           && (buf[i] <=
-                                                               '9'))))
+          if (!isalnum(buf))
             error = 1;
         }
 
@@ -897,8 +893,7 @@ readfile (int nolock)
       /* name field, must be valid */
       while (*b != ':')
         {
-          if (!(((*b >= 'a') && (*b <= 'z')) || ((*b >= 'A') && (*b <= 'Z'))
-                || ((*b >= '0') && (*b <= '9'))))
+          if (!isalnum(*b))
             return 1;
           users[f_num]->username[(b - n)] = *b;
           b++;
