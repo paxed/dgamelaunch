@@ -140,7 +140,7 @@ gen_inprogress_lock (pid_t pid)
   int fd;
   struct flock fl = { 0 };
 
-  snprintf (pidbuf, 16, "%.15d", pid);
+  snprintf (pidbuf, 16, "%d", pid);
 
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
@@ -1127,10 +1127,11 @@ purge_stale_locks (void)
   while ((dent = readdir (pdir)) != NULL)
     {
       FILE *ipfile;
-      char *colon;
+      char *colon, *fn;
       char buf[16];
       pid_t pid;
-      int seconds;
+      size_t len;
+      int seconds = 0;
 
       if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
 	  continue;
@@ -1143,13 +1144,21 @@ purge_stale_locks (void)
       if (strncmp (dent->d_name, me->username, colon - dent->d_name))
         continue;
 
-      if (!(ipfile = fopen (dent->d_name, "r")))
+      len = strlen(dent->d_name) + ARRAY_SIZE(LOC_INPROGRESSDIR) + 1;
+      fn = malloc (len);
+
+      snprintf(fn, len, "%s%s", LOC_INPROGRESSDIR, dent->d_name);
+      
+      if (!(ipfile = fopen (fn, "r")))
         graceful_exit (202);
 
       if (fgets (buf, 16, ipfile) == NULL)
         graceful_exit (203);
 
       fclose (ipfile);
+      unlink (fn);
+
+      free(fn);
 
       pid = atoi (buf);
 
