@@ -97,7 +97,7 @@ char ttyrec_filename[100];
 /* makes a max number of users compiled in */
 int f_num = 0;
 struct dg_user** users = NULL;
-struct dg_user* me;
+struct dg_user* me = NULL;
 
 /* ************************************************************* */
 /* for ttyrec */
@@ -534,8 +534,12 @@ freefile ()
 			free (users[i]->username);
 			free (users[i]->email);
 			free (users[i]->env);
+			free (users[i]);
 		}
 
+	free(users); 
+	users = NULL;
+	me = NULL;
 	f_num = 0;
 }
 
@@ -550,14 +554,6 @@ initncurses ()
 	nonl ();
 	intrflush (stdscr, FALSE);
 	keypad (stdscr, TRUE);
-}
-
-/* ************************************************************* */
-
-void
-initvars ()
-{
-	me = malloc(sizeof(struct dg_user));
 }
 
 /* ************************************************************* */
@@ -633,6 +629,11 @@ newuser ()
 
 	loggedin = 0;
 
+	if (me)
+	  free(me);
+
+	me = malloc(sizeof(struct dg_user));
+	
 	while (error)
 		{
 			clear ();
@@ -1018,8 +1019,6 @@ main (void)
 	/* shed privs. this is done immediately after chroot. */
 	setgid (newgid);
 	setuid (newuid);
-
-	initvars ();
 
 	/* simple login routine, uses ncurses */
 	if (readfile (0))
