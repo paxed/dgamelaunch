@@ -2,3 +2,5 @@ dgamelaunch
 tags
 cscope.out
 error.log
+y.tab.*
+lex.yy.*

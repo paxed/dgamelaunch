@@ -34,6 +34,25 @@ struct dg_game
   time_t idle_time;
 };
 
+struct dg_config
+{
+  char* chroot;
+  char* nethack;
+  char* dglroot;
+  char* banner;
+  char* rcfile;
+  char* spool;
+  char* shed_user;
+  char* shed_group;
+  uid_t shed_uid;
+  gid_t shed_gid;
+  unsigned long max;
+};
+
+extern char* config; /* file path */
+extern struct dg_config *myconfig;
+extern struct dg_config defconfig;
+
 #define SHED_UID 5              /* the uid to shed privs to */
 #define SHED_GID 60             /* the gid to shed privs to */
 #define MAXUSERS 64000          /* solves some preallocation issues. */
@@ -49,6 +68,7 @@ struct dg_game
 #define LOC_BANNER		"/dgl-banner"
 
 /* dgamelaunch.c function prototypes */
+extern void create_config (void);
 extern void ttyrec_getmaster (void);
 extern void gen_ttyrec_filename (void);
 extern void gen_inprogress_lock (pid_t pid);

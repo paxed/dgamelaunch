@@ -68,6 +68,7 @@
 # define ARRAY_SIZE(x) sizeof(x) / sizeof(x[0])
 #endif
 
+#include <pwd.h>
 #include <grp.h>
 #include <time.h>
 #include <sys/resource.h>
@@ -82,6 +83,10 @@
 #include <unistd.h>
 #include <termios.h>
 
+#include "y.tab.h"
+extern FILE* yyin;
+extern int yyparse ();
+
 extern int vi_main (int argc, char **argv);
 extern int ttyplay_main (char *ttyfile, int mode, int rstripgfx);
 extern int ttyrec_main (char *);
@@ -91,6 +96,21 @@ extern struct termios tt;
 extern struct winsize win;
 
 /* global variables */
+
+struct dg_config *myconfig = NULL;
+char* config = NULL;
+
+struct dg_config defconfig = {
+  "/var/lib/dgamelaunch/",
+  "/bin/nethack",
+  "/dgldir/",
+  "/dgl-banner",
+  "/dgl-default-rcfile",
+  "/var/mail/",
+  "games", "games",
+  5, 60, /* games:games in Debian */
+  64000 
+};
 
 int pid_game = 0;
 int loggedin = 0;
@@ -103,8 +123,56 @@ struct dg_user **users = NULL;
 struct dg_user *me = NULL;
 struct dg_banner banner;
 
+void
+create_config ()
+{
+  FILE *config_file = NULL;
+
+  if (config)
+  {
+    if ((config_file = fopen(config, "r")) != NULL)
+    {
+      yyin = config_file;
+      yyparse();
+      fclose(config_file);
+      free (config);
+    }
+
+    /* Fill the rest with defaults */
+    if (!myconfig->shed_user && myconfig->shed_uid == 0)
+    {
+      struct passwd *pw;
+      if ((pw = getpwnam(defconfig.shed_user)))
+        myconfig->shed_uid = pw->pw_uid;
+      else
+	myconfig->shed_uid = defconfig.shed_uid;
+    }
+
+    if (!myconfig->shed_group && myconfig->shed_gid == 0)
+    {
+      struct group *gr;
+      if ((gr = getgrnam(defconfig.shed_group)))
+	myconfig->shed_gid = gr->gr_gid;
+      else
+	myconfig->shed_gid = defconfig.shed_gid;
+    }
+
+    if (myconfig->max == 0) myconfig->max = defconfig.max;
+    if (!myconfig->chroot) myconfig->chroot = strdup(defconfig.chroot);
+    if (!myconfig->nethack) myconfig->nethack = strdup(defconfig.nethack);
+    if (!myconfig->dglroot) myconfig->dglroot = strdup(defconfig.dglroot);
+    if (!myconfig->rcfile) myconfig->rcfile = strdup(defconfig.rcfile);
+    if (!myconfig->spool) myconfig->spool = strdup(defconfig.spool);
+  }
+  else
+  {
+    myconfig = &defconfig;
+  }
+}
+
 /* ************************************************************* */
 /* for ttyrec */
+
 
 void
 ttyrec_getmaster ()
@@ -623,7 +691,10 @@ drawmenu ()
   /* for retarded clients */
   flood++;
   if (flood >= 20)
+  {
+    endwin();
     graceful_exit (119);
+  }
 }
 
 /* ************************************************************* */
@@ -791,7 +862,10 @@ newuser ()
         error = 1;
 
       if (strlen (buf) == 0)
+      {
+	free(me);
         return;
+      }
     }
 
   me->username = strdup (buf);
@@ -802,6 +876,7 @@ newuser ()
 
   if (!changepw ())                  /* Calling changepw instead to prompt twice. */
   {
+    free(me->username);
     free(me);
     me = NULL;
     return;
@@ -818,7 +893,7 @@ newuser ()
             "This is sent _nowhere_ but will be used if you ask the sysadmin for lost");
   mvaddstr (7, 1,
             "password help. Please use a correct one. It only benefits you.");
-  mvaddstr (8, 1, "80 character max. No ':' characters.");
+  mvaddstr (8, 1, "80 character max. No ':' characters. Blank line aborts.");
   mvaddstr (10, 1, "=> ");
 
   refresh ();
@@ -826,6 +901,15 @@ newuser ()
 
   if (strchr (buf, ':') != NULL)
     graceful_exit (113);
+
+  if (buf && *buf == '\0')
+  {
+    free (me->username);
+    free (me->password);
+    free (me);
+    me = NULL;
+    return;
+  }
 
   me->email = strdup (buf);
   me->env = calloc (1, 1);

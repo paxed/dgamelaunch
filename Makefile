@@ -10,7 +10,7 @@ CC = gcc
 LDFLAGS = 
 CFLAGS = -g3 $(optimize) -Wall $(DEFS)
 DEFS = -DVERSION=\"$(VERSION)\"
-SRCS = virus.c ttyrec.c dgamelaunch.c io.c ttyplay.c stripgfx.c strlcpy.c strlcat.c
+SRCS = virus.c ttyrec.c dgamelaunch.c io.c ttyplay.c stripgfx.c strlcpy.c strlcat.c y.tab.o lex.yy.o
 OBJS = $(SRCS:.c=.o)
 LIBS = -lncurses -lcrypt -lutil
 
@@ -29,6 +29,15 @@ install:
 indent:
 	indent -nut -ts2 *.c *.h
 	rm -f *~
+
+lex.yy.c: config.l
+	flex $<
+
+y.tab.c: config.y
+	bison -d -y $<
+
+lex.yy.o: lex.yy.c
+y.tab.o: y.tab.c
 
 dist: clean indent
 	rm -rf $(NAME)-$(VERSION)
