@@ -237,14 +237,14 @@ gen_inprogress_lock (pid_t pid, char* ttyrec_filename)
   char *lockfile = NULL, pidbuf[16];
   int fd;
   size_t len;
-  struct flock fl = { 0 };
+  struct flock fl = {
+    .l_type = F_WRLCK,
+    .l_whence = SEEK_SET,
+    .l_start = 0,
+    .l_len = 0
+  };
 
   snprintf (pidbuf, 16, "%d", pid);
-
-  fl.l_type = F_WRLCK;
-  fl.l_whence = SEEK_SET;
-  fl.l_start = 0;
-  fl.l_len = 0;
 
   len = strlen(myconfig->dglroot) + strlen(me->username) + strlen(ttyrec_filename) + 13;
   lockfile = calloc(len, sizeof(char));
@@ -381,13 +381,13 @@ populate_games (int *l)
   char fullname[130], ttyrecname[130];
   char *replacestr, *dir;
   struct dg_game **games = NULL;
-  struct flock fl = { 0 };
+  struct flock fl = {
+    .l_type = F_WRLCK,
+    .l_whence = SEEK_SET,
+    .l_start = 0,
+    .l_len = 0
+  };
   size_t slen;
-
-  fl.l_type = F_WRLCK;
-  fl.l_whence = SEEK_SET;
-  fl.l_start = 0;
-  fl.l_len = 0;
 
   len = 0;
   
@@ -624,12 +624,12 @@ domailuser (char *username)
   FILE *user_spool = NULL;
   time_t now;
   int mail_empty = 1;
-  struct flock fl = { 0 };
-
-  fl.l_type = F_WRLCK;
-  fl.l_whence = SEEK_SET;
-  fl.l_start = 0;
-  fl.l_len = 0;
+  struct flock fl = {
+    .l_type = F_WRLCK,
+    .l_whence = SEEK_SET,
+    .l_start = 0,
+    .l_len = 0
+  };
 
   assert (loggedin);
 
@@ -993,14 +993,14 @@ readfile (int nolock)
 {
   FILE *fp = NULL, *fpl = NULL;
   char buf[1200];
-  struct flock fl = { 0 };
+  struct flock fl = {
+    .l_type = F_RDLCK,
+    .l_whence = SEEK_SET,
+    .l_start = 0,
+    .l_len = 0
+  };
 
-  fl.l_type = F_RDLCK;
-  fl.l_whence = SEEK_SET;
-  fl.l_start = 0;
-  fl.l_len = 0;
-
-  memset (buf, 1024, 0);
+  memset (buf, 1200, 0);
 
   /* read new stuff */
 
@@ -1206,12 +1206,12 @@ writefile (int requirenew)
   FILE *fp, *fpl;
   int i = 0;
   int my_done = 0;
-  struct flock fl = { 0 };
-
-  fl.l_type = F_WRLCK;
-  fl.l_whence = SEEK_SET;
-  fl.l_start = 0;
-  fl.l_len = 0;
+  struct flock fl = { 
+    .l_type = F_WRLCK,
+    .l_whence = SEEK_SET,
+    .l_start = 0,
+    .l_len = 0
+  };
 
   fpl = fopen (myconfig->lockfile, "r+");
   if (!fpl)
