@@ -77,6 +77,6 @@ AC_ARG_WITH(config-file,
 
 AC_DEFINE_UNQUOTED(DEFCONFIG, "$configfile", [Path to the default config file.])
 
-AC_CHECK_FUNCS([openpty setenv])
+AC_CHECK_FUNCS([openpty setenv setproctitle])
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT
