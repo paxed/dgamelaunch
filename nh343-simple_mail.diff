@@ -1,51 +1,160 @@
---- src/mail.c~	2003-12-28 13:09:16.000000000 -0800
-+++ src/mail.c	2003-12-28 13:20:56.000000000 -0800
-@@ -501,6 +501,26 @@
+--- ./include/flag.h~	2003-12-30 00:36:39.000000000 -0800
++++ ./include/flag.h	2003-12-30 00:37:45.000000000 -0800
+@@ -27,6 +27,9 @@
+ 	boolean  beginner;
+ #ifdef MAIL
+ 	boolean  biff;		/* enable checking for mail */
++# ifdef SIMPLE_MAIL		/* simple mail format used for dgamelaunch */
++	boolean  simplemail;
++# endif
+ #endif
+ 	boolean  botl;		/* partially redo status line */
+ 	boolean  botlx;		/* print an entirely new bottom line */
+--- ./include/decl.h~	2003-12-30 00:47:53.000000000 -0800
++++ ./include/decl.h	2003-12-30 00:48:51.000000000 -0800
+@@ -385,6 +385,10 @@
+ };
+ #endif /* AUTOPICKUP_EXCEPTIONS */
+ 
++#ifdef SIMPLE_MAIL
++E int mailckfreq;
++#endif
++
+ #undef E
+ 
+ #endif /* DECL_H */
+--- ./src/mail.c~	2003-12-30 00:21:28.000000000 -0800
++++ ./src/mail.c	2003-12-30 00:52:04.000000000 -0800
+@@ -36,6 +36,8 @@
+ STATIC_DCL boolean FDECL(md_rush,(struct monst *,int,int));
+ STATIC_DCL void FDECL(newmail, (struct mail_info *));
+ 
++int mailckfreq = 0;
++
+ extern char *viz_rmin, *viz_rmax;	/* line-of-sight limits (vision.c) */
+ 
+ #ifdef OVL0
+@@ -464,11 +466,11 @@
+ void
+ ckmailstatus()
+ {
++	if (mailckfreq == 0)
++	  mailckfreq = (flags.simplemail ? 5 : 10);
++
+ 	if(!mailbox || u.uswallow || !flags.biff
+-#  ifdef MAILCKFREQ
+-		    || moves < laststattime + MAILCKFREQ
+-#  endif
+-							)
++		    || moves < laststattime + mailckfreq)
+ 		return;
+ 
+ 	laststattime = moves;
+@@ -501,9 +503,34 @@
  readmail(otmp)
  struct obj *otmp;
  {
-+#  ifdef SIMPLE_MAIL
-+  FILE* mb = fopen(mailbox, "r");
-+  char curline[80], from[20], buf[93], *tmp;
-+
-+  /* for use with strtok*/
-+  strcpy(curline, buf);
-+
-+  while (fgets(curline, 80, mb) != NULL);
-+
-+  strncpy (from, strtok(buf, ":"), 20);
-+
-+  snprintf(buf, 93, "This scroll is from '%s'.", strtok(curline, ":"));
-+  pline(buf);
-+  tmp = strtok(NULL, ":");
-+  tmp[strlen(tmp) - 1] = '\0'; /* kill newline */
-+  snprintf(buf, 93, "It reads: \"%s\".", tmp);
-+  pline(buf);
-+
-+  fclose(mb);
-+#  else
- #  ifdef DEF_MAILREADER			/* This implies that UNIX is defined */
+-#  ifdef DEF_MAILREADER			/* This implies that UNIX is defined */
++#ifdef DEF_MAILREADER
  	register const char *mr = 0;
++#endif /* DEF_MAILREADER */
++#ifdef SIMPLE_MAIL
++	if (flags.simplemail)
++	{
++		FILE* mb = fopen(mailbox, "r");
++		char curline[80], *tmp;
++
++		if (!mb)
++			goto bail;
++      
++		while (fgets(curline, 80, mb) != NULL);
++
++		pline("This scroll is from '%s'.", strtok(curline, ":"));
++		tmp = strtok(NULL, ":");
++
++		if (!tmp)
++			goto bail;
++    
++		tmp[strlen(tmp) - 1] = '\0'; /* kill newline */
++		pline("It reads: \"%s\".", tmp);
  
-@@ -517,6 +537,7 @@
- 	display_file(mailbox, TRUE);
- #   endif /* AMS */
- #  endif /* DEF_MAILREADER */
++		fclose(mb);
++		return;
++	}
 +# endif /* SIMPLE_MAIL */
++# ifdef DEF_MAILREADER			/* This implies that UNIX is defined */
+ 	display_nhwindow(WIN_MESSAGE, FALSE);
+ 	if(!(mr = nh_getenv("MAILREADER")))
+ 		mr = DEF_MAILREADER;
+@@ -512,15 +538,19 @@
+ 		(void) execl(mr, mr, (char *)0);
+ 		terminate(EXIT_FAILURE);
+ 	}
+-#  else
+-#   ifndef AMS				/* AMS mailboxes are directories */
++# else
++#  ifndef AMS				/* AMS mailboxes are directories */
+ 	display_file(mailbox, TRUE);
+-#   endif /* AMS */
+-#  endif /* DEF_MAILREADER */
++#  endif /* AMS */
++# endif /* DEF_MAILREADER */
  
  	/* get new stat; not entirely correct: there is a small time
  	   window where we do not see new mail */
---- include/unixconf.h~	2003-12-24 21:41:51.000000000 -0800
-+++ include/unixconf.h	2003-12-28 13:21:58.000000000 -0800
-@@ -193,7 +193,10 @@
+ 	getmailstatus();
++	return;
++
++bail:
++	pline("It appears to be all gibberish."); /* bail out _professionally_ */
+ }
+ 
+ # endif /* UNIX */
+@@ -587,10 +617,7 @@
+ 	static int laststattime = 0;
+ 	
+ 	if(u.uswallow || !flags.biff
+-#  ifdef MAILCKFREQ
+-		    || moves < laststattime + MAILCKFREQ
+-#  endif
+-							)
++		    || moves < laststattime + mailckfreq)
+ 		return;
+ 
+ 	laststattime = moves;
+--- ./sys/unix/unixmain.c~	2003-12-30 00:39:39.000000000 -0800
++++ ./sys/unix/unixmain.c	2003-12-30 00:42:13.000000000 -0800
+@@ -54,7 +54,9 @@
+ 	register char *dir;
+ #endif
+ 	boolean exact_username;
+-
++#ifdef SIMPLE_MAIL
++	char* e_simple = NULL;
++#endif
+ #if defined(__APPLE__)
+ 	/* special hack to change working directory to a resource fork when
+ 	   running from finder --sam */
+@@ -84,6 +86,12 @@
+ 	}
+ #endif
+ 
++#ifdef SIMPLE_MAIL
++	/* figure this out early */
++	e_simple = nh_getenv("SIMPLEMAIL");
++	flags.simplemail = (e_simple ? 1 : 0);
++#endif
++
+ 	hname = argv[0];
+ 	hackpid = getpid();
+ 	(void) umask(0777 & ~FCMASK);
+--- include/unixconf.h~	2003-12-30 00:58:53.000000000 -0800
++++ include/unixconf.h	2003-12-30 00:59:01.000000000 -0800
+@@ -193,7 +193,6 @@
  # endif
  #endif
  
 -#define MAILCKFREQ	50
-+#ifdef SIMPLE_MAIL /* one-liners - check often */
-+# define MAILCKFREQ 10
-+#else
-+# define MAILCKFREQ 50
  #endif	/* MAIL */
  
  
