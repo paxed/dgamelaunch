@@ -586,9 +586,7 @@ changepw ()
 
       refresh ();
 
-      noecho ();
-      getnstr (buf, 20);
-      echo ();                  /* Putting echo back on just for safety and because it can't hurt. */
+      mygetnstr (buf, 20, 0);
 
       if (buf && *buf == '\0')
         return 0;
@@ -599,9 +597,7 @@ changepw ()
       mvaddstr (12, 1, "And again:");
       mvaddstr (13, 1, "=> ");
 
-      noecho ();
-      getnstr (repeatbuf, 20);
-      echo ();                  /* Here is the important echo(); if the former is removed. */
+      mygetnstr (repeatbuf, 20, 0);
 
       if (!strcmp (buf, repeatbuf))
         error = 0;
@@ -646,7 +642,7 @@ domailuser (char *username)
             "Enter your message here. It is to be one line only and 80 characters or less.");
   mvaddstr (7, 1, "=> ");
 
-  getnstr (message, 80);
+  mygetnstr (message, 80, 1);
 
   for (i = 0; i < strlen (message); i++)
     {
@@ -775,7 +771,7 @@ initncurses ()
 {
   initscr ();
   cbreak ();
-  echo ();
+  noecho ();
   nonl ();
   intrflush (stdscr, FALSE);
   keypad (stdscr, TRUE);
@@ -823,7 +819,7 @@ loginprompt ()
 
       refresh ();
 
-      getnstr (user_buf, 20);
+      mygetnstr (user_buf, 20, 1);
 
       if (user_buf && *user_buf == '\0')
         return;
@@ -846,9 +842,7 @@ loginprompt ()
 
   refresh ();
 
-  noecho ();
-  getnstr (pw_buf, 20);
-  echo ();
+  mygetnstr (pw_buf, 20, 0);
 
   if (passwordgood (pw_buf))
     {
@@ -893,7 +887,7 @@ newuser ()
 
       refresh ();
 
-      getnstr (buf, 20);
+      mygetnstr (buf, 20, 1);
       if (userexist (buf) == -1)
         error = 0;
       else
@@ -944,7 +938,7 @@ newuser ()
   mvaddstr (10, 1, "=> ");
 
   refresh ();
-  getnstr (buf, 80);
+  mygetnstr (buf, 80, 1);
 
   if (strchr (buf, ':') != NULL)
     graceful_exit (113);
