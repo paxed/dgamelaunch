@@ -20,10 +20,10 @@
  * This program can be used instead of nethack to test dgamelaunch.
  */
 
-static const char rcsid[] = "$Id: nethackstub.c,v 1.2 2004/01/05 16:10:30 jilles Exp $";
+static const char rcsid[] = "$Id: nethackstub.c,v 1.3 2004/01/05 17:44:30 joshk Exp $";
 
 #include <sys/types.h>
-
+#include <string.h>
 #include <ctype.h>
 #include <signal.h>
 #include <unistd.h>
