@@ -93,6 +93,7 @@ extern void writefile(int requirenew);
 extern void graceful_exit(int status);
 extern int purge_stale_locks(void);
 extern void menuloop(void);
+extern void ttyrec_getpty(void);
 #if !defined(BSD) && !defined(__linux__)
 extern int mysetenv (const char* name, const char* value, int overwrite);
 #else
