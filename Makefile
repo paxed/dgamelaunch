@@ -8,6 +8,18 @@ ifndef optimize
   optimize = -O0
 endif
 
+ifneq (,$(shell which flex 2>/dev/null))
+  LEX = flex
+else
+  LEX = lex
+endif
+
+ifneq (,$(shell which bison 2>/dev/null))
+  YACC = bison -y
+else
+  YACC = yacc
+endif
+
 ifeq (Linux,$(shell uname -s))
   LUTIL = -lutil
 else
@@ -48,10 +60,10 @@ indent:
 	rm -f *~
 
 lex.yy.c: config.l
-	lex $<
+	$(LEX) $<
 
 y.tab.c: config.y
-	yacc -d $<
+	$(YACC) -d $<
 
 lex.yy.o: lex.yy.c
 y.tab.o: y.tab.c
