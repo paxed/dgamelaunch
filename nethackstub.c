@@ -48,6 +48,7 @@ sigterm(int sig)
 #define S "SIGTERM received.\n"
     write(STDOUT_FILENO, S, -1 + sizeof S);
 #undef S
+    exit(1);
 }
 
 void
