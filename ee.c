@@ -49,7 +49,7 @@
  |	proprietary information which is protected by
  |	copyright.  All rights are reserved.
  |
- |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.7 2004/01/25 22:44:34 joshk Exp $
+ |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.8 2004/01/26 08:09:39 joshk Exp $
  |
  */
 
@@ -62,9 +62,7 @@ char *ee_long_notice[] = {
 	"copyright.  All rights are reserved."
 	};
 
-char *version = "@(#) ee, version 1.4.1  $Revision: 1.7 $";
-
-#define catgetlocal(a, b) (b)
+char *version = "@(#) ee, version 1.4.1  $Revision: 1.8 $";
 
 #include <curses.h>
 #include <signal.h>
@@ -111,13 +109,6 @@ struct text *curr_line;		/* current line cursor is on		*/
 struct text *tmp_line;		/* temporary line pointer		*/
 struct text *srch_line;		/* temporary pointer for search routine */
 
-struct files {		/* structure to store names of files to be edited*/
-	unsigned char *name;		/* name of file				*/
-	struct files *next_name;
-	};
-
-struct files *top_of_stack = NULL;
-
 int d_wrd_len;			/* length of deleted word		*/
 int position;			/* offset in bytes from begin of line	*/
 int scr_pos;			/* horizontal position			*/
@@ -144,7 +135,6 @@ int observ_margins = TRUE;	/* flag for whether margins are observed */
 int out_pipe;			/* flag that info is piped out		*/
 int in_pipe;			/* flag that info is piped in		*/
 int formatted = FALSE;		/* flag indicating paragraph formatted	*/
-int auto_format = FALSE;	/* flag for auto_format mode		*/
 int nohighlight = FALSE;	/* turns off highlighting		*/
 int eightbit = TRUE;		/* eight bit character flag		*/
 int local_LINES = 0;		/* copy of LINES, to detect when win resizes */
@@ -226,7 +216,6 @@ int len_char P_((int character, int column));
 void draw_line P_((int vertical, int horiz, unsigned char *ptr, int t_pos, int length));
 void insert_line P_((int disp));
 struct text *txtalloc P_((void));
-struct files *name_alloc P_((void));
 unsigned char *next_word P_((unsigned char *string));
 void prev_word P_((void));
 void control P_((void));
@@ -282,13 +271,9 @@ int file_op P_((int arg));
 void leave_op P_((void));
 void redraw P_((void));
 int Blank_Line P_((struct text *test_line));
-void Format P_((void));
 void echo_string P_((char *string));
 int first_word_len P_((struct text *test_line));
-void Auto_Format P_((void));
-void modes_op P_((void));
 char *is_in_string P_((char *string, char *substring));
-char *resolve_name P_((char *name));
 int unique_test P_((char *string, char *list[]));
 void strings_init P_((void));
 
@@ -296,23 +281,6 @@ void strings_init P_((void));
 /*
  |	allocate space here for the strings that will be in the menu
  */
-
-struct menu_entries modes_menu[] = {
-	{"", NULL, NULL, NULL, NULL, 0}, 	/* title		*/
-	{"", NULL, NULL, NULL, NULL, -1}, 	/* 1. tabs to spaces	*/
-	{"", NULL, NULL, NULL, NULL, -1}, 	/* 2. case sensitive search*/
-	{"", NULL, NULL, NULL, NULL, -1}, 	/* 3. margins observed	*/
-	{"", NULL, NULL, NULL, NULL, -1}, 	/* 4. auto-paragraph	*/
-	{"", NULL, NULL, NULL, NULL, -1}, 	/* 5. eightbit characters*/
-	{"", NULL, NULL, NULL, NULL, -1}, 	/* 6. info window	*/
-	{"", NULL, NULL, NULL, NULL, -1}, 	/* 7. emacs key bindings*/
-	{"", NULL, NULL, NULL, NULL, -1}, 	/* 8. right margin	*/
-	{NULL, NULL, NULL, NULL, NULL, -1}	/* terminator		*/
-	};
-
-char *mode_strings[11]; 
-
-#define NUM_MODES_ITEMS 10
 
 struct menu_entries leave_menu[] = {
 	{"", NULL, NULL, NULL, NULL, -1}, 
@@ -338,7 +306,6 @@ struct menu_entries main_menu[] = {
 	{"", NULL, NULL, NULL, help, -1},
 	{"", NULL, NULL, file_op, NULL, SAVE_FILE},
 	{"", NULL, NULL, NULL, redraw, -1}, 
-	{"", NULL, NULL, NULL, modes_op, -1}, 
 	{"", menu_op, search_menu, NULL, NULL, -1}, 
 	{NULL, NULL, NULL, NULL, NULL, -1}
 	};
@@ -351,7 +318,6 @@ char *emacs_control_keys[5];
 
 char *command_strings[5];
 char *commands[32];
-char *init_strings[22];
 
 #define MENU_WARN 1
 
@@ -365,8 +331,6 @@ char *com_win_message;		/* to be shown in com_win if no info window */
 char *no_file_string;
 char *ascii_code_str;
 char *command_str;
-char *file_write_prompt_str;
-char *file_read_prompt_str;
 char *char_str;
 char *unkn_cmd_str;
 char *non_unique_cmd_msg;
@@ -401,12 +365,10 @@ char *continue_msg;
 char *menu_cancel_msg;
 char *menu_size_err_msg;
 char *press_any_key_msg;
-char *formatting_msg;
-char *margin_prompt;
 char *ON;
 char *OFF;
 char *HELP;
-char *WRITE;
+char *SAVE;
 char *READ;
 char *LINE;
 char *FILE_str;
@@ -436,7 +398,6 @@ char *EIGHTBIT;
 char *NOEIGHTBIT;
 char *EMACS_string;
 char *NOEMACS_string;
-char *ree_no_file_msg;
 char *cancel_string;
 char *menu_too_lrg_msg;
 char *more_above_str, *more_below_str;
@@ -497,17 +458,15 @@ char *argv[];
 	}
 	else
 	{
-	  struct files* temp_names;
-	  temp_names = top_of_stack = name_alloc();
-	  temp_names->next_name = NULL;
-	  temp_names->name = strdup(argv[1]);
+	  tmp_file = strdup(argv[1]);
 	  input_file = recv_file = TRUE;
 	}
 	
 	set_up_term();
 	if (right_margin == 0)
 		right_margin = COLS - 1;
-	if (top_of_stack == NULL)
+	
+	if (!tmp_file)
 	{
 		wprintw(com_win, no_file_string);
 		wrefresh(com_win);
@@ -588,8 +547,6 @@ int character;			/* new character			*/
 		counter = len_char('\011', scr_horz);
 		for (; counter > 0; counter--)
 			insert(' ');
-		if (auto_format)
-			Auto_Format();
 		return;
 	}
 	text_changes = TRUE;
@@ -651,8 +608,6 @@ int character;			/* new character			*/
 		midscreen(scr_vert, point);
 	}
 
-	if ((auto_format) && (character == ' ') && (!formatted))
-		Auto_Format();
 	else if ((character != ' ') && (character != '\t'))
 		formatted = FALSE;
 
@@ -1023,11 +978,6 @@ int disp;
 struct text *txtalloc()		/* allocate space for line structure	*/
 {
 	return((struct text *) malloc(sizeof( struct text)));
-}
-
-struct files *name_alloc()	/* allocate space for file name list node */
-{
-	return((struct files *) malloc(sizeof( struct files)));
 }
 
 unsigned char *next_word(string)		/* move to next word in string		*/
@@ -1579,6 +1529,8 @@ char *cmd_str1;
 			tmp_line = tmp_line->next_line;
 		}
 	}
+	else if (compare(cmd_str, SAVE, FALSE))
+	  write_file(tmp_file, -1);
 	else if (compare(cmd_str, AUTHOR, FALSE))
 	{
 		wmove(com_win, 0, 0);
@@ -1855,10 +1807,8 @@ check_fp()		/* open or close files according to flags */
 	tmp_horz = scr_horz;
 	tmp_line = curr_line;
 	if (input_file)
-	{
-		in_file_name = tmp_file = top_of_stack->name;
-		top_of_stack = top_of_stack->next_name;
-	}
+		in_file_name = tmp_file;
+	
 	temp = stat(tmp_file, &buf);
 	buf.st_mode &= ~07777;
 	if ((temp != -1) && (buf.st_mode != 0100000) && (buf.st_mode != 0))
@@ -2107,13 +2057,6 @@ ee_finish()	/* prepare to exit edit session	*/
 		return;
 	}
 
-	tmp_file = resolve_name(file_name);
-	if (tmp_file != file_name)
-	{
-		free(file_name);
-		file_name = tmp_file;
-	}
-
 	if (write_file(file_name, -1))
 	{
 		text_changes = FALSE;
@@ -2138,24 +2081,14 @@ int noverify;
 			return(0);
 		free(ans);
 	}
-	if (top_of_stack == NULL)
-	{
-		if (info_window)
-			wrefresh(info_win);
-		wrefresh(com_win);
-		resetty();
-		endwin();
-		putchar('\n');
-		exit(0);
-	}
-	else
-	{
-		delete_text();
-		recv_file = TRUE;
-		input_file = TRUE;
-		check_fp();
-	}
-	return(0);
+	
+	if (info_window)
+	  wrefresh(info_win);
+	wrefresh(com_win);
+	resetty();
+	endwin();
+	putchar('\n');
+	exit(0);
 }
 
 void 
@@ -3261,15 +3194,6 @@ int arg;
 			clear_com_win = TRUE;
 			return(0);
 		}
-		if (!flag)
-		{
-			tmp_file = resolve_name(string);
-			if (tmp_file != string)
-			{
-				free(string);
-				string = tmp_file;
-			}
-		}
 		if (write_file(string, -1))
 		{
 			in_file_name = string;
@@ -3341,228 +3265,6 @@ struct text *test_line;
 		return(FALSE);
 	else
 		return(TRUE);
-}
-
-void 
-Format()	/* format the paragraph according to set margins	*/
-{
-	int string_count;
-	int offset;
-	int temp_case;
-	int status;
-	int tmp_af;
-	int counter;
-	unsigned char *line;
-	unsigned char *tmp_srchstr;
-	unsigned char *temp1, *temp2;
-	unsigned char *temp_dword;
-	unsigned char temp_d_char[3];
-
-	temp_d_char[0] = d_char[0];
-	temp_d_char[1] = d_char[1];
-	temp_d_char[2] = d_char[2];
-
-/*
- |	if observ_margins is not set, or the current line is blank, 
- |	do not format the current paragraph
- */
-
-	if ((!observ_margins) || (Blank_Line(curr_line)))
-		return;
-
-/*
- |	save the currently set flags, and clear them
- */
-
-	wmove(com_win, 0, 0);
-	wclrtoeol(com_win);
-	wprintw(com_win, formatting_msg);
-	wrefresh(com_win);
-
-/*
- |	get current position in paragraph, so after formatting, the cursor 
- |	will be in the same relative position
- */
-
-	tmp_af = auto_format;
-	auto_format = FALSE;
-	offset = position;
-	if (position != 1)
-		prev_word();
-	temp_dword = d_word;
-	d_word = NULL;
-	temp_case = case_sen;
-	case_sen = TRUE;
-	tmp_srchstr = srch_str;
-	temp2 = srch_str = (unsigned char *) malloc(1 + curr_line->line_length - position);
-	if ((*point == ' ') || (*point == '\t'))
-		adv_word();
-	offset -= position;
-	counter = position;
-	line = temp1 = point;
-	while ((*temp1 != (char) NULL) && (*temp1 != ' ') && (*temp1 != '\t') && (counter < curr_line->line_length))
-	{
-		*temp2 = *temp1;
-		temp2++;
-		temp1++;
-		counter++;
-	}
-	*temp2 = (char) NULL;
-	if (position != 1)
-		bol();
-	while (!Blank_Line(curr_line->prev_line))
-		bol();
-	string_count = 0;
-	status = TRUE;
-	while ((line != point) && (status))
-	{
-		status = search(FALSE);
-		string_count++;
-	}
-
-	wmove(com_win, 0, 0);
-	wclrtoeol(com_win);
-	wprintw(com_win, formatting_msg);
-	wrefresh(com_win);
-
-/*
- |	now get back to the start of the paragraph to start formatting
- */
-
-	if (position != 1)
-		bol();
-	while (!Blank_Line(curr_line->prev_line))
-		bol();
-
-	observ_margins = FALSE;
-
-/*
- |	Start going through lines, putting spaces at end of lines if they do 
- |	not already exist.  Append lines together to get one long line, and 
- |	eliminate spacing at begin of lines.
- */
-
-	while (!Blank_Line(curr_line->next_line))
-	{
-		eol();
-		left(TRUE);
-		if (*point != ' ')
-		{
-			right(TRUE);
-			insert(' ');
-		}
-		else
-			right(TRUE);
-		del_char();
-		if ((*point == ' ') || (*point == '\t'))
-			del_word();
-	}
-
-/*
- |	Now there is one long line.  Eliminate extra spaces within the line
- |	after the first word (so as not to blow away any indenting the user 
- |	may have put in).
- */
-
-	bol();
-	adv_word();
-	while (position < curr_line->line_length)
-	{
-		if ((*point == ' ') && (*(point + 1) == ' '))
-			del_char();
-		else
-			right(TRUE);
-	}
-
-/*
- |	Now make sure there are two spaces after a '.'.
- */
-
-	bol();
-	while (position < curr_line->line_length)
-	{
-		if ((*point == '.') && (*(point + 1) == ' '))
-		{
-			right(TRUE);
-			insert(' ');
-			insert(' ');
-			while (*point == ' ')
-				del_char();
-		}
-		right(TRUE);
-	}
-
-	observ_margins = TRUE;
-	bol();
-
-	wmove(com_win, 0, 0);
-	wclrtoeol(com_win);
-	wprintw(com_win, formatting_msg);
-	wrefresh(com_win);
-
-/*
- |	create lines between margins
- */
-
-	while (position < curr_line->line_length)
-	{
-		while ((scr_pos < right_margin) && (position < curr_line->line_length))
-			right(TRUE);
-		if (position < curr_line->line_length)
-		{
-			prev_word();
-			if (position == 1)
-				adv_word();
-			insert_line(TRUE);
-		}
-	}
-
-/*
- |	go back to begin of paragraph, put cursor back to original position
- */
-
-	bol();
-	while (!Blank_Line(curr_line->prev_line))
-		bol();
-
-/*
- |	find word cursor was in
- */
-
-	while ((status) && (string_count > 0))
-	{
-		search(FALSE);
-		string_count--;
-	}
-
-/*
- |	offset the cursor to where it was before from the start of the word
- */
-
-	while (offset > 0)
-	{
-		offset--;
-		right(TRUE);
-	}
-
-/*
- |	reset flags and strings to what they were before formatting
- */
-
-	if (d_word != NULL)
-		free(d_word);
-	d_word = temp_dword;
-	case_sen = temp_case;
-	free(srch_str);
-	srch_str = tmp_srchstr;
-	d_char[0] = temp_d_char[0];
-	d_char[1] = temp_d_char[1];
-	d_char[2] = temp_d_char[2];
-	auto_format = tmp_af;
-
-	midscreen(scr_vert, point);
-	werase(com_win);
-	wrefresh(com_win);
 }
 
 void 
@@ -3654,344 +3356,6 @@ struct text *test_line;
 	return(counter);
 }
 
-void 
-Auto_Format()	/* format the paragraph according to set margins	*/
-{
-	int string_count;
-	int offset;
-	int temp_case;
-	int word_len;
-	int temp_dwl;
-	int tmp_d_line_length;
-	int leave_loop = FALSE;
-	int status;
-	int counter;
-	char not_blank;
-	unsigned char *line;
-	unsigned char *tmp_srchstr;
-	unsigned char *temp1, *temp2;
-	unsigned char *temp_dword;
-	unsigned char temp_d_char[3];
-	unsigned char *tmp_d_line;
-
-
-	temp_d_char[0] = d_char[0];
-	temp_d_char[1] = d_char[1];
-	temp_d_char[2] = d_char[2];
-
-/*
- |	if observ_margins is not set, or the current line is blank, 
- |	do not format the current paragraph
- */
-
-	if ((!observ_margins) || (Blank_Line(curr_line)))
-		return;
-
-/*
- |	get current position in paragraph, so after formatting, the cursor 
- |	will be in the same relative position
- */
-
-	tmp_d_line = d_line;
-	tmp_d_line_length = dlt_line->line_length;
-	d_line = NULL;
-	auto_format = FALSE;
-	offset = position;
-	if ((position != 1) && ((*point == ' ') || (*point == '\t') || (position == curr_line->line_length) || (*point == (char) NULL)))
-		prev_word();
-	temp_dword = d_word;
-	temp_dwl = d_wrd_len;
-	d_wrd_len = 0;
-	d_word = NULL;
-	temp_case = case_sen;
-	case_sen = TRUE;
-	tmp_srchstr = srch_str;
-	temp2 = srch_str = (unsigned char *) malloc(1 + curr_line->line_length - position);
-	if ((*point == ' ') || (*point == '\t'))
-		adv_word();
-	offset -= position;
-	counter = position;
-	line = temp1 = point;
-	while ((*temp1 != (char) NULL) && (*temp1 != ' ') && (*temp1 != '\t') && (counter < curr_line->line_length))
-	{
-		*temp2 = *temp1;
-		temp2++;
-		temp1++;
-		counter++;
-	}
-	*temp2 = (char) NULL;
-	if (position != 1)
-		bol();
-	while (!Blank_Line(curr_line->prev_line))
-		bol();
-	string_count = 0;
-	status = TRUE;
-	while ((line != point) && (status))
-	{
-		status = search(FALSE);
-		string_count++;
-	}
-
-/*
- |	now get back to the start of the paragraph to start checking
- */
-
-	if (position != 1)
-		bol();
-	while (!Blank_Line(curr_line->prev_line))
-		bol();
-
-/*
- |	Start going through lines, putting spaces at end of lines if they do 
- |	not already exist.  Check line length, and move words to the next line 
- |	if they cross the margin.  Then get words from the next line if they 
- |	will fit in before the margin.  
- */
-
-	counter = 0;
-
-	while (!leave_loop)
-	{
-		if (position != curr_line->line_length)
-			eol();
-		left(TRUE);
-		if (*point != ' ')
-		{
-			right(TRUE);
-			insert(' ');
-		}
-		else
-			right(TRUE);
-
-		not_blank = FALSE;
-
-		/*
-		 |	fill line if first word on next line will fit 
-		 |	in the line without crossing the margin
-		 */
-
-		while ((curr_line->next_line != NULL) && 
-		       ((word_len = first_word_len(curr_line->next_line)) > 0) 
-			&& ((scr_pos + word_len) < right_margin))
-		{
-			adv_line();
-			if ((*point == ' ') || (*point == '\t'))
-				adv_word();
-			del_word();
-			if (position != 1)
-				bol();
-
-			/*
-			 |	We know this line was not blank before, so 
-			 |	make sure that it doesn't have one of the 
-			 |	leading characters that indicate the line 
-			 |	should not be modified.
-			 |
-			 |	We also know that this character should not 
-			 |	be left as the first character of this line.
-			 */
-
-			if ((Blank_Line(curr_line)) && 
-			    (curr_line->line[0] != '.') && 
-			    (curr_line->line[0] != '>'))
-			{
-				del_line();
-				not_blank = FALSE;
-			}
-			else
-				not_blank = TRUE;
-
-			/*
-			 |   go to end of previous line
-			 */
-			left(TRUE);
-			undel_word();
-			eol();
-			/*
-			 |   make sure there's a space at the end of the line
-			 */
-			left(TRUE);
-			if (*point != ' ')
-			{
-				right(TRUE);
-				insert(' ');
-			}
-			else
-				right(TRUE);
-		}
-
-		/*
-		 |	make sure line does not cross right margin
-		 */
-
-		while (right_margin <= scr_pos)
-		{
-			prev_word();
-			if (position != 1)
-			{
-				del_word();
-				if (Blank_Line(curr_line->next_line))
-					insert_line(TRUE);
-				else
-					adv_line();
-				if ((*point == ' ') || (*point == '\t'))
-					adv_word();
-				undel_word();
-				not_blank = TRUE;
-				if (position != 1)
-					bol();
-				left(TRUE);
-			}
-		}
-
-		if ((!Blank_Line(curr_line->next_line)) || (not_blank))
-		{
-			adv_line();
-			counter++;
-		}
-		else
-			leave_loop = TRUE;
-	}
-
-/*
- |	go back to begin of paragraph, put cursor back to original position
- */
-
-	if (position != 1)
-		bol();
-	while ((counter-- > 0) || (!Blank_Line(curr_line->prev_line)))
-		bol();
-
-/*
- |	find word cursor was in
- */
-
-	status = TRUE;
-	while ((status) && (string_count > 0))
-	{
-		status = search(FALSE);
-		string_count--;
-	}
-
-/*
- |	offset the cursor to where it was before from the start of the word
- */
-
-	while (offset > 0)
-	{
-		offset--;
-		right(TRUE);
-	}
-
-	if ((string_count > 0) && (offset < 0))
-	{
-		while (offset < 0)
-		{
-			offset++;
-			left(TRUE);
-		}
-	}
-
-/*
- |	reset flags and strings to what they were before formatting
- */
-
-	if (d_word != NULL)
-		free(d_word);
-	d_word = temp_dword;
-	d_wrd_len = temp_dwl;
-	case_sen = temp_case;
-	free(srch_str);
-	srch_str = tmp_srchstr;
-	d_char[0] = temp_d_char[0];
-	d_char[1] = temp_d_char[1];
-	d_char[2] = temp_d_char[2];
-	auto_format = TRUE;
-	dlt_line->line_length = tmp_d_line_length;
-	d_line = tmp_d_line;
-
-	formatted = TRUE;
-	midscreen(scr_vert, point);
-}
-
-void 
-modes_op()
-{
-	int ret_value;
-	int counter;
-	char *string;
-
-	do
-	{
-		sprintf(modes_menu[1].item_string, "%s %s", mode_strings[1], 
-					(expand_tabs ? ON : OFF));
-		sprintf(modes_menu[2].item_string, "%s %s", mode_strings[2], 
-					(case_sen ? ON : OFF));
-		sprintf(modes_menu[3].item_string, "%s %s", mode_strings[3], 
-					(observ_margins ? ON : OFF));
-		sprintf(modes_menu[4].item_string, "%s %s", mode_strings[4], 
-					(auto_format ? ON : OFF));
-		sprintf(modes_menu[5].item_string, "%s %s", mode_strings[5], 
-					(eightbit ? ON : OFF));
-		sprintf(modes_menu[6].item_string, "%s %s", mode_strings[6], 
-					(info_window ? ON : OFF));
-		sprintf(modes_menu[7].item_string, "%s %s", mode_strings[7], 
-					(emacs_keys_mode ? ON : OFF));
-		sprintf(modes_menu[8].item_string, "%s %d", mode_strings[8], 
-					right_margin);
-
-		ret_value = menu_op(modes_menu);
-
-		switch (ret_value) 
-		{
-			case 1:
-				expand_tabs = !expand_tabs;
-				break;
-			case 2:
-				case_sen = !case_sen;
-				break;
-			case 3:
-				observ_margins = !observ_margins;
-				break;
-			case 4:
-				auto_format = !auto_format;
-				if (auto_format)
-					observ_margins = TRUE;
-				break;
-			case 5:
-				eightbit = !eightbit;
-
-				redraw();
-				wnoutrefresh(text_win);
-				break;
-			case 6:
-				if (info_window)
-					no_info_window();
-				else
-					create_info_window();
-				break;
-			case 7:
-				emacs_keys_mode = !emacs_keys_mode;
-				if (info_window)
-					paint_info_win();
-				break;
-			case 8:
-				string = get_string(margin_prompt, TRUE);
-				if (string != NULL)
-				{
-					counter = atoi(string);
-					if (counter > 0)
-						right_margin = counter;
-					free(string);
-				}
-				break;
-			default:
-				break;
-		}
-	}
-	while (ret_value != 0);
-}
-
 char *
 is_in_string(string, substring)	/* a strchr() look-alike for systems without
 				   strchr() */
@@ -4009,135 +3373,6 @@ char * string, *substring;
 		}
 	}
 	return(NULL);
-}
-
-/*
- |	handle names of the form "~/file", "~user/file", 
- |	"$HOME/foo", "~/$FOO", etc.
- */
-
-char *
-resolve_name(name)
-char *name;
-{
-	char long_buffer[1024];
-	char short_buffer[128];
-	char *buffer;
-	char *slash;
-	char *tmp;
-	char *start_of_var;
-	int offset;
-	int index;
-	int counter;
-	struct passwd *user;
-
-	if (name[0] == '~') 
-	{
-		if (name[1] == '/')
-		{
-			index = getuid();
-			user = (struct passwd *) getpwuid(index);
-			slash = name + 1;
-		}
-		else
-		{
-			slash = strchr(name, '/');
-			if (slash == NULL) 
-				return(name);
-			*slash = (char) NULL;
-			user = (struct passwd *) getpwnam((name + 1));
-			*slash = '/';
-		}
-		if (user == NULL) 
-		{
-			return(name);
-		}
-		buffer = malloc(strlen(user->pw_dir) + strlen(slash) + 1);
-		strcpy(buffer, user->pw_dir);
-		strcat(buffer, slash);
-	}
-	else
-		buffer = name;
-
-	if (is_in_string(buffer, "$"))
-	{
-		tmp = buffer;
-		index = 0;
-		
-		while ((*tmp != (char) NULL) && (index < 1024))
-		{
-
-			while ((*tmp != (char) NULL) && (*tmp != '$') && 
-				(index < 1024))
-			{
-				long_buffer[index] = *tmp;
-				tmp++;
-				index++;
-			}
-
-			if ((*tmp == '$') && (index < 1024))
-			{
-				counter = 0;
-				start_of_var = tmp;
-				tmp++;
-				if (*tmp == '{') /* } */	/* bracketed variable name */
-				{
-					tmp++;				/* { */
-					while ((*tmp != (char) NULL) && 
-						(*tmp != '}') && 
-						(counter < 128))
-					{
-						short_buffer[counter] = *tmp;
-						counter++;
-						tmp++;
-					}			/* { */
-					if (*tmp == '}')
-						tmp++;
-				}
-				else
-				{
-					while ((*tmp != (char) NULL) && 
-					       (*tmp != '/') && 
-					       (*tmp != '$') && 
-					       (counter < 128))
-					{
-						short_buffer[counter] = *tmp;
-						counter++;
-						tmp++;
-					}
-				}
-				short_buffer[counter] = (char) NULL;
-				if ((slash = getenv(short_buffer)) != NULL)
-				{
-					offset = strlen(slash);
-					if ((offset + index) < 1024)
-						strcpy(&long_buffer[index], slash);
-					index += offset;
-				}
-				else
-				{
-					while ((start_of_var != tmp) && (index < 1024))
-					{
-						long_buffer[index] = *start_of_var;
-						start_of_var++;
-						index++;
-					}
-				}
-			}
-		}
-
-		if (index == 1024)
-			return(buffer);
-		else
-			long_buffer[index] = (char) NULL;
-
-		if (name != buffer)
-			free(buffer);
-		buffer = malloc(index + 1);
-		strcpy(buffer, long_buffer);
-	}
-
-	return(buffer);
 }
 
 /*
@@ -4179,144 +3414,130 @@ strings_init()
 {
 	int counter;
 
-	modes_menu[0].item_string = catgetlocal( 1, "modes menu");
-	mode_strings[1]  = catgetlocal( 2, "tabs to spaces       "); 
-	mode_strings[2]  = catgetlocal( 3, "case sensitive search"); 
-	mode_strings[3]  = catgetlocal( 4, "margins observed     "); 
-	mode_strings[4]  = catgetlocal( 5, "auto-paragraph format"); 
-	mode_strings[5]  = catgetlocal( 6, "eightbit characters  "); 
-	mode_strings[6]  = catgetlocal( 7, "info window          "); 
-	mode_strings[8]  = catgetlocal( 8, "right margin         ");
-	leave_menu[0].item_string  = catgetlocal( 9, "leave menu");
-	leave_menu[1].item_string  = catgetlocal( 10, "save changes");
-	leave_menu[2].item_string  = catgetlocal( 11, "no save");
-	search_menu[0].item_string = catgetlocal( 17, "search menu");
-	search_menu[1].item_string = catgetlocal( 18, "search for ...");
-	search_menu[2].item_string = catgetlocal( 19, "search");
-	main_menu[0].item_string  = catgetlocal( 27, "main menu");
-	main_menu[1].item_string  = catgetlocal( 28, "leave editor");
-	main_menu[2].item_string  = catgetlocal( 29, "help");
-	main_menu[3].item_string  = catgetlocal( 30, "save file");
-	main_menu[4].item_string  = catgetlocal( 31, "redraw screen");
-	main_menu[5].item_string  = catgetlocal( 32, "settings");
-	main_menu[6].item_string  = catgetlocal( 33, "search");
-	help_text[0] = catgetlocal( 35, "Control keys:                                                              "); 
-	help_text[1] = catgetlocal( 36, "^a ascii code           ^i tab                  ^r right                   ");
-	help_text[2] = catgetlocal( 37, "^b bottom of text       ^j newline              ^t top of text             ");
-	help_text[3] = catgetlocal( 38, "^c command              ^k delete char          ^u up                      ");
-	help_text[4] = catgetlocal( 39, "^d down                 ^l left                 ^v undelete word           ");
-	help_text[5] = catgetlocal( 40, "^e search prompt        ^m newline              ^w delete word             ");
-	help_text[6] = catgetlocal( 41, "^f undelete char        ^n next page            ^x search                  ");
-	help_text[7] = catgetlocal( 42, "^g begin of line        ^o end of line          ^y delete line             ");
-	help_text[8] = catgetlocal( 43, "^h backspace            ^p prev page            ^z undelete line           ");
-	help_text[9] = catgetlocal( 44, "^[ (escape) menu                                                           ");
-	help_text[10] = catgetlocal( 45, "                                                                           ");
-	help_text[11] = catgetlocal( 46, "Commands:                                                                  ");
-	help_text[12] = catgetlocal( 47, "help    : get this info                 file    : print file name          ");
-	help_text[13] = catgetlocal( 48, "read    : (disabled)                    char    : ascii code of char       ");
-	help_text[14] = catgetlocal( 49, "write   : (disabled)                    case    : case sensitive search    ");
-	help_text[15] = catgetlocal( 50, "exit    : leave and save                nocase  : case insensitive search  ");
-	help_text[16] = catgetlocal( 51, "quit    : leave, no save                !cmd    : (disabled)               ");
-	help_text[17] = catgetlocal( 52, "line    : display line #                0-9     : go to line \"#\"           ");
-	help_text[18] = catgetlocal( 53, "expand  : expand tabs                   noexpand: do not expand tabs         ");
-	help_text[19] = catgetlocal( 54, "                                                                             ");
-	help_text[20] = catgetlocal( 55, "  ee [+#] [-i] [-e] [-h] [file(s)]                                            ");
-	help_text[21] = catgetlocal( 56, "+# :go to line #  -i :no info window  -e : don't expand tabs  -h :no highlight");
-	control_keys[0] = catgetlocal( 57, "^[ (escape) menu  ^e search prompt  ^y delete line    ^u up     ^p prev page  ");
-	control_keys[1] = catgetlocal( 58, "^a ascii code     ^x search         ^z undelete line  ^d down   ^n next page  ");
-	control_keys[2] = catgetlocal( 59, "^b bottom of text ^g begin of line  ^w delete word    ^l left                 ");
-	control_keys[3] = catgetlocal( 60, "^t top of text    ^o end of line    ^v undelete word  ^r right                ");
-	control_keys[4] = catgetlocal( 61, "^c command        ^k delete char    ^f undelete char                          ");
-	command_strings[0] = catgetlocal( 62, "help : get help info  |file  : print file name         |line : print line # ");
-	command_strings[1] = catgetlocal( 63, "read : (disabled)     |char  : ascii code of char      |0-9 : go to line \"#\"");
-	command_strings[2] = catgetlocal( 64, "write: (disabled)     |case  : case sensitive search   |exit : leave and save ");
-	command_strings[3] = catgetlocal( 65, "!cmd : (disabled)     |nocase: ignore case in search   |quit : leave, no save");
-	command_strings[4] = catgetlocal( 66, "expand: expand tabs   |noexpand: do not expand tabs                           ");
-	com_win_message = catgetlocal( 67, "    press Escape (^[) for menu");
-	no_file_string = catgetlocal( 68, "no file");
-	ascii_code_str = catgetlocal( 69, "ascii code: ");
-	command_str = catgetlocal( 71, "command: ");
-	file_write_prompt_str = catgetlocal( 72, "name of file to write: ");
-	file_read_prompt_str = catgetlocal( 73, "name of file to read: ");
-	char_str = catgetlocal( 74, "character = %d");
-	unkn_cmd_str = catgetlocal( 75, "unknown command \"%s\"");
-	non_unique_cmd_msg = catgetlocal( 76, "entered command is not unique");
-	line_num_str = catgetlocal( 77, "line %d  ");
-	line_len_str = catgetlocal( 78, "length = %d");
-	current_file_str = catgetlocal( 79, "current file is \"%s\" ");
-	usage0 = catgetlocal( 80, "usage: %s [-i] [-e] [-h] [+line_number] [file(s)]\n");
-	usage1 = catgetlocal( 81, "       -i   turn off info window\n");
-	usage2 = catgetlocal( 82, "       -e   do not convert tabs to spaces\n");
-	usage3 = catgetlocal( 83, "       -h   do not use highlighting\n");
-	file_is_dir_msg = catgetlocal( 84, "file \"%s\" is a directory");
-	new_file_msg = catgetlocal( 85, "new file \"%s\"");
-	cant_open_msg = catgetlocal( 86, "can't open \"%s\"");
-	open_file_msg = catgetlocal( 87, "file \"%s\", %d lines");
-	file_read_fin_msg = catgetlocal( 88, "finished reading file \"%s\"");
-	reading_file_msg = catgetlocal( 89, "reading file \"%s\"");
-	read_only_msg = catgetlocal( 90, ", read only");
-	file_read_lines_msg = catgetlocal( 91, "file \"%s\", %d lines");
-	save_file_name_prompt = catgetlocal( 92, "enter name of file: ");
-	file_not_saved_msg = catgetlocal( 93, "no filename entered: file not saved");
-	changes_made_prompt = catgetlocal( 94, "changes have been made, are you sure? (y/n [n]) ");
-	yes_char = catgetlocal( 95, "y");
-	file_exists_prompt = catgetlocal( 96, "file already exists, overwrite? (y/n) [n] ");
-	create_file_fail_msg = catgetlocal( 97, "unable to create file \"%s\"");
-	writing_file_msg = catgetlocal( 98, "writing file \"%s\"");
-	file_written_msg = catgetlocal( 99, "\"%s\" %d lines, %d characters");
-	searching_msg = catgetlocal( 100, "           ...searching");
-	str_not_found_msg = catgetlocal( 101, "string \"%s\" not found");
-	search_prompt_str = catgetlocal( 102, "search for: ");
-	continue_msg = catgetlocal( 104, "press return to continue ");
-	menu_cancel_msg = catgetlocal( 105, "press Esc to cancel");
-	menu_size_err_msg = catgetlocal( 106, "menu too large for window");
-	press_any_key_msg = catgetlocal( 107, "press any key to continue ");
-	formatting_msg = catgetlocal( 109, "...formatting paragraph...");
-	margin_prompt = catgetlocal( 112, "right margin is: ");
-	ON = catgetlocal( 114, "ON");
-	OFF = catgetlocal( 115, "OFF");
-	HELP = catgetlocal( 116, "HELP");
-	WRITE = catgetlocal( 117, "WRITE");
-	READ = catgetlocal( 118, "READ");
-	LINE = catgetlocal( 119, "LINE");
-	FILE_str = catgetlocal( 120, "FILE");
-	CHARACTER = catgetlocal( 121, "CHARACTER");
-	REDRAW = catgetlocal( 122, "REDRAW");
-	RESEQUENCE = catgetlocal( 123, "RESEQUENCE");
-	AUTHOR = catgetlocal( 124, "AUTHOR");
-	ee_VERSION = catgetlocal( 125, "VERSION");
-	CASE = catgetlocal( 126, "CASE");
-	NOCASE = catgetlocal( 127, "NOCASE");
-	EXPAND = catgetlocal( 128, "EXPAND");
-	NOEXPAND = catgetlocal( 129, "NOEXPAND");
-	Exit_string = catgetlocal( 130, "EXIT");
-	QUIT_string = catgetlocal( 131, "QUIT");
-	INFO = catgetlocal( 132, "INFO");
-	NOINFO = catgetlocal( 133, "NOINFO");
-	MARGINS = catgetlocal( 134, "MARGINS");
-	NOMARGINS = catgetlocal( 135, "NOMARGINS");
-	AUTOFORMAT = catgetlocal( 136, "AUTOFORMAT");
-	NOAUTOFORMAT = catgetlocal( 137, "NOAUTOFORMAT");
-	Echo = catgetlocal( 138, "ECHO");
-	PRINTCOMMAND = catgetlocal( 139, "PRINTCOMMAND");
-	RIGHTMARGIN = catgetlocal( 140, "RIGHTMARGIN");
-	HIGHLIGHT = catgetlocal( 141, "HIGHLIGHT");
-	NOHIGHLIGHT = catgetlocal( 142, "NOHIGHLIGHT");
-	EIGHTBIT = catgetlocal( 143, "EIGHTBIT");
-	NOEIGHTBIT = catgetlocal( 144, "NOEIGHTBIT");
+	leave_menu[0].item_string  = "leave menu";
+	leave_menu[1].item_string  = "save changes";
+	leave_menu[2].item_string  = "no save";
+	search_menu[0].item_string = "search menu";
+	search_menu[1].item_string = "search for ...";
+	search_menu[2].item_string = "search";
+	main_menu[0].item_string  = "main menu";
+	main_menu[1].item_string  = "leave editor";
+	main_menu[2].item_string  = "help";
+	main_menu[3].item_string  = "save file";
+	main_menu[4].item_string  = "redraw screen";
+	main_menu[5].item_string  = "search";
+	help_text[0] = "Control keys:                                                              "; 
+	help_text[1] = "^a ascii code           ^i tab                  ^r right                   ";
+	help_text[2] = "^b bottom of text       ^j newline              ^t top of text             ";
+	help_text[3] = "^c command              ^k delete char          ^u up                      ";
+	help_text[4] = "^d down                 ^l left                 ^v undelete word           ";
+	help_text[5] = "^e search prompt        ^m newline              ^w delete word             ";
+	help_text[6] = "^f undelete char        ^n next page            ^x search                  ";
+	help_text[7] = "^g begin of line        ^o end of line          ^y delete line             ";
+	help_text[8] = "^h backspace            ^p prev page            ^z undelete line           ";
+	help_text[9] = "^[ (escape) menu                                                           ";
+	help_text[10] = "                                                                           ";
+	help_text[11] = "Commands:                                                                  ";
+	help_text[12] = "help    : get this info                 file    : print file name          ";
+	help_text[13] = "read    : (disabled)                    char    : ascii code of char       ";
+	help_text[14] = "write   : (disabled)                    case    : case sensitive search    ";
+	help_text[15] = "exit    : leave and save                nocase  : case insensitive search  ";
+	help_text[16] = "quit    : leave, no save                !cmd    : (disabled)               ";
+	help_text[17] = "line    : display line #                0-9     : go to line \"#\"           ";
+	help_text[18] = "expand  : expand tabs                   noexpand: do not expand tabs         ";
+	help_text[19] = "                                                                             ";
+	help_text[20] = "  ee [+#] [-i] [-e] [-h] [file(s)]                                            ";
+	help_text[21] = "+# :go to line #  -i :no info window  -e : don't expand tabs  -h :no highlight";
+	control_keys[0] = "^[ (escape) menu  ^e search prompt  ^y delete line    ^u up     ^p prev page  ";
+	control_keys[1] = "^a ascii code     ^x search         ^z undelete line  ^d down   ^n next page  ";
+	control_keys[2] = "^b bottom of text ^g begin of line  ^w delete word    ^l left                 ";
+	control_keys[3] = "^t top of text    ^o end of line    ^v undelete word  ^r right                ";
+	control_keys[4] = "^c command        ^k delete char    ^f undelete char                          ";
+	command_strings[0] = "help : get help info  |file  : print file name         |line : print line # ";
+	command_strings[1] = "read : (disabled)     |char  : ascii code of char      |0-9 : go to line \"#\"";
+	command_strings[2] = "save: save changes    |case  : case sensitive search   |exit : leave and save ";
+	command_strings[3] = "!cmd : (disabled)     |nocase: ignore case in search   |quit : leave, no save";
+	command_strings[4] = "expand: expand tabs   |noexpand: do not expand tabs                           ";
+	com_win_message = "    press Escape (^[) for menu";
+	no_file_string = "no file";
+	ascii_code_str = "ascii code: ";
+	command_str = "command: ";
+	char_str = "character = %d";
+	unkn_cmd_str = "unknown command \"%s\"";
+	non_unique_cmd_msg = "entered command is not unique";
+	line_num_str = "line %d  ";
+	line_len_str = "length = %d";
+	current_file_str = "current file is \"%s\" ";
+	usage0 = "usage: %s [-i] [-e] [-h] [+line_number] [file(s)]\n";
+	usage1 = "       -i   turn off info window\n";
+	usage2 = "       -e   do not convert tabs to spaces\n";
+	usage3 = "       -h   do not use highlighting\n";
+	file_is_dir_msg = "file \"%s\" is a directory";
+	new_file_msg = "new file \"%s\"";
+	cant_open_msg = "can't open \"%s\"";
+	open_file_msg = "file \"%s\", %d lines";
+	file_read_fin_msg = "finished reading file \"%s\"";
+	reading_file_msg = "reading file \"%s\"";
+	read_only_msg = ", read only";
+	file_read_lines_msg = "file \"%s\", %d lines";
+	save_file_name_prompt = "enter name of file: ";
+	file_not_saved_msg = "no filename entered: file not saved";
+	changes_made_prompt = "changes have been made, are you sure? (y/n [n]) ";
+	yes_char = "y";
+	file_exists_prompt = "file already exists, overwrite? (y/n) [n] ";
+	create_file_fail_msg = "unable to create file \"%s\"";
+	writing_file_msg = "writing file \"%s\"";
+	file_written_msg = "\"%s\" %d lines, %d characters";
+	searching_msg = "           ...searching";
+	str_not_found_msg = "string \"%s\" not found";
+	search_prompt_str = "search for: ";
+	continue_msg = "press return to continue ";
+	menu_cancel_msg = "press Esc to cancel";
+	menu_size_err_msg = "menu too large for window";
+	press_any_key_msg = "press any key to continue ";
+	ON = "ON";
+	OFF = "OFF";
+	HELP = "HELP";
+	SAVE = "SAVE";
+	READ = "READ";
+	LINE = "LINE";
+	FILE_str = "FILE";
+	CHARACTER = "CHARACTER";
+	REDRAW = "REDRAW";
+	RESEQUENCE = "RESEQUENCE";
+	AUTHOR = "AUTHOR";
+	ee_VERSION = "VERSION";
+	CASE = "CASE";
+	NOCASE = "NOCASE";
+	EXPAND = "EXPAND";
+	NOEXPAND = "NOEXPAND";
+	Exit_string = "EXIT";
+	QUIT_string = "QUIT";
+	INFO = "INFO";
+	NOINFO = "NOINFO";
+	MARGINS = "MARGINS";
+	NOMARGINS = "NOMARGINS";
+	AUTOFORMAT = "AUTOFORMAT";
+	NOAUTOFORMAT = "NOAUTOFORMAT";
+	Echo = "ECHO";
+	PRINTCOMMAND = "PRINTCOMMAND";
+	RIGHTMARGIN = "RIGHTMARGIN";
+	HIGHLIGHT = "HIGHLIGHT";
+	NOHIGHLIGHT = "NOHIGHLIGHT";
+	EIGHTBIT = "EIGHTBIT";
+	NOEIGHTBIT = "NOEIGHTBIT";
 	/*
 	 |	additions
 	 */
-	mode_strings[7] = catgetlocal( 145, "emacs key bindings   ");
 	emacs_help_text[0] = help_text[0];
-	emacs_help_text[1] = catgetlocal( 146, "^a beginning of line    ^i tab                  ^r restore word            ");
-	emacs_help_text[2] = catgetlocal( 147, "^b back 1 char          ^j undel char           ^t top of text             ");
-	emacs_help_text[3] = catgetlocal( 148, "^c command              ^k delete line          ^u bottom of text          ");
-	emacs_help_text[4] = catgetlocal( 149, "^d delete char          ^l undelete line        ^v next page               ");
-	emacs_help_text[5] = catgetlocal( 150, "^e end of line          ^m newline              ^w delete word             ");
-	emacs_help_text[6] = catgetlocal( 151, "^f forward 1 char       ^n next line            ^x search                  ");
-	emacs_help_text[7] = catgetlocal( 152, "^g go back 1 page       ^o ascii char insert    ^y search prompt           ");
-	emacs_help_text[8] = catgetlocal( 153, "^h backspace            ^p prev line            ^z next word               ");
+	emacs_help_text[1] = "^a beginning of line    ^i tab                  ^r restore word            ";
+	emacs_help_text[2] = "^b back 1 char          ^j undel char           ^t top of text             ";
+	emacs_help_text[3] = "^c command              ^k delete line          ^u bottom of text          ";
+	emacs_help_text[4] = "^d delete char          ^l undelete line        ^v next page               ";
+	emacs_help_text[5] = "^e end of line          ^m newline              ^w delete word             ";
+	emacs_help_text[6] = "^f forward 1 char       ^n next line            ^x search                  ";
+	emacs_help_text[7] = "^g go back 1 page       ^o ascii char insert    ^y search prompt           ";
+	emacs_help_text[8] = "^h backspace            ^p prev line            ^z next word               ";
 	emacs_help_text[9] = help_text[9];
 	emacs_help_text[10] = help_text[10];
 	emacs_help_text[11] = help_text[11];
@@ -4330,23 +3551,21 @@ strings_init()
 	emacs_help_text[19] = help_text[19];
 	emacs_help_text[20] = help_text[20];
 	emacs_help_text[21] = help_text[21];
-	emacs_control_keys[0] = catgetlocal( 154, "^[ (escape) menu  ^y search prompt  ^k delete line   ^p prev li   ^g prev page");
-	emacs_control_keys[1] = catgetlocal( 155, "^o ascii code     ^x search         ^l undelete line ^n next li   ^v next page");
-	emacs_control_keys[2] = catgetlocal( 156, "^u end of file    ^a begin of line  ^w delete word   ^b back 1 char           ");
-	emacs_control_keys[3] = catgetlocal( 157, "^t top of text    ^e end of line    ^r restore word  ^f forward 1 char        ");
-	emacs_control_keys[4] = catgetlocal( 158, "^c command        ^d delete char    ^j undelete char ^z next word              ");
-	EMACS_string = catgetlocal( 159, "EMACS");
-	NOEMACS_string = catgetlocal( 160, "NOEMACS");
-	usage4 = catgetlocal( 161, "       +#   put cursor at line #\n");
-	modes_menu[10].item_string = catgetlocal( 164, "dump configuration (disabled)");
-	ree_no_file_msg = catgetlocal( 169, "must specify a file when invoking ree");
-	menu_too_lrg_msg = catgetlocal( 180, "menu too large for window");
-	more_above_str = catgetlocal( 181, "^^more^^");
-	more_below_str = catgetlocal( 182, "VVmoreVV");
-	mode_strings[9] = catgetlocal( 183, "16 bit characters    ");
+	emacs_control_keys[0] = "^[ (escape) menu  ^y search prompt  ^k delete line   ^p prev li   ^g prev page";
+	emacs_control_keys[1] = "^o ascii code     ^x search         ^l undelete line ^n next li   ^v next page";
+	emacs_control_keys[2] = "^u end of file    ^a begin of line  ^w delete word   ^b back 1 char           ";
+	emacs_control_keys[3] = "^t top of text    ^e end of line    ^r restore word  ^f forward 1 char        ";
+	emacs_control_keys[4] = "^c command        ^d delete char    ^j undelete char ^z next word              ";
+	EMACS_string = "EMACS";
+	NOEMACS_string = "NOEMACS";
+	usage4 = "       +#   put cursor at line #\n";
+	menu_too_lrg_msg = "menu too large for window";
+	more_above_str = "^^more^^";
+	more_below_str = "VVmoreVV";
+	
 
 	commands[0] = HELP;
-	commands[1] = WRITE;
+	commands[1] = SAVE;
 	commands[2] = READ;
 	commands[3] = LINE;
 	commands[4] = FILE_str;
@@ -4375,34 +3594,5 @@ strings_init()
 	commands[27] = "9";
 	commands[28] = CHARACTER;
 	commands[29] = NULL;
-	init_strings[0] = CASE;
-	init_strings[1] = NOCASE;
-	init_strings[2] = EXPAND;
-	init_strings[3] = NOEXPAND;
-	init_strings[4] = INFO;
-	init_strings[5] = NOINFO;
-	init_strings[6] = MARGINS;
-	init_strings[7] = NOMARGINS;
-	init_strings[8] = AUTOFORMAT;
-	init_strings[9] = NOAUTOFORMAT;
-	init_strings[10] = Echo;
-	init_strings[11] = PRINTCOMMAND;
-	init_strings[12] = RIGHTMARGIN;
-	init_strings[13] = HIGHLIGHT;
-	init_strings[14] = NOHIGHLIGHT;
-	init_strings[15] = EIGHTBIT;
-	init_strings[16] = NOEIGHTBIT;
-	init_strings[17] = EMACS_string;
-	init_strings[18] = NOEMACS_string;
-	init_strings[19] = NULL;
-
-	/*
-	 |	allocate space for strings here for settings menu
-	 */
-
-	for (counter = 1; counter < NUM_MODES_ITEMS; counter++)
-	{
-		modes_menu[counter].item_string = malloc(80);
-	}
 }
 
