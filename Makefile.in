@@ -63,6 +63,7 @@ dist: .depend distclean
 	rm -rf $(NAME)-$(VERSION)
 	autoheader
 	autoconf
+	rm -rf autom4te.cache
 	(cd .. && ln -sf $(CURDIR) $(NAME)-$(VERSION))
 	(cd .. && tar $(addprefix --exclude ,$(exclusions)) -chzf $(NAME)-$(VERSION).tar.gz $(NAME)-$(VERSION))
 	rm -f ../$(NAME)-$(VERSION)

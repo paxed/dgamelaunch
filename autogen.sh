@@ -5,5 +5,6 @@ echo
 
 autoconf
 autoheader
-rm -rf autom4te.cache # evil
+# evil
+rm -rf autom4te.cache
 ./configure "$@"
