@@ -354,7 +354,7 @@ loadbanner (struct dg_banner *ban)
 
       memset (buf, 0, 80);
 
-      if (ban->len == 12)       /* menu itself needs 12 lines, 24 - 12 */
+      if (ban->len == 11)       /* menu itself needs 13 lines, 24 - 11 */
          break;
   }
 
@@ -562,6 +562,58 @@ inprogressmenu ()
 
 /* ************************************************************* */
 
+void
+change_email ()
+{
+  char buf[81];
+
+  clear();
+
+  while (true)
+  {
+    drawbanner(1,1);
+
+    mvprintw(3, 1, "Your current email is: %s", me->email);
+    mvaddstr(4, 1, "Please enter a new one (max 80 chars; blank line aborts)");
+    mvaddstr(6, 1, "=> ");
+
+    mygetnstr (buf, 80, 1);
+
+    if (buf && *buf == '\0')
+      return;
+    else if (!strcmp(me->email, buf))
+    {
+      clear();
+      mvaddstr (8, 1, "That's the same one as before. Try again?");
+      move(1,1);
+    }
+    /* rudimentary check for validity */
+    else if (strchr(buf, '@') < strrchr(buf, '.'))
+    {
+      mvprintw (8, 1, "Changing email address to '%s'. Confirm (y/n): ", buf);
+      if (getch() == 'y')
+      {
+	free(me->email);
+	me->email = strdup(buf);
+	writefile(0);
+	return;
+      }
+      else
+      {
+	mvaddstr(9, 1, "No changes made. Press any key to continue...");
+	getch();
+	return;
+      }
+    }
+    else
+    {
+      clear();
+      mvaddstr (8, 1, "That doesn't look like an email address to me.");
+      move(1,1);
+    }
+  }
+}
+
 int
 changepw ()
 {
@@ -616,6 +668,7 @@ changepw ()
         error = 1;
     }
 
+  free(me->password);
   me->password = strdup (crypt (buf, buf));
   writefile (0);
 
@@ -725,11 +778,12 @@ drawmenu ()
     {
       mvprintw (banner.len + 2, 1, "Logged in as: %s", me->username);
       mvaddstr (banner.len + 4, 1, "c) Change password");
-      mvaddstr (banner.len + 5, 1, "o) Edit option file");
-      mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
-      mvaddstr (banner.len + 7, 1, "p) Play nethack!");
-      mvaddstr (banner.len + 8, 1, "q) Quit");
-      mvaddstr (banner.len + 10, 1, "=> ");
+      mvaddstr (banner.len + 5, 1, "e) Change email address");
+      mvaddstr (banner.len + 6, 1, "o) Edit option file");
+      mvaddstr (banner.len + 7, 1, "w) Watch games in progress");
+      mvaddstr (banner.len + 8, 1, "p) Play nethack!");
+      mvaddstr (banner.len + 9, 1, "q) Quit");
+      mvaddstr (banner.len + 11, 1, "=> ");
     }
   else
     {
@@ -1454,6 +1508,10 @@ menuloop (void)
           if (loggedin)
             changepw ();
           break;
+	case 'e':
+	  if (loggedin)
+	    change_email();
+	  break;
         case 'w':
           inprogressmenu ();
           break;

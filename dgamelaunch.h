@@ -72,6 +72,7 @@ extern void loadbanner(struct dg_banner *ban);
 extern void drawbanner(unsigned int start_line, unsigned int howmany);
 extern struct dg_game **populate_games(int *l);
 extern void inprogressmenu(void);
+extern void change_email(void);
 extern int changepw(void);
 extern void domailuser(char *username);
 extern void drawmenu(void);
