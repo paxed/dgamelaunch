@@ -165,6 +165,7 @@ create_config ()
     }
     else
     {
+      fprintf(stderr, "Warning: can't find or open %s for reading\n", config);
       myconfig = &defconfig;
       return;
     }
@@ -1367,7 +1368,6 @@ main (int argc, char** argv)
   /* for chroot and program execution */
   char atrcfilename[81], *spool;
   unsigned int len;
-  struct rlimit rl = { RLIM_INFINITY, RLIM_INFINITY };
 
   int userchoice = 0;
 
@@ -1375,9 +1375,6 @@ main (int argc, char** argv)
     config = strdup(argv[1]);
   
   create_config();
-
-  /* coredumper */
-  setrlimit (RLIMIT_CORE, &rl);
 
   /* signal handlers */
   signal (SIGHUP, catch_sighup);
