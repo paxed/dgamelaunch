@@ -14,7 +14,7 @@ clean:
 	rm -f dgamelaunch
 	rm -f *.o
 install:
-	cp dgamelaunch /opt/nethack/nethack.dtype.org/
+	cp dgamelaunch /usr/sbin
 indent:
 	indent -ts2 *.c *.h
 	rm *~

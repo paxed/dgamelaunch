@@ -50,4 +50,4 @@ cp -L /usr/lib/games/nethack/nhdat $CHROOT_PATH/usr/lib/games/nethack
 
 # Curses junk
 mkdir -p $CHROOT_PATH/usr/share
-cp -r /usr/share/terminfo $CHROOT_PATH/usr/share
+cp -Lr /usr/share/terminfo $CHROOT_PATH/usr/share
