@@ -1441,7 +1441,7 @@ main (int argc, char** argv)
 
   len = strlen(myconfig->spool) + strlen (me->username) + 1;
   spool = malloc (len + 1);
-  snprintf (spool, len, "%s/%s", myconfig->spool, me->username);
+  snprintf (spool, len + 1, "%s/%s", myconfig->spool, me->username);
 
   setenv ("NETHACKOPTIONS", atrcfilename, 1);
   setenv ("MAIL", spool, 1);
