@@ -140,6 +140,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
   int counter = 0;
   fd_set readfs;
   struct timeval w = { 0, 100000 };
+  struct termios t;
 
   /*
    * Read persistently just like tail -f.
@@ -178,19 +179,20 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
 	      break;
 
             case 'm':
+	      tcgetattr (0, &t);
 	      if (!loggedin)
 	      {
 		initcurses();
 		loginprompt(1);
-		if (!loggedin) return READ_RESTART;
 	      }
               if (loggedin)
 	      {
 		initcurses ();
 		domailuser (chosen_name);
-                return READ_RESTART;
 	      }
-	      
+              endwin ();
+	      tcsetattr (0, TCSANOW, &t);
+              return READ_RESTART;
               break;
             }
         }

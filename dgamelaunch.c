@@ -399,6 +399,10 @@ inprogressmenu ()
 	case 'q': case 'Q':
           return;
 
+	case 12: case 18: /* ^L, ^R */
+	  clear ();
+	  break;
+
         default:
 	  doresizewin = 0;
 	  if (isupper (menuchoice))
