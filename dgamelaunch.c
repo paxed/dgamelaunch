@@ -866,7 +866,7 @@ loginprompt (int from_ttyplay)
 void
 newuser ()
 {
-  char buf[1024];
+  char buf[1024], dirname[100];
   int error = 2;
   unsigned int i;
 
@@ -984,6 +984,11 @@ newuser ()
   snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
   write_canned_rcfile (rcfilename);
 
+  /* create their ttyrec dir */
+  snprintf (dirname, 100, "%sttyrec/%s", myconfig->dglroot, me->username);
+
+  if (access (dirname, F_OK) != 0)
+    mkdir (dirname, 0755);
   writefile (1);
 }
 
@@ -1480,7 +1485,7 @@ main (int argc, char** argv)
   unsigned int len;
   int c;
 
-  while ((c = getopt(argc, argv, "qh:p:f:")) != -1)
+  while ((c = getopt(argc, argv, "qh:pp:f:")) != -1)
   {
     switch (c)
     {

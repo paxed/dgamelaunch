@@ -86,11 +86,6 @@ ttyrec_main (char *username, char* ttyrec_filename)
 {
   char dirname[100];
 
-  snprintf (dirname, 100, "%sttyrec/%s", myconfig->dglroot, username);
-
-  if (access (dirname, F_OK) != 0)
-    mkdir (dirname, 0755);
-
   snprintf (dirname, 100, "%sttyrec/%s/%s", myconfig->dglroot, username,
             ttyrec_filename);
 
