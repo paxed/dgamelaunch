@@ -58,6 +58,9 @@ mkdir -p $chroot_path/bin $chroot_path/etc $chroot_path/var/mail
 echo "games:*:$shed_uid:$shed_gid:games:/nonexistent:" >$chroot_path/etc/passwd
 echo "games:*:$shed_gid:" >$chroot_path/etc/group
 
+# Time zone information, NetHack uses this
+[ -e /etc/localtime ] && cp /etc/localtime $chroot_path/etc
+
 # Dungeon directory setup
 mkdir -p $chroot_path/dgldir/inprogress
 mkdir -p $chroot_path/dgldir/rcfiles
