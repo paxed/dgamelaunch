@@ -1,0 +1,118 @@
+.TH DGAMELAUNCH 8 "25 February 2004" "joshk et al" "System Manager's Manual"
+.SH NAME
+dgamelaunch \- Network console game launcher
+.SH SYNOPSIS
+.na
+.hy 0
+.B dgamelaunch
+[
+.B \-h
+.I hostname
+]
+[
+.B \-f
+.I config
+]
+[
+.B \-q
+]
+[
+.B \-p
+]
+.ad
+.hy 14
+.SH DESCRIPTION
+.PP
+.I dgamelaunch
+is a network-based game shell where anyone can sign up for an
+account and start playing any game which suits your fancy - currently, though,
+it only supports NetHack.
+
+The user is presented with a curses-based menu to watch other games, edit the
+options or play the game.
+
+.SH OPTIONS
+.TP
+.B
+-f config
+Specify the location of the configuration file.
+.TP
+.B
+-q
+Don't print errors pertaining to the server configuration.
+.TP
+.B
+-p
+Ignored; solely for compatibility with
+.B
+login(1)
+.TP
+.B
+-h hostname
+Ignored; solely for compatibility with
+.B
+login(1)
+.SH CRASH RECOVERY
+.PP
+If a user somehow disconnects in an unclean way,
+.I
+dgamelaunch
+will usually send nethack the SIGHUP signal, which causes nethack to save
+the game.
+.PP
+If a user tries to play while he already has a game in progress (for example
+because nethack hung),
+.I
+dgamelaunch
+will warn the user and send nethack the SIGHUP signal if the user agrees. If
+nethack does not shut down within 10 seconds,
+.I
+dgamelaunch
+will ask the user for permission to send it the SIGTERM signal, which causes
+nethack to terminate quickly.
+.SH AUTHORS
+.PP
+M. Drew Streib wrote the original version.
+.PP
+Later, Joshua Kwan, Brett Carrington and Jilles Tjoelker added many new
+features.
+.SH FILES
+.DT
+.ta \w'dgldir/ttyrec/<login>/*.ttyrec\ \ \ 'u
+/etc/dgamelaunch.conf		Default configuration file (can
+				be changed at compile time).
+.br
+.PP
+All other files are in the chroot as defined in the configuration file. Most
+of these filenames can be changed in the configuration file.
+.PP
+.DT
+.ta \w'dgldir/ttyrec/<login>/*.ttyrec\ \ \ 'u
+dgl-login		Login names, passwords and email
+			addresses.
+.br
+dgl-lock		Lockfile for dgl-login, locked
+			with fcntl(2).
+.br
+dgl-banner		Text shown on the screen.
+.br
+dgl-default-rcfile	Options file for new accounts.
+.br
+bin/nethack		The NetHack binary.
+.br
+dgldir/inprogress/*	A file for each game in progress;
+			the file is locked (with fcntl(2))
+			when the dgamelaunch process
+			is still alive.
+.br
+dgldir/rcfiles/*	Options files.
+.br
+dgldir/ttyrec/<login>/*.ttyrec	Recorded games, this may get
+				very big very quickly.
+.\".SH ENVIRONMENT
+.SH "SEE ALSO"
+.PP
+nethack(6), telnetd(8), login(1), curses(3), fcntl(2)
+.SH BUGS
+.PP
+None known.
