@@ -124,6 +124,25 @@ struct dg_user **users = NULL;
 struct dg_user *me = NULL;
 struct dg_banner banner;
 
+int
+mysetenv (const char* name, const char* value, int overwrite)
+{
+  int retval;
+  char *buf = NULL;
+  
+  if (getenv(name) == NULL || overwrite)
+  {
+    size_t len = strlen(name) + 1 + strlen(value) + 1; /* NAME=VALUE\0 */
+    buf = malloc(len);
+    snprintf(buf, len, "%s=%s", name, value);
+    retval = putenv(buf);
+  }
+  else
+    retval = -1;
+  
+  return retval;  
+}
+
 void
 create_config ()
 {
@@ -876,7 +895,7 @@ newuser ()
 
       for (i = 0; i < strlen (buf); i++)
         {
-          if (!isalnum(buf[i]))
+          if (!isalnum((int)buf[i]))
             error = 1;
         }
 
@@ -1006,7 +1025,7 @@ readfile (int nolock)
       /* name field, must be valid */
       while (*b != ':')
         {
-          if (!isalnum(*b))
+          if (!isalnum((int)*b))
             return 1;
           users[f_num]->username[(b - n)] = *b;
           b++;
@@ -1458,9 +1477,9 @@ main (int argc, char** argv)
   spool = malloc (len + 1);
   snprintf (spool, len + 1, "%s/%s", myconfig->spool, me->username);
 
-  setenv ("NETHACKOPTIONS", atrcfilename, 1);
-  setenv ("MAIL", spool, 1);
-  setenv ("SIMPLEMAIL", "1", 1);
+  mysetenv ("NETHACKOPTIONS", atrcfilename, 1);
+  mysetenv ("MAIL", spool, 1);
+  mysetenv ("SIMPLEMAIL", "1", 1);
 
   /* don't let the mail file grow */
   if (access (spool, F_OK) == 0)
