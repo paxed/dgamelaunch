@@ -1130,7 +1130,7 @@ purge_stale_locks (void)
       char *colon;
       char buf[16];
       pid_t pid;
-      int seconds = 0;
+      int seconds;
 
       if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
 	  continue;
@@ -1150,7 +1150,6 @@ purge_stale_locks (void)
         graceful_exit (203);
 
       fclose (ipfile);
-      unlink (dent->d_name);
 
       pid = atoi (buf);
 
@@ -1159,6 +1158,7 @@ purge_stale_locks (void)
       errno = 0;
 
       /* Wait for it to stop running */
+      seconds = 0;
       while (kill (pid, 0) == 0)
         {
           seconds++;
@@ -1175,9 +1175,16 @@ purge_stale_locks (void)
                   kill (pid, SIGTERM);
                   break;
                 }
+	      else
+		{
+                  endwin();
+		  fprintf(stderr, "Sorry, no nethack for you now, please "
+			"contact the admin.\n");
+		  graceful_exit(1);
+		}
             }
         }
-      seconds = 0;
+      unlink (dent->d_name);
     }
 
   closedir (pdir);
@@ -1285,7 +1292,7 @@ main (void)
   assert (loggedin);
 
   purge_stale_locks ();
-  
+
   endwin ();
 
   /* environment */
