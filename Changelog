@@ -1,4 +1,4 @@
-1.4.2 (???)
+1.4.2 (2004/02/22)
 	* Add a compile-time option to define a static location to look
 	  for a configuration file. Will ALWAYS override defconfig values
 	  if it is present, so beware.
