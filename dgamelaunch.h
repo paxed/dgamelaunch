@@ -12,8 +12,8 @@ struct dg_user
 	int flags;
 };
 
-#define SHED_UID 1031						/* the uid to shed privs to */
-#define SHED_GID 1031						/* the gid to shed privs to */
+#define SHED_UID 5						/* the uid to shed privs to */
+#define SHED_GID 5						/* the gid to shed privs to */
 #define MAXUSERS 64000					/* solves some preallocation issues. */
 
 #define LOC_CHROOT		"/var/lib/dgamelaunch/"

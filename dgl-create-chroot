@@ -18,8 +18,8 @@ cp -L /lib/libncurses.so.5 $CHROOT_PATH/lib
 cp -L /lib/ld-linux.so.2 $CHROOT_PATH/lib
 
 # Passwd file
-echo "nethack:!:1031:1031::/nonexistent:/bin/sh" > $CHROOT_PATH/etc/passwd
-echo "nethack:x:1031:" > $CHROOT_PATH/etc/group
+echo "games:!:5:60:games:/nonexistent:/bin/sh" > $CHROOT_PATH/etc/passwd
+echo "games:x:60:" > $CHROOT_PATH/etc/group
 
 # Dungeon directory setup
 mkdir -p $CHROOT_PATH/dgldir/inprogress

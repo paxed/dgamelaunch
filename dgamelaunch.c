@@ -30,6 +30,8 @@
  * is very small.
  */
 
+#include "dgamelaunch.h"
+
 /* a request from the author: please leave some remnance of
  * 'based on dgamelaunch version xxx' in any derivative works, or
  * even keep the line the same altogether. I'm probably happy 
@@ -37,7 +39,7 @@
 
 #define VERLINES 7							/* number of lines in this vanity text */
 #define VER1 "## dgamelaunch - network console game launcher\n"
-#define VER2 "## version 1.3.10\n"
+#define VER2 "## version " VERSION "\n"
 #define VER3 "## \n"
 #define VER4 "## (c)2001-3 M. Drew Streib. This program's source is released under the GPL.\n"
 #define VER5 "## Send mail to <dtype@dtype.org> for details or a copy of the source code.\n"
@@ -53,7 +55,6 @@
 #define _XOPEN_SOURCE						/* grantpt, etc. */
 #define _BSD_SOURCE							/* setenv */
 
-#include "dgamelaunch.h"
 #include <stdlib.h>
 #include <curses.h>
 #include <crypt.h>
