@@ -103,6 +103,9 @@ it.  Some other telnetds do not support anything like this at all.
 The -f option, followed by a filename, specifies the path to the config file
 to use for dgamelaunch.
 
+If you specify the right path for DEFCONFIG in the Makefile, you may be able
+to omit this.
+
 For dgamelaunch, the -q option will silence errors pertaining to the server
 configuration. This is recommended for use within inetd to prevent spamming
 the clients, but when testing and setting up we strongly suggest you leave it
