@@ -489,9 +489,9 @@ inprogressmenu ()
       clear ();
       drawbanner (1, 1);
       mvprintw (3, 1,
-                "During playback, hit 'q' to return here, 'm' to send mail (requires login)");
+                "During playback, hit 'q' to return here, 'm' to send mail (requires login),");
       mvaddstr (4, 1,
-                "(Use capital letter of selection to strip DEC graphics, VERY experimental!)");
+                "'s' to toggle graphic-set stripping for DEC, IBM, and none.");
       mvaddstr (5, 1, "The following games are in progress:");
 
       /* clean old games and list good ones */
@@ -551,7 +551,7 @@ inprogressmenu ()
               clear ();
               refresh ();
               endwin ();
-              ttyplay_main (ttyrecname, 1, 0);
+              ttyplay_main (ttyrecname, 1);
               initcurses ();
             }
         }

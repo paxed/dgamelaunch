@@ -38,6 +38,9 @@
 	  time option - see README for details.
 	* A giant code cleanup that centralizes necessary globals, removes
 	  unnecessary variables and #defines...
+	* Improved stripgfx feature to allow in-session graphic strip
+	  toggling. Still a bit unreliable though, but works better than
+	  before.
 
 1.3.10 (2003/10/22)
 	* Added a mode flag to the open call for inprogress lock files.

@@ -50,7 +50,7 @@
 #include "stripgfx.h"
 
 off_t seek_offset_clrscr;
-int bstripgfx;
+int stripped = NO_GRAPHICS;
 
 struct timeval
 timeval_diff (struct timeval tv1, struct timeval tv2)
@@ -161,7 +161,6 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
   int counter = 0;
   fd_set readfs;
   struct timeval zerotime;
-  static int stripped = NO_GRAPHICS;
 
   zerotime.tv_sec = 0;
   zerotime.tv_usec = 0;
@@ -233,7 +232,8 @@ ttywrite (char *buf, int len)
 
   for (i = 0; i < len; i++)
   {
-    buf[i] = strip_gfx (buf[i]);
+    if (stripped != NO_GRAPHICS)
+      buf[i] = strip_gfx (buf[i]);
   }
 
   fwrite (buf, 1, len, stdout);
@@ -390,7 +390,7 @@ ttypeek (FILE * fp, double speed)
 
 
 int
-ttyplay_main (char *ttyfile, int mode, int rstripgfx)
+ttyplay_main (char *ttyfile, int mode)
 {
   double speed = 1.0;
   ReadFunc read_func = ttyread;

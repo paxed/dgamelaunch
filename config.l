@@ -43,7 +43,6 @@ COMMENT		^#.*
 
 {MALSTRING} {
   yytext[yyleng - 1] = '\0'; /* remove trailing newline */
-  /* yytext already contains a newline, no need for one here */
   fprintf(stderr, "%s:%d:%d: unterminated string constant: %s\n", config, line, col - yyleng + 1, yytext);
   return TYPE_MALSTRING; 
 }
