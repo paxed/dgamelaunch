@@ -28,7 +28,8 @@ static const char* lookup_token (int t);
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX
 %token TYPE_PATH_NETHACK TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
-%token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_MALSTRING
+%token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_SAVEFILEFMT
+%token TYPE_MALSTRING
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER
 %type  <kt> KeyType
@@ -147,6 +148,11 @@ KeyPair: KeyType '=' TYPE_VALUE {
       myconfig->passwd = strdup($3);
       break;
 
+    case TYPE_PATH_SAVEFILEFMT:
+      if (myconfig->savefilefmt) free(myconfig->savefilefmt);
+      myconfig->savefilefmt = strdup($3);
+      break;
+
     default:
       fprintf(stderr, "%s:%d: token %s does not take a string, bailing out\n",
         config, line, lookup_token($1));
@@ -215,6 +221,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_CANNED	{ $$ = TYPE_PATH_CANNED; }
 	| TYPE_PATH_PASSWD	{ $$ = TYPE_PATH_PASSWD; }
 	| TYPE_PATH_LOCKFILE	{ $$ = TYPE_PATH_LOCKFILE; }
+	| TYPE_PATH_SAVEFILEFMT	{ $$ = TYPE_PATH_SAVEFILEFMT; }
 	;
 
 %%

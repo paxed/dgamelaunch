@@ -1294,6 +1294,103 @@ writefile (int requirenew)
 /* ************************************************************* */
 /* ************************************************************* */
 
+/*
+ * Backup the savefile, if configured.
+ * Returns non-zero if successful, otherwise an error message has been
+ * given already.
+ */
+int
+backup_savefile (void)
+{
+  char buf[1024];
+  char *f, *p, *end;
+  int ispercent = 0, n;
+  int in, out;
+
+  f = myconfig->savefilefmt;
+
+  if (*f == '\0')
+    return 1;
+  if (me == NULL)
+    graceful_exit (147);
+
+  p = buf;
+  end = buf + sizeof(buf) - 10; /* make sure we can add .bak */
+  while (*f)
+    {
+      if (ispercent)
+        {
+          switch (*f)
+  	  {
+  	    case 'u':
+  	      snprintf (p, end + 1 - p, "%d", myconfig->shed_uid);
+  	      while (*p != '\0')
+  	        p++;
+  	      break;
+  	    case 'n':
+  	      snprintf (p, end + 1 - p, "%s", me->username);
+  	      while (*p != '\0')
+  	        p++;
+  	      break;
+  	    default:
+  	      *p = *f;
+  	      if (p < end)
+  	        p++;
+  	  }
+	  ispercent = 0;
+	}
+      else
+        {
+	  if (*f == '%')
+	    ispercent = 1;
+	  else
+	    {
+	      *p = *f;
+	      if (p < end)
+	        p++;
+	    }
+	}
+      f++;
+    }
+  *p = '\0';
+
+  /*fprintf(stderr, "***\n[SAVEFILE=%s]\n***\n", buf);
+  sleep(3);*/
+  in = open (buf, O_RDONLY);
+  if (in == -1)
+    {
+      if (errno == ENOENT)
+        return 1; /* Nothing to back up */
+      else
+        {
+          fprintf (stderr, "Cannot open savefile '%s'\n", buf);
+	  perror ("for input");
+          return 0;
+        }
+    }
+  strcpy (p, ".bak");
+  out = open (buf, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  if (out == -1)
+    {
+      close (in);
+      fprintf (stderr, "Cannot open backup savefile '%s'\n", buf);
+      perror ("for output");
+      return 0;
+    }
+
+  while ((n = read (in, buf, sizeof(buf))) > 0)
+    {
+      n = write (out, buf, n);
+      if (n < 0)
+        break;
+    }
+  close (out);
+  close (in);
+  if (n < 0)
+    perror ("I/O error while backing up savefile");
+  return n >= 0;
+}
+
 /* TODO: Some of the messages here (sorry no nethack for you!) are nethack specific
  * as may be some code... don't think so though. Globalize it. */ 
 int
@@ -1560,6 +1657,9 @@ main (int argc, char** argv)
 
   endwin ();
   signal(SIGWINCH, SIG_DFL);
+
+  if (!backup_savefile ())
+    graceful_exit (5);
 
   /* environment */
   snprintf (atrcfilename, 81, "@%s", rcfilename);

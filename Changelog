@@ -1,6 +1,9 @@
 1.4.5 (????/??/??)
 	* Reset offset if necessary to show at least one game  to avoid things
 	  like "(15-14 of 14)".
+	* Backup the savefile before starting nethack to help prevent more
+	  lost games. Note this must be explicitly configured in the
+	  configuration file.
 
 1.4.4 (2004/03/07)
 	* Show total number of games in progress below the list, useful if

@@ -65,6 +65,7 @@ COMMENT		^#.*
 "rc_template"	{ return TYPE_PATH_CANNED; }
 "passwd"	{ return TYPE_PATH_PASSWD; }
 "lockfile"	{ return TYPE_PATH_LOCKFILE; }
+"savefilefmt"	{ return TYPE_PATH_SAVEFILEFMT; }
 
 \n		{ line++; col = 0; }
 

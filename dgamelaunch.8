@@ -52,7 +52,7 @@ login(1)
 Ignored; solely for compatibility with
 .B
 login(1)
-.SH CRASH RECOVERY
+.SH "CRASH RECOVERY"
 .PP
 If a user somehow disconnects in an unclean way,
 .I
@@ -69,7 +69,17 @@ nethack does not shut down within 10 seconds,
 .I
 dgamelaunch
 will ask the user for permission to send it the SIGTERM signal, which causes
-nethack to terminate quickly.
+nethack to terminate quickly (without leaving a savefile usually).
+.PP
+In some cases (e.g. at "Restoring save file...--More--") nethack doesn't leave
+a savefile if sent SIGHUP. To avoid loss of games,
+.I
+dgamelaunch
+can backup the savefile. A human must then restore the backup if necessary.
+This must be configured with the
+.B
+savefilefmt
+option in the configuration file.
 .SH AUTHORS
 .PP
 M. Drew Streib wrote the original version.

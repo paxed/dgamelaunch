@@ -57,6 +57,7 @@ struct dg_config
   uid_t shed_uid;
   gid_t shed_gid;
   unsigned long max;
+  char* savefilefmt;
 };
 
 /* Global variables */

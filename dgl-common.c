@@ -29,7 +29,8 @@ struct dg_config defconfig = {
   /* shed_group = */ "games",
   /* shed_uid = */ 5,
   /* shed_gid = */ 60, /* games:games in Debian */
-  /* max = */ 64000 
+  /* max = */ 64000,
+  /* savefilefmt = */ "" /* don't do this by default */
 };
 
 char* config = NULL;
@@ -237,4 +238,5 @@ create_config ()
   if (!myconfig->spool) myconfig->spool = defconfig.spool;
   if (!myconfig->passwd) myconfig->passwd = defconfig.passwd;
   if (!myconfig->lockfile) myconfig->lockfile = defconfig.lockfile;
+  if (!myconfig->savefilefmt) myconfig->savefilefmt = defconfig.savefilefmt;
 }
