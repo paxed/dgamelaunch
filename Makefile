@@ -1,6 +1,6 @@
 VERSION = 1.3.10.1
 NAME = dgamelaunch
-exclusions = CVS .cvsignore
+exclusions = CVS .cvsignore tags
 
 ifndef optimize
   optimize = -O0

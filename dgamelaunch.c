@@ -338,9 +338,9 @@ inprogressmenu ()
             exit (145);
           else
             *replacestr = '\0';
-	  
+
           replacestr = strchr (ttyrecname, ':');
-	  
+
           if (!replacestr)
             exit (145);
 
