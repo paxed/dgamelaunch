@@ -2,10 +2,12 @@
 
 # Original by joshk@triplehelix.org, modifications by jilles@stack.nl
 
-# settings
+# Settings
+# Don't customize here, create a dgl-create-chroot.conf file instead.
+# The defaults should work fine for Debian.
 # path for chroot
 chroot_path="/var/lib/dgamelaunch"
-# uid/gid, must agree with dgamelaunch.h
+# uid/gid (numeric), must agree with dgamelaunch.h
 shed_uid=5
 shed_gid=60
 # extra libraries to copy (that ldd doesn't find, such as ld-elf.so.1 on

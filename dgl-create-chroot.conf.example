@@ -1,0 +1,12 @@
+#!/bin/sh
+# Example configuration, for my FreeBSD 4 machine, using nethack from ports.
+# This file created by Jilles Tjoelker <jilles@stack.nl>.
+
+chroot_path="/home/jilles/src/3rdparty/dgamelaunch-chroot-2"
+shed_uid=1031
+shed_gid=1031
+libs="/usr/libexec/ld-elf.so.1"
+playground_fixed="/usr/local/lib/nethack"
+playground_var="/usr/local/lib/nethack"
+nethack_bin="$playground_fixed/nethack"
+termdata="/usr/share/misc/termcap"
