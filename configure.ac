@@ -78,7 +78,7 @@ AC_ARG_WITH(config-file,
 AC_DEFINE_UNQUOTED(DEFCONFIG, "$configfile", [Path to the default config file.])
 
 AC_CHECK_HEADERS([sys/pstat.h])
-AC_CHECK_FUNCS([openpty setenv setproctitle pstat])
+AC_CHECK_FUNCS([openpty setenv setproctitle pstat kqueue])
 
 if test "$ac_cv_func_setproctitle" = no; then
   SETPROCTITLE_C=setproctitle.c

@@ -31,9 +31,14 @@
  * SUCH DAMAGE.
  */
 
+#include "config.h"
+
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+#ifdef HAVE_KQUEUE
+#include <sys/event.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -137,10 +142,27 @@ ttyread (FILE * fp, Header * h, char **buf, int pread)
 int
 ttypread (FILE * fp, Header * h, char **buf, int pread)
 {
+  int n;
+#ifdef HAVE_KQUEUE
+  struct kevent evt[2];
+  static int kq = -1;
+#else
+  struct timeval w = { 0, 100000 };
   int counter = 0;
   fd_set readfs;
-  struct timeval w = { 0, 100000 };
+#endif
   struct termios t;
+  int doread = 0;
+
+#ifdef HAVE_KQUEUE
+  if (kq == -1)
+    kq = kqueue ();
+  if (kq == -1)
+    {
+      printf ("kqueue() failed.\n");
+      exit (1);
+    }
+#endif
 
   /*
    * Read persistently just like tail -f.
@@ -149,16 +171,37 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
     {
       fflush(stdout);
       clearerr (fp);
+#ifdef HAVE_KQUEUE
+      EV_SET (&evt[0], STDIN_FILENO, EVFILT_READ, EV_ADD | EV_ONESHOT, 0, 0, NULL);
+      EV_SET (&evt[1], fileno (fp), EVFILT_READ, EV_ADD | EV_ONESHOT, 0, 0, NULL);
+      n = kevent (kq, evt, 2, evt, 1, NULL);
+      doread = (n >= 1 && evt[0].ident == STDIN_FILENO &&
+        evt[0].filter == EVFILT_READ) ||
+        (n >= 2 && evt[1].ident == STDIN_FILENO &&
+	 evt[1].filter == EVFILT_READ);
+#else
       if (counter++ > (20 * 60 * 10))
         {
+	  /*
+	   * The reason for this timeout is that the select() method uses
+	   * some CPU in waiting. The kqueue() method does not do that, so it
+	   * does not need the timeout.
+	   */
           endwin ();
           printf ("Exiting due to 20 minutes of inactivity.\n");
           exit (-23);
         }
       FD_ZERO (&readfs);
       FD_SET (STDIN_FILENO, &readfs);
-      select (1, &readfs, NULL, NULL, &w);
-      if (FD_ISSET (0, &readfs))
+      n = select (1, &readfs, NULL, NULL, &w);
+      doread = n >= 1 && FD_ISSET (0, &readfs);
+#endif
+      if (n == -1)
+	{
+	  printf("select()/kevent() failed.\n");
+	  exit (1);
+	}
+      if (doread)
         {                       /* user hits a character? */
           char c;
           read (STDIN_FILENO, &c, 1); /* drain the character */

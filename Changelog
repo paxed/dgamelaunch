@@ -4,6 +4,7 @@
 	* Fix bug where old cruft was left under the watch list after 'm'
 	  had been used.
 	* Allow ^L and ^R to fully refresh the watch list.
+	* Use kqueue() if available (FreeBSD) to improve watching.
 
 1.4.6 (2004/07/03)
 	* Fix some signed/unsigned warnings.
