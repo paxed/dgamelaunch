@@ -64,7 +64,7 @@ extern void initncurses (void);
 extern struct dg_user *deep_copy (struct dg_user *src);
 extern void loginprompt (void);
 extern void newuser (void);
-extern int passwordgood (char *cname, char *cpw);
+extern int passwordgood (char *cpw);
 extern int readfile (int nolock);
 extern int userexist (char *cname);
 extern void write_canned_rcfile (char *target);

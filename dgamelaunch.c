@@ -56,6 +56,11 @@
 # include <libutil.h>
 #endif
 
+#ifdef __linux__
+# include <pty.h>
+#endif
+
+#include <grp.h>
 #include <time.h>
 #include <sys/resource.h>
 #include <sys/ioctl.h>          /* ttyrec */
@@ -680,7 +685,7 @@ loginprompt ()
   getnstr (pw_buf, 20);
   echo ();
 
-  if (passwordgood (user_buf, pw_buf))
+  if (passwordgood (pw_buf))
     {
       loggedin = 1;
       snprintf (rcfilename, 80, "%s%s.nethackrc", LOC_DGLDIR, me->username);
@@ -788,8 +793,11 @@ newuser ()
 /* ************************************************************* */
 
 int
-passwordgood (char *cname, char *cpw)
+passwordgood (char *cpw)
 {
+  if (me == NULL)
+    return 1;
+
   if (!strncmp (crypt (cpw, cpw), me->password, 13))
     return 1;
   if (!strncmp (cpw, me->password, 20))
