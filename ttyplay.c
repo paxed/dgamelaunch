@@ -129,13 +129,14 @@ ttyread (FILE * fp, Header * h, char **buf, int pread)
 
   if (read_header (fp, h) == 0)
     {
-      return 0;
+      return READ_EOF;
     }
 
   /* length should never be longer than one BUFSIZ */
   if (h->len > BUFSIZ)
     {
-      fprintf (stderr, "h->len too big (%d) limit %d\n", h->len, BUFSIZ);
+      fprintf (stderr, "h->len too big (%ld) limit %ld\n",
+		      (long)h->len, (long)BUFSIZ);
       exit (-21);
     }
 
@@ -149,9 +150,9 @@ ttyread (FILE * fp, Header * h, char **buf, int pread)
   if (fread (*buf, 1, h->len, fp) != h->len)
     {
       fseek (fp, offset, SEEK_SET);
-      return 0;
+      return READ_EOF;
     }
-  return 1;
+  return READ_DATA;
 }
 
 int
@@ -167,7 +168,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
   /*
    * Read persistently just like tail -f.
    */
-  while (ttyread (fp, h, buf, 1) == 0)
+  while (ttyread (fp, h, buf, 1) == READ_EOF)
     {
       struct timeval w = { 0, 100000 };
       select (0, NULL, NULL, NULL, &w);
@@ -177,7 +178,6 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
           endwin ();
           printf ("Exiting due to 20 minutes of inactivity.\n");
           exit (-23);
-          return 0;
         }
 
 
@@ -191,20 +191,20 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
           switch (c)
             {
             case 'q':
-              return 0;
+              return READ_EOF;
               break;
             case 'm':
               if (loggedin)
                 {
                   initcurses ();
                   domailuser (chosen_name);
-                  return 0;
+                  return READ_RESTART;
                 }
               break;
             }
         }
     }
-  return 1;
+  return READ_DATA;
 }
 
 void
@@ -229,11 +229,12 @@ ttynowrite (char *buf, int len)
   /* do nothing */
 }
 
-void
+int
 ttyplay (FILE * fp, double speed, ReadFunc read_func,
          WriteFunc write_func, WaitFunc wait_func, off_t offset)
 {
   int first_time = 1;
+  int r = READ_EOF;
   struct timeval prev;
 
   setbuf (stdout, NULL);
@@ -250,7 +251,8 @@ ttyplay (FILE * fp, double speed, ReadFunc read_func,
       char *buf;
       Header h;
 
-      if (read_func (fp, &h, &buf, 0) == 0)
+      r = read_func (fp, &h, &buf, 0);
+      if (r != READ_DATA)
         {
           break;
         }
@@ -265,6 +267,7 @@ ttyplay (FILE * fp, double speed, ReadFunc read_func,
       prev = h.tv;
       free (buf);
     }
+  return r;
 }
 
 void
@@ -322,7 +325,7 @@ set_seek_offset_clrscr (FILE * fp)
       char *buf;
       Header h;
 
-      if (ttyread (fp, &h, &buf, 0) == 0)
+      if (ttyread (fp, &h, &buf, 0) != READ_DATA)
         {
           break;
         }
@@ -353,15 +356,20 @@ ttyplayback (FILE * fp, double speed, ReadFunc read_func, WaitFunc wait_func)
 }
 
 void
-ttypeek (FILE * fp, double speed, ReadFunc read_func, WaitFunc wait_func)
+ttypeek (FILE * fp, double speed)
 {
-  ttyskipall (fp);
-  set_seek_offset_clrscr (fp);
-  if (seek_offset_clrscr)
-    {
-      ttyplay (fp, 0, ttyread, ttywrite, ttynowait, seek_offset_clrscr);
-    }
-  ttyplay (fp, speed, ttypread, ttywrite, ttynowait, 0);
+  int r;
+
+  do
+  {
+    ttyskipall (fp);
+    set_seek_offset_clrscr (fp);
+    if (seek_offset_clrscr)
+      {
+        ttyplay (fp, 0, ttyread, ttywrite, ttynowait, seek_offset_clrscr);
+      }
+    r = ttyplay (fp, speed, ttypread, ttywrite, ttynowait, 0);
+  } while (r == READ_RESTART);
 }
 
 
@@ -371,7 +379,6 @@ ttyplay_main (char *ttyfile, int mode, int rstripgfx)
   double speed = 1.0;
   ReadFunc read_func = ttyread;
   WaitFunc wait_func = ttywait;
-  ProcessFunc process = ttyplayback;
   FILE *input = stdin;
   struct termios old, new;
 
@@ -382,9 +389,6 @@ ttyplay_main (char *ttyfile, int mode, int rstripgfx)
 
   seek_offset_clrscr = 0;
 
-  if (mode == 1)
-    process = ttypeek;
-
   input = efopen (ttyfile, "r");
 
   tcgetattr (0, &old);          /* Get current terminal state */
@@ -394,7 +398,11 @@ ttyplay_main (char *ttyfile, int mode, int rstripgfx)
   new.c_cc[VTIME] = 0;
   tcsetattr (0, TCSANOW, &new); /* Make it current */
 
-  process (input, speed, read_func, wait_func);
+  if (mode == 1)
+    ttypeek (input, speed);
+  else
+    ttyplayback (input, speed, read_func, wait_func);
+
   tcsetattr (0, TCSANOW, &old); /* Return terminal state */
 
   return 0;
