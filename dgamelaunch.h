@@ -3,6 +3,7 @@
 #ifndef __DGAMELAUNCH_H
 #define __DGAMELAUNCH_H
 
+#include <sys/types.h>
 #include <time.h>
 
 /* Default - should work everywhere */
@@ -50,7 +51,7 @@ struct dg_game
 /* dgamelaunch.c function prototypes */
 extern void ttyrec_getmaster (void);
 extern void gen_ttyrec_filename (void);
-extern void gen_inprogress_lock (void);
+extern void gen_inprogress_lock (pid_t pid);
 extern void catch_sighup (int signum);
 extern void loadbanner (struct dg_banner *ban);
 extern void drawbanner (unsigned int start_line, unsigned int howmany);

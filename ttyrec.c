@@ -145,6 +145,7 @@ ttyrec_main (char *username)
         {
           close (slave);
           pid_game = child;
+	  gen_inprogress_lock(pid_game);
           dooutput ();
         }
       else

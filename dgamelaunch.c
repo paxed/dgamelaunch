@@ -134,12 +134,14 @@ gen_ttyrec_filename ()
 /* ************************************************************* */
 
 void
-gen_inprogress_lock ()
+gen_inprogress_lock (pid_t pid)
 {
-  char lockfile[130];
+  char lockfile[130], pidbuf[16];
   int fd;
   struct flock fl = { 0 };
 
+  snprintf(pidbuf, 16, "%.15d", pid);
+  
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
   fl.l_start = 0;
@@ -151,6 +153,8 @@ gen_inprogress_lock ()
   fd = open (lockfile, O_WRONLY | O_CREAT, 0644);
   if (fcntl (fd, F_SETLKW, &fl) == -1)
     graceful_exit (68);
+
+  write(fd, pidbuf, strlen(pidbuf));
 }
 
 /* ************************************************************* */
@@ -1110,6 +1114,47 @@ graceful_exit (int status)
 /* ************************************************************* */
 /* ************************************************************* */
 
+void
+purge_stale_locks (void)
+{
+  DIR* pdir;
+  struct dirent *dent;
+
+  if (!(pdir = opendir(LOC_INPROGRESSDIR)))
+      graceful_exit(200);
+
+  while ((dent = readdir(pdir)) != NULL)
+  {
+    FILE* ipfile;
+    char* colon;
+    char buf[16];
+    pid_t pid;
+    
+    colon = strchr(dent->d_name, ':');
+    /* should never happen */
+    if (!colon)
+      graceful_exit(201);
+
+    if (strncmp(dent->d_name, me->username, colon - dent->d_name))
+      continue;
+
+    if (!(ipfile = fopen(dent->d_name, "r")))
+      graceful_exit(202);
+
+    if (fgets(buf, 16, ipfile) == NULL)
+      graceful_exit(203);
+
+    fclose(ipfile);
+    unlink(dent->d_name);
+
+    pid = atoi(buf);
+
+    kill(pid, SIGHUP);
+  }
+  
+  closedir(pdir);
+}
+
 int
 main (void)
 {
@@ -1213,6 +1258,8 @@ main (void)
 
   endwin ();
 
+  purge_stale_locks();
+  
   /* environment */
   snprintf (atrcfilename, 81, "@%s", rcfilename);
 
@@ -1232,7 +1279,6 @@ main (void)
 
   /* lock */
   gen_ttyrec_filename ();
-  gen_inprogress_lock ();
 
   /* launch program */
   ttyrec_main (me->username);
