@@ -117,18 +117,30 @@ populate_games (int *l)
           /* clean dead ones */
           unlink (fullname);
         }
-      fl.l_type = F_UNLCK;
-
-      fcntl (fd, F_SETLK, &fl);
+      close (fd);
 
       fl.l_type = F_WRLCK;
-      
-      close (fd);
     }
 
   closedir (pdir);
   *l = len;
   return games;
+}
+
+  void
+graceful_exit (int status)
+{
+  /*FILE *fp;
+     if (status != 1) 
+     { 
+     fp = fopen ("/crash.log", "a");
+     char buf[100];
+     sprintf (buf, "graceful_exit called with status %d", status);
+     fputs (buf, fp);
+     } 
+     This doesn't work. Ever.
+   */
+  exit (status);
 }
 
 void
@@ -151,80 +163,54 @@ create_config ()
       graceful_exit(104);
       return;
     }
-
-    if (!myconfig) /* a parse error occurred */
-    {
-      myconfig = &defconfig;
-      return;
-    }
-    /* Fill the rest with defaults */
-    if (!myconfig->shed_user && myconfig->shed_uid == -1)
-    {
-      struct passwd *pw;
-      if ((pw = getpwnam(defconfig.shed_user)))
-        myconfig->shed_uid = pw->pw_uid;
-      else
-	myconfig->shed_uid = defconfig.shed_uid;
-    }
-
-    if (!myconfig->shed_group && myconfig->shed_gid == -1)
-    {
-      struct group *gr;
-      if ((gr = getgrnam(defconfig.shed_group)))
-	myconfig->shed_gid = gr->gr_gid;
-      else
-	myconfig->shed_gid = defconfig.shed_gid;
-    }
-
-    if (myconfig->max == 0 && !set_max) myconfig->max = defconfig.max;
-    if (!myconfig->banner) myconfig->banner = defconfig.banner;
-    if (!myconfig->chroot) myconfig->chroot = defconfig.chroot;
-    if (!myconfig->nethack) myconfig->nethack = defconfig.nethack;
-    if (!myconfig->dglroot) myconfig->dglroot = defconfig.dglroot;
-    if (!myconfig->rcfile) myconfig->rcfile = defconfig.rcfile;
-    if (!myconfig->spool) myconfig->spool = defconfig.spool;
-    if (!myconfig->passwd) myconfig->passwd = defconfig.passwd;
-    if (!myconfig->lockfile) myconfig->lockfile = defconfig.lockfile;
   }
   else
+  {
+#ifdef DEFCONFIG
+    config = DEFCONFIG;
+    if ((config_file = fopen(DEFCONFIG, "r")) != NULL)
+    {
+      yyin = config_file;
+      yyparse();
+      fclose(config_file);
+    }
+#else
+    myconfig = &defconfig;
+    return;
+#endif
+  }
+
+  if (!myconfig) /* a parse error occurred */
   {
     myconfig = &defconfig;
+    return;
   }
-}
-
-#if !defined(BSD) && !defined(__linux__)
-int
-mysetenv (const char* name, const char* value, int overwrite)
-{
-  int retval;
-  char *buf = NULL;
-  
-  if (getenv(name) == NULL || overwrite)
+  /* Fill the rest with defaults */
+  if (!myconfig->shed_user && myconfig->shed_uid == -1)
   {
-    size_t len = strlen(name) + 1 + strlen(value) + 1; /* NAME=VALUE\0 */
-    buf = malloc(len);
-    snprintf(buf, len, "%s=%s", name, value);
-    retval = putenv(buf);
+    struct passwd *pw;
+    if ((pw = getpwnam(defconfig.shed_user)))
+      myconfig->shed_uid = pw->pw_uid;
+    else
+      myconfig->shed_uid = defconfig.shed_uid;
   }
-  else
-    retval = -1;
-  
-  return retval;  
-}
-#endif
 
-void
-graceful_exit (int status)
-{
-  /*FILE *fp;
-     if (status != 1) 
-     { 
-     fp = fopen ("/crash.log", "a");
-     char buf[100];
-     sprintf (buf, "graceful_exit called with status %d", status);
-     fputs (buf, fp);
-     } 
-     This doesn't work. Ever.
-   */
-  exit (status);
+  if (!myconfig->shed_group && myconfig->shed_gid == -1)
+  {
+    struct group *gr;
+    if ((gr = getgrnam(defconfig.shed_group)))
+      myconfig->shed_gid = gr->gr_gid;
+    else
+      myconfig->shed_gid = defconfig.shed_gid;
+  }
+
+  if (myconfig->max == 0 && !set_max) myconfig->max = defconfig.max;
+  if (!myconfig->banner) myconfig->banner = defconfig.banner;
+  if (!myconfig->chroot) myconfig->chroot = defconfig.chroot;
+  if (!myconfig->nethack) myconfig->nethack = defconfig.nethack;
+  if (!myconfig->dglroot) myconfig->dglroot = defconfig.dglroot;
+  if (!myconfig->rcfile) myconfig->rcfile = defconfig.rcfile;
+  if (!myconfig->spool) myconfig->spool = defconfig.spool;
+  if (!myconfig->passwd) myconfig->passwd = defconfig.passwd;
+  if (!myconfig->lockfile) myconfig->lockfile = defconfig.lockfile;
 }

@@ -6,6 +6,10 @@
 	  writing a full file all the time. (jilles)
 	* Don't write rcfiles if they already exist. (i.e., lost account
 	  holders recreating their accounts.
+	* Allow administrator to hardcode a dgamelaunch.conf path.
+	* Include dgl-wall, which notifies all logged in users with
+	  a mail message.
+	* Split common functions into dgl-common.c.
 
 1.4.1 (2004/02/13)
 	* Don't explicitly unlock the lock file before fclosing it;
