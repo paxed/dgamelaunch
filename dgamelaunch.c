@@ -1052,7 +1052,9 @@ newuser ()
   loggedin = 1;
 
   snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
-  write_canned_rcfile (rcfilename);
+
+  if (access (rcfilename, R_OK) == -1)
+    write_canned_rcfile (rcfilename);
 
   /* create their ttyrec dir */
   snprintf (dirname, 100, "%sttyrec/%s", myconfig->dglroot, me->username);
