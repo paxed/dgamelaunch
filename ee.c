@@ -49,7 +49,7 @@
  |	proprietary information which is protected by
  |	copyright.  All rights are reserved.
  |
- |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.5 2004/01/23 19:50:39 joshk Exp $
+ |	$Header: /var/cvs/dgamelaunch/ee.c,v 1.6 2004/01/24 21:49:13 joshk Exp $
  |
  */
 
@@ -62,7 +62,7 @@ char *ee_long_notice[] = {
 	"copyright.  All rights are reserved."
 	};
 
-char *version = "@(#) ee, version 1.4.1  $Revision: 1.5 $";
+char *version = "@(#) ee, version 1.4.1  $Revision: 1.6 $";
 
 #define catgetlocal(a, b) (b)
 
@@ -145,17 +145,12 @@ int out_pipe;			/* flag that info is piped out		*/
 int in_pipe;			/* flag that info is piped in		*/
 int formatted = FALSE;		/* flag indicating paragraph formatted	*/
 int auto_format = FALSE;	/* flag for auto_format mode		*/
-int restricted = FALSE;		/* flag to indicate restricted mode	*/
 int nohighlight = FALSE;	/* turns off highlighting		*/
 int eightbit = TRUE;		/* eight bit character flag		*/
 int local_LINES = 0;		/* copy of LINES, to detect when win resizes */
 int local_COLS = 0;		/* copy of COLS, to detect when win resizes  */
 int curses_initialized = FALSE;	/* flag indicating if curses has been started*/
 int emacs_keys_mode = FALSE;	/* mode for if emacs key binings are used    */
-int ee_chinese = FALSE;		/* allows handling of multi-byte characters  */
-				/* by checking for high bit in a byte the    */
-				/* code recognizes a two-byte character      */
-				/* sequence				     */
 
 unsigned char *point;		/* points to current position in line	*/
 unsigned char *srch_str;	/* pointer for search string		*/
@@ -253,7 +248,6 @@ char *get_string P_((char *prompt, int advance));
 int compare P_((char *string1, char *string2, int sensitive));
 void goto_line P_((char *cmd_str));
 void midscreen P_((int line, unsigned char *pnt));
-void get_options P_((int numargs, char *arguments[]));
 void check_fp P_((void));
 void get_file P_((char *file_name));
 void get_line P_((int length, unsigned char *in_string, int *append));
@@ -295,7 +289,6 @@ void Auto_Format P_((void));
 void modes_op P_((void));
 char *is_in_string P_((char *string, char *substring));
 char *resolve_name P_((char *name));
-int restrict_mode P_((void));
 int unique_test P_((char *string, char *list[]));
 void strings_init P_((void));
 
@@ -314,20 +307,12 @@ struct menu_entries modes_menu[] = {
 	{"", NULL, NULL, NULL, NULL, -1}, 	/* 6. info window	*/
 	{"", NULL, NULL, NULL, NULL, -1}, 	/* 7. emacs key bindings*/
 	{"", NULL, NULL, NULL, NULL, -1}, 	/* 8. right margin	*/
-	{"", NULL, NULL, NULL, NULL, -1}, 	/* 9. chinese text	*/
 	{NULL, NULL, NULL, NULL, NULL, -1}	/* terminator		*/
 	};
 
 char *mode_strings[11]; 
 
 #define NUM_MODES_ITEMS 10
-
-struct menu_entries config_dump_menu[] = {
-	{"", NULL, NULL, NULL, NULL, 0}, 
-	{"", NULL, NULL, NULL, NULL, -1},
-	{"", NULL, NULL, NULL, NULL, -1},
-	{NULL, NULL, NULL, NULL, NULL, -1}
-	};
 
 struct menu_entries leave_menu[] = {
 	{"", NULL, NULL, NULL, NULL, -1}, 
@@ -416,11 +401,8 @@ char *continue_msg;
 char *menu_cancel_msg;
 char *menu_size_err_msg;
 char *press_any_key_msg;
-char *shell_prompt;
 char *formatting_msg;
-char *shell_echo_msg;
 char *margin_prompt;
-char *restricted_msg;
 char *ON;
 char *OFF;
 char *HELP;
@@ -454,15 +436,10 @@ char *EIGHTBIT;
 char *NOEIGHTBIT;
 char *EMACS_string;
 char *NOEMACS_string;
-char *conf_dump_err_msg;
-char *conf_dump_success_msg;
-char *conf_not_saved_msg;
 char *ree_no_file_msg;
 char *cancel_string;
 char *menu_too_lrg_msg;
 char *more_above_str, *more_below_str;
-
-char *chinese_cmd, *nochinese_cmd;
 
 #ifndef __STDC__
 #ifndef HAS_STDLIB
@@ -512,21 +489,26 @@ char *argv[];
 	edit = TRUE;
 	gold = case_sen = FALSE;
 	strings_init();
-	if (argc > 0 )
-		get_options(argc, argv);
+
+	if (argc != 2)
+	{
+	  puts("need a filename! bailing out.");
+	  return 1;
+	}
+	else
+	{
+	  struct files* temp_names;
+	  temp_names = top_of_stack = name_alloc();
+	  temp_names->next_name = NULL;
+	  temp_names->name = strdup(argv[1]);
+	  input_file = recv_file = TRUE;
+	}
+	
 	set_up_term();
 	if (right_margin == 0)
 		right_margin = COLS - 1;
 	if (top_of_stack == NULL)
 	{
-		if (restrict_mode())
-		{
-			wmove(com_win, 0, 0);
-			werase(com_win);
-			wprintw(com_win, ree_no_file_msg);
-			wrefresh(com_win);
-			edit_abort(0);
-		}
 		wprintw(com_win, no_file_string);
 		wrefresh(com_win);
 	}
@@ -692,10 +674,6 @@ int disp;
 	{
 		text_changes = TRUE;
 		temp2 = tp = point;
-		if ((ee_chinese) && (position >= 2) && (*(point - 2) > 127))
-		{
-			del_width = 2;
-		}
 		tp -= del_width;
 		point -= del_width;
 		position -= del_width;
@@ -1305,11 +1283,6 @@ int disp;
 {
 	if (point != curr_line->line)	/* if not at begin of line	*/
 	{
-		if ((ee_chinese) && (position >= 2) && (*(point - 2) > 127))
-		{
-			point--;
-			position--;
-		}
 		point--;
 		position--;
 		scanline(point);
@@ -1339,12 +1312,6 @@ int disp;
 {
 	if (position < curr_line->line_length)
 	{
-		if ((ee_chinese) && (*point > 127) && 
-		    ((curr_line->line_length - position) >= 2))
-		{
-			point++;
-			position++;
-		}
 		point++;
 		position++;
 		scanline(point);
@@ -1383,8 +1350,7 @@ find_pos()		/* move to the same column as on other line	*/
 			scr_horz += tabshift(scr_horz);
 		else if (*point < ' ')
 			scr_horz += 2;
-		else if ((ee_chinese) && (*point > 127) && 
-		    ((curr_line->line_length - position) >= 2))
+		else if ((*point > 127) && ((curr_line->line_length - position) >= 2))
 		{
 			scr_horz += 2;
 			point++;
@@ -1578,40 +1544,6 @@ char *cmd_str1;
 	clear_com_win = TRUE;
 	if (compare(cmd_str, HELP, FALSE))
 		help();
-	else if (compare(cmd_str, WRITE, FALSE))
-	{
-		if (restrict_mode())
-		{
-			return;
-		}
-		cmd_str = next_word(cmd_str);
-		if (*cmd_str == (char) NULL)
-		{
-			cmd_str = cmd_str2 = get_string(file_write_prompt_str, TRUE);
-		}
-		tmp_file = resolve_name(cmd_str);
-		write_file(tmp_file, -1);
-		if (tmp_file != cmd_str)
-			free(tmp_file);
-	}
-	else if (compare(cmd_str, READ, FALSE))
-	{
-		if (restrict_mode())
-		{
-			return;
-		}
-		cmd_str = next_word(cmd_str);
-		if (*cmd_str == (char) NULL)
-		{
-			cmd_str = cmd_str2 = get_string(file_read_prompt_str, TRUE);
-		}
-		tmp_file = cmd_str;
-		recv_file = TRUE;
-		tmp_file = resolve_name(cmd_str);
-		check_fp();
-		if (tmp_file != cmd_str)
-			free(tmp_file);
-	}
 	else if (compare(cmd_str, LINE, FALSE))
 	{
 		wmove(com_win, 0, 0);
@@ -1669,20 +1601,6 @@ char *cmd_str1;
 		expand_tabs = FALSE;
 	else if (compare(cmd_str, Exit_string, FALSE))
 		ee_finish();
-	else if (compare(cmd_str, chinese_cmd, FALSE))
-	{
-		ee_chinese = TRUE;
-#ifdef NCURSE
-		nc_setattrib(A_NC_BIG5);
-#endif /* NCURSE */
-	}
-	else if (compare(cmd_str, nochinese_cmd, FALSE))
-	{
-		ee_chinese = FALSE;
-#ifdef NCURSE
-		nc_clearattrib(A_NC_BIG5);
-#endif /* NCURSE */
-	}
 	else if (compare(cmd_str, QUIT_string, FALSE))
 		quit(0);
 	else if ((*cmd_str == '<') && (!in_pipe))
@@ -1861,7 +1779,7 @@ char *cmd_str;
 	int number;
 	int i;
 	char *ptr;
-	char *direction;
+	char *direction = NULL;
 	struct text *t_line;
 
 	ptr = cmd_str;
@@ -1923,89 +1841,6 @@ unsigned char *pnt;
 	curr_line = mid_line;
 	scanline(pnt);
 	wmove(text_win, scr_vert, (scr_horz - horiz_offset));
-}
-
-void 
-get_options(numargs, arguments)	/* get arguments from command line	*/
-int numargs;
-char *arguments[];
-{
-	char *buff;
-	int count;
-	struct files *temp_names;
-	char *name;
-	char *ptr;
-
-	/*
-	 |	see if editor was invoked as 'ree' (restricted mode)
-	 */
-
-	if (!(name = strrchr(arguments[0], '/')))
-		name = arguments[0];
-	else
-		name++;
-	if (!strcmp(name, "ree"))
-		restricted = TRUE;
-
-	top_of_stack = NULL;
-	input_file = FALSE;
-	recv_file = FALSE;
-	count = 1;
-	while (count < numargs)
-	{
-		buff = arguments[count];
-		if (!strcmp("-i", buff))
-		{
-			info_window = FALSE;
-		}
-		else if (!strcmp("-e", buff))
-		{
-			expand_tabs = FALSE;
-		}
-		else if (!strcmp("-h", buff))
-		{
-			nohighlight = TRUE;
-		}
-		else if (!strcmp("-?", buff))
-		{
-			fprintf(stderr, usage0, arguments[0]);
-			fprintf(stderr, usage1);
-			fprintf(stderr, usage2);
-			fprintf(stderr, usage3);
-			fprintf(stderr, usage4);
-			exit(1);
-		}
-		else if (*buff == '+')
-		{
-			buff++;
-			start_at_line = buff;
-		}
-
-		else
-		{
-			if (top_of_stack == NULL)
-			{
-				temp_names = top_of_stack = name_alloc();
-			}
-			else
-			{
-				temp_names->next_name = name_alloc();
-				temp_names = temp_names->next_name;
-			}
-			ptr = temp_names->name = malloc(strlen(buff) + 1);
-			while (*buff != (char) NULL)
-			{
-				*ptr = *buff;
-				buff++;
-				ptr++;
-			}
-			*ptr = (char) NULL;
-			temp_names->next_name = NULL;
-			input_file = TRUE;
-			recv_file = TRUE;
-		}
-		count++;
-	}
 }
 
 void 
@@ -2581,8 +2416,7 @@ del_char()			/* delete current character	*/
 	in = 8;  /* backspace */
 	if (position < curr_line->line_length)	/* if not end of line	*/
 	{
-		if ((ee_chinese) && (*point > 127) && 
-		    ((curr_line->line_length - position) >= 2))
+		if ((*point > 127) && ((curr_line->line_length - position) >= 2))
 		{
 			point++;
 			position++;
@@ -2962,12 +2796,6 @@ set_up_term()		/* set up the terminal for operating with ae	*/
 	last_col = COLS - 1;
 	local_LINES = LINES;
 	local_COLS = COLS;
-
-#ifdef NCURSE
-	if (ee_chinese)
-		nc_setattrib(A_NC_BIG5);
-#endif /* NCURSE */
-
 }
 
 void 
@@ -3409,11 +3237,6 @@ int arg;
 {
 	char *string;
 	int flag;
-
-	if (restrict_mode())
-	{
-		return(0);
-	}
 
 	if (arg == SAVE_FILE)
 	{
@@ -4116,8 +3939,6 @@ modes_op()
 					(emacs_keys_mode ? ON : OFF));
 		sprintf(modes_menu[8].item_string, "%s %d", mode_strings[8], 
 					right_margin);
-		sprintf(modes_menu[9].item_string, "%s %s", mode_strings[9], 
-					(ee_chinese ? ON : OFF));
 
 		ret_value = menu_op(modes_menu);
 
@@ -4139,14 +3960,6 @@ modes_op()
 				break;
 			case 5:
 				eightbit = !eightbit;
-				if (!eightbit)
-					ee_chinese = FALSE;
-#ifdef NCURSE
-				if (ee_chinese)
-					nc_setattrib(A_NC_BIG5);
-				else
-					nc_clearattrib(A_NC_BIG5);
-#endif /* NCURSE */
 
 				redraw();
 				wnoutrefresh(text_win);
@@ -4171,18 +3984,6 @@ modes_op()
 						right_margin = counter;
 					free(string);
 				}
-				break;
-			case 9:
-				ee_chinese = !ee_chinese;
-				if (ee_chinese != FALSE)
-					eightbit = TRUE;
-#ifdef NCURSE
-				if (ee_chinese)
-					nc_setattrib(A_NC_BIG5);
-				else
-					nc_clearattrib(A_NC_BIG5);
-#endif /* NCURSE */
-				redraw();
 				break;
 			default:
 				break;
@@ -4339,20 +4140,6 @@ char *name;
 	return(buffer);
 }
 
-int
-restrict_mode()
-{
-	if (!restricted)
-		return(FALSE);
-
-	wmove(com_win, 0, 0);
-	wprintw(com_win, restricted_msg);
-	wclrtoeol(com_win);
-	wrefresh(com_win);
-	clear_com_win = TRUE;
-	return(TRUE);
-}
-
 /*
  |	The following routine tests the input string against the list of 
  |	strings, to determine if the string is a unique match with one of the 
@@ -4426,8 +4213,8 @@ strings_init()
 	help_text[10] = catgetlocal( 45, "                                                                           ");
 	help_text[11] = catgetlocal( 46, "Commands:                                                                  ");
 	help_text[12] = catgetlocal( 47, "help    : get this info                 file    : print file name          ");
-	help_text[13] = catgetlocal( 48, "read    : read a file                   char    : ascii code of char       ");
-	help_text[14] = catgetlocal( 49, "write   : write a file                  case    : case sensitive search    ");
+	help_text[13] = catgetlocal( 48, "read    : (disabled)                    char    : ascii code of char       ");
+	help_text[14] = catgetlocal( 49, "write   : (disabled)                    case    : case sensitive search    ");
 	help_text[15] = catgetlocal( 50, "exit    : leave and save                nocase  : case insensitive search  ");
 	help_text[16] = catgetlocal( 51, "quit    : leave, no save                !cmd    : (disabled)               ");
 	help_text[17] = catgetlocal( 52, "line    : display line #                0-9     : go to line \"#\"           ");
@@ -4441,8 +4228,8 @@ strings_init()
 	control_keys[3] = catgetlocal( 60, "^t top of text    ^o end of line    ^v undelete word  ^r right                ");
 	control_keys[4] = catgetlocal( 61, "^c command        ^k delete char    ^f undelete char                          ");
 	command_strings[0] = catgetlocal( 62, "help : get help info  |file  : print file name         |line : print line # ");
-	command_strings[1] = catgetlocal( 63, "read : read a file    |char  : ascii code of char      |0-9 : go to line \"#\"");
-	command_strings[2] = catgetlocal( 64, "write: write a file   |case  : case sensitive search   |exit : leave and save ");
+	command_strings[1] = catgetlocal( 63, "read : (disabled)     |char  : ascii code of char      |0-9 : go to line \"#\"");
+	command_strings[2] = catgetlocal( 64, "write: (disabled)     |case  : case sensitive search   |exit : leave and save ");
 	command_strings[3] = catgetlocal( 65, "!cmd : (disabled)     |nocase: ignore case in search   |quit : leave, no save");
 	command_strings[4] = catgetlocal( 66, "expand: expand tabs   |noexpand: do not expand tabs                           ");
 	com_win_message = catgetlocal( 67, "    press Escape (^[) for menu");
@@ -4484,11 +4271,8 @@ strings_init()
 	menu_cancel_msg = catgetlocal( 105, "press Esc to cancel");
 	menu_size_err_msg = catgetlocal( 106, "menu too large for window");
 	press_any_key_msg = catgetlocal( 107, "press any key to continue ");
-	shell_prompt = catgetlocal( 108, "shell command: ");
 	formatting_msg = catgetlocal( 109, "...formatting paragraph...");
-	shell_echo_msg = catgetlocal( 110, "<!echo 'list of unrecognized words'; echo -=-=-=-=-=-");
 	margin_prompt = catgetlocal( 112, "right margin is: ");
-	restricted_msg = catgetlocal( 113, "restricted mode: unable to perform requested operation");
 	ON = catgetlocal( 114, "ON");
 	OFF = catgetlocal( 115, "OFF");
 	HELP = catgetlocal( 116, "HELP");
@@ -4500,7 +4284,7 @@ strings_init()
 	REDRAW = catgetlocal( 122, "REDRAW");
 	RESEQUENCE = catgetlocal( 123, "RESEQUENCE");
 	AUTHOR = catgetlocal( 124, "AUTHOR");
-	ee_VERSION = catgetlocal( 125, "ee_VERSION");
+	ee_VERSION = catgetlocal( 125, "VERSION");
 	CASE = catgetlocal( 126, "CASE");
 	NOCASE = catgetlocal( 127, "NOCASE");
 	EXPAND = catgetlocal( 128, "EXPAND");
@@ -4555,17 +4339,11 @@ strings_init()
 	NOEMACS_string = catgetlocal( 160, "NOEMACS");
 	usage4 = catgetlocal( 161, "       +#   put cursor at line #\n");
 	modes_menu[10].item_string = catgetlocal( 164, "dump configuration (disabled)");
-	config_dump_menu[0].item_string = catgetlocal( 165, "save ee configuration");
-	config_dump_menu[1].item_string = catgetlocal( 166, "save in current directory");
-	config_dump_menu[2].item_string = catgetlocal( 167, "save in home directory");
-	conf_not_saved_msg = catgetlocal( 168, "ee configuration not saved");
 	ree_no_file_msg = catgetlocal( 169, "must specify a file when invoking ree");
 	menu_too_lrg_msg = catgetlocal( 180, "menu too large for window");
 	more_above_str = catgetlocal( 181, "^^more^^");
 	more_below_str = catgetlocal( 182, "VVmoreVV");
 	mode_strings[9] = catgetlocal( 183, "16 bit characters    ");
-	chinese_cmd = catgetlocal( 184, "16BIT");
-	nochinese_cmd = catgetlocal( 185, "NO16BIT");
 
 	commands[0] = HELP;
 	commands[1] = WRITE;
@@ -4596,9 +4374,7 @@ strings_init()
 	commands[26] = "8";
 	commands[27] = "9";
 	commands[28] = CHARACTER;
-	commands[29] = chinese_cmd;
-	commands[30] = nochinese_cmd;
-	commands[31] = NULL;
+	commands[29] = NULL;
 	init_strings[0] = CASE;
 	init_strings[1] = NOCASE;
 	init_strings[2] = EXPAND;
@@ -4618,9 +4394,7 @@ strings_init()
 	init_strings[16] = NOEIGHTBIT;
 	init_strings[17] = EMACS_string;
 	init_strings[18] = NOEMACS_string;
-	init_strings[19] = chinese_cmd;
-	init_strings[20] = nochinese_cmd;
-	init_strings[21] = NULL;
+	init_strings[19] = NULL;
 
 	/*
 	 |	allocate space for strings here for settings menu
