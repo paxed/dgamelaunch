@@ -60,6 +60,7 @@ extern struct dg_config *myconfig;
 extern char *chosen_name;
 extern int loggedin;
 extern int silent;
+extern int set_max;
 
 /* dgamelaunch.c */
 extern void create_config(void);

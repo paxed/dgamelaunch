@@ -109,6 +109,7 @@ struct dg_config defconfig = {
   /* max = */ 64000 
 };
 
+int set_max = 0; /* XXX */
 int loggedin = 0;
 char rcfilename[80];
 char *chosen_name;
@@ -181,7 +182,7 @@ create_config ()
 	myconfig->shed_gid = defconfig.shed_gid;
     }
 
-    if (myconfig->max == -1) myconfig->max = defconfig.max;
+    if (myconfig->max == 0 && !set_max) myconfig->max = defconfig.max;
     if (!myconfig->banner) myconfig->banner = defconfig.banner;
     if (!myconfig->chroot) myconfig->chroot = defconfig.chroot;
     if (!myconfig->nethack) myconfig->nethack = defconfig.nethack;
@@ -1093,7 +1094,10 @@ readfile (int nolock)
       f_num++;
       /* prevent a buffer overrun here */
       if (f_num > myconfig->max)
+      {
+	fprintf(stderr,"ERROR: number of users in database exceeds maximum. Exiting.\n");
         graceful_exit (109);
+      }
     }
 
   if (!nolock)

@@ -156,7 +156,11 @@ KeyPair: KeyType '=' TYPE_VALUE {
 }
 	| KeyType '=' TYPE_NUMBER {
   if (!myconfig)
+  {
     myconfig = calloc(1, sizeof(struct dg_config));
+    myconfig->shed_uid = (uid_t)-1;
+    myconfig->shed_gid = (gid_t)-1;
+  }
 	       
   switch ($1)
   {
@@ -184,6 +188,7 @@ KeyPair: KeyType '=' TYPE_VALUE {
       break;
 
     case TYPE_MAX:
+      set_max = 1; /* XXX XXX */
       myconfig->max = $3;
       break;
 
