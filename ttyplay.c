@@ -378,16 +378,6 @@ ttypeek (FILE * fp, double speed, ReadFunc read_func, WaitFunc wait_func)
 }
 
 
-void
-usage (void)
-{
-  printf ("Usage: ttyplay [OPTION] [FILE]\n");
-  printf ("  -s SPEED Set speed to SPEED [1.0]\n");
-  printf ("  -n       No wait mode\n");
-  printf ("  -p       Peek another person's ttyrecord\n");
-  exit (EXIT_FAILURE);
-}
-
 int
 ttyplay_main (char *ttyfile, int mode, int rstripgfx)
 {
