@@ -1,8 +1,5 @@
 - Flags for operators/staff/admins or (optionally) user-bans.
 
-- Put 'terminate' option in user's menu to end disconnected sessions.
-  (Suggested by Sebbe in #nethack on freenode)
-
 - Localization of variables, code clean up
 
 - Allow a runtime-read configuration file to specify all the stuff
