@@ -550,7 +550,7 @@ inprogressmenu ()
             {
               /* valid choice has been made */
               snprintf (ttyrecname, 130, "%sttyrec/%s", myconfig->dglroot,
-                        games[menuchoice - 97]->ttyrec_fn);
+                        games[menuchoice - 97 + offset]->ttyrec_fn);
               chosen_name = strdup (games[menuchoice - 97 + offset]->name);
 
               /* reuse thie char* */
