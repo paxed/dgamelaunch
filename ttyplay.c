@@ -139,19 +139,14 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
 {
   int counter = 0;
   fd_set readfs;
-  struct timeval zerotime;
-
-  zerotime.tv_sec = 0;
-  zerotime.tv_usec = 0;
+  struct timeval w = { 0, 100000 };
 
   /*
    * Read persistently just like tail -f.
    */
   while (ttyread (fp, h, buf, 1) == READ_EOF)
     {
-      struct timeval w = { 0, 100000 };
       fflush(stdout);
-      select (0, NULL, NULL, NULL, &w);
       clearerr (fp);
       if (counter++ > (20 * 60 * 10))
         {
@@ -159,13 +154,11 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
           printf ("Exiting due to 20 minutes of inactivity.\n");
           exit (-23);
         }
-
-
-      /* look for keypresses here. as good a place as any */
+      FD_ZERO (&readfs);
       FD_SET (STDIN_FILENO, &readfs);
-      select (1, &readfs, NULL, NULL, &zerotime);
+      select (1, &readfs, NULL, NULL, &w);
       if (FD_ISSET (0, &readfs))
-        {                       /* a user hits a character? */
+        {                       /* user hits a character? */
           char c;
           read (STDIN_FILENO, &c, 1); /* drain the character */
 
