@@ -1285,17 +1285,31 @@ writefile (int requirenew)
   int i = 0;
   int my_done = 0;
   struct flock fl = { 0 };
+  sigset_t oldmask, toblock;
 
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
   fl.l_start = 0;
   fl.l_len = 0;
 
+  sigemptyset(&toblock);
+  sigaddset(&toblock, SIGHUP);
+  sigaddset(&toblock, SIGINT);
+  sigaddset(&toblock, SIGQUIT);
+  sigaddset(&toblock, SIGTERM);
+  sigprocmask(SIG_BLOCK, &toblock, &oldmask);
+
   fpl = fopen (myconfig->lockfile, "r+");
   if (!fpl)
-    graceful_exit (115);
+    {
+      sigprocmask(SIG_SETMASK, &oldmask, NULL);
+      graceful_exit (115);
+    }
   if (fcntl (fileno (fpl), F_SETLK, &fl))
-    graceful_exit (107);
+    {
+      sigprocmask(SIG_SETMASK, &oldmask, NULL);
+      graceful_exit (107);
+    }
 
   fl.l_type = F_UNLCK;
   
@@ -1304,7 +1318,10 @@ writefile (int requirenew)
 
   fp = fopen (myconfig->passwd, "w");
   if (!fp)
-    graceful_exit (104);
+    {
+      sigprocmask(SIG_SETMASK, &oldmask, NULL);
+      graceful_exit (104);
+    }
 
   for (i = 0; i < f_num; i++)
     {
@@ -1314,6 +1331,9 @@ writefile (int requirenew)
             {
               /* this is if someone managed to register at the same time
                * as someone else. just die. */
+	      fclose(fp);
+	      fclose(fpl);
+              sigprocmask(SIG_SETMASK, &oldmask, NULL);
               graceful_exit (111);
             }
           fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
@@ -1332,11 +1352,18 @@ writefile (int requirenew)
         fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
                  me->env);
       else /* Oops, someone else registered the last available slot first */
-        graceful_exit (116);
+	{
+          fclose(fp);
+	  fclose(fpl);
+          sigprocmask(SIG_SETMASK, &oldmask, NULL);
+          graceful_exit (116);
+	}
     }
 
   fclose (fp);
   fclose (fpl);
+
+  sigprocmask(SIG_SETMASK, &oldmask, NULL);
 }
 
 /* ************************************************************* */
