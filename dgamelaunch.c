@@ -1413,10 +1413,14 @@ main (int argc, char** argv)
   signal (SIGHUP, catch_sighup);
 
   (void) tcgetattr (0, &tt);
-  win.ws_row = 24;
-  win.ws_col = 80;
-  win.ws_xpixel = win.ws_col * 8;
-  win.ws_ypixel = win.ws_row * 8;
+  if (-1 == ioctl (0, TIOCGWINSZ, (char *) &win) || win.ws_row < 4 ||
+		  win.ws_col < 4) /* Rudimentary validity check */
+    {
+      win.ws_row = 24;
+      win.ws_col = 80;
+      win.ws_xpixel = win.ws_col * 8;
+      win.ws_ypixel = win.ws_row * 8;
+    }
 
   /* get master tty just before chroot (lives in /dev) */
   ttyrec_getpty ();
