@@ -81,6 +81,7 @@ FILE *fscript;
 int master;
 int slave;
 pid_t child, subchild;
+char* ipfile = NULL;
 
 struct termios tt;
 struct winsize win;
@@ -130,7 +131,7 @@ ttyrec_main (char *username, char* ttyrec_filename)
       if (child)
         {
           close (slave);
-          gen_inprogress_lock (child, ttyrec_filename);
+          ipfile = gen_inprogress_lock (child, ttyrec_filename);
           dooutput ();
         }
       else
@@ -138,6 +139,8 @@ ttyrec_main (char *username, char* ttyrec_filename)
     }
   doinput ();
 
+  unlink (ipfile);
+  
   return 0;
 }
 
@@ -336,6 +339,8 @@ done ()
     {
       (void) tcsetattr (0, TCSAFLUSH, &tt);
     }
+
+  unlink(ipfile);
   graceful_exit (0);
 }
 

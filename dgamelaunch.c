@@ -235,11 +235,12 @@ gen_ttyrec_filename ()
 
 /* ************************************************************* */
 
-void
+char*
 gen_inprogress_lock (pid_t pid, char* ttyrec_filename)
 {
-  char lockfile[130], pidbuf[16];
+  char *lockfile = NULL, pidbuf[16];
   int fd;
+  size_t len;
   struct flock fl = { 0 };
 
   snprintf (pidbuf, 16, "%d", pid);
@@ -249,7 +250,10 @@ gen_inprogress_lock (pid_t pid, char* ttyrec_filename)
   fl.l_start = 0;
   fl.l_len = 0;
 
-  snprintf (lockfile, 130, "%sinprogress/%s:%s", myconfig->dglroot,
+  len = strlen(myconfig->dglroot) + strlen(me->username) + strlen(ttyrec_filename) + 13;
+  lockfile = calloc(len, sizeof(char));
+  
+  snprintf (lockfile, len, "%sinprogress/%s:%s", myconfig->dglroot,
             me->username, ttyrec_filename);
 
   fd = open (lockfile, O_WRONLY | O_CREAT, 0644);
@@ -257,6 +261,8 @@ gen_inprogress_lock (pid_t pid, char* ttyrec_filename)
     graceful_exit (68);
 
   write (fd, pidbuf, strlen (pidbuf));
+
+  return lockfile;
 }
 
 /* ************************************************************* */
@@ -1288,18 +1294,18 @@ graceful_exit (int status)
 
 /* TODO: Some of the messages here (sorry no nethack for you!) are nethack specific
  * as may be some code... don't think so though. Globalize it. */ 
-void
+int
 purge_stale_locks (void)
 {
   DIR *pdir;
   struct dirent *dent;
   char* dir;
   size_t len;
+  short firsttime = 1;
 
   len = strlen(myconfig->dglroot) + ARRAY_SIZE("inprogress/") + 1;
   dir = malloc(len);
   snprintf(dir, len, "%sinprogress/", myconfig->dglroot);
-  
   
   if (!(pdir = opendir (dir)))
     graceful_exit (200);
@@ -1314,7 +1320,7 @@ purge_stale_locks (void)
       pid_t pid;
       size_t len;
       int seconds = 0;
-
+      
       if (!strcmp (dent->d_name, ".") || !strcmp (dent->d_name, ".."))
         continue;
 
@@ -1339,10 +1345,36 @@ purge_stale_locks (void)
 
       fclose (ipfile);
 
-      clear ();
-      drawbanner (1, 1);
-      mvaddstr (3, 1,
-                "There is a stale Nethack process, attempting to recover...");
+      if (firsttime)
+      {
+	clear ();
+	drawbanner (1, 1);
+
+	mvaddstr (3, 1,
+	    "There are some stale Nethack processes, will recover in 5 seconds.");
+	mvaddstr (4, 1,
+	    "Press a key NOW if you don't want this to happen!");
+
+	move (3, 58); /* pedantry */
+	halfdelay(10);
+	
+	for (seconds = 5; seconds > 0; seconds--)
+	{
+	  if (getch() != ERR)
+	  {
+	    nocbreak(); /* leave half-delay */
+	    cbreak();
+	    return 0;
+	  }
+	  mvaddch (3, 57, (char)(seconds + '0') - 1);
+	}
+
+	nocbreak();
+	cbreak();
+	
+	firsttime = 0;
+      }
+
       refresh ();
 
       pid = atoi (buf);
@@ -1383,6 +1415,44 @@ purge_stale_locks (void)
     }
 
   closedir (pdir);
+  return 1;
+}
+
+void
+menuloop (void)
+{
+  int userchoice = 0;
+  while ((userchoice != 'p') | (!loggedin))
+    {
+      drawmenu ();
+      userchoice = getch ();
+      switch (tolower (userchoice))
+        {
+        case 'c':
+          if (loggedin)
+            changepw ();
+          break;
+        case 'w':
+          inprogressmenu ();
+          break;
+        case 'o':
+          if (loggedin)
+            editoptions ();
+          break;
+        case 'q':
+          endwin ();
+          graceful_exit(0);
+          /* break; */
+        case 'r':
+          if (!loggedin)        /*not visible to loggedin */
+            newuser ();
+          break;
+        case 'l':
+          if (!loggedin)        /* not visible to loggedin */
+            loginprompt ();
+          break;
+        }
+    }
 }
 
 int
@@ -1391,8 +1461,6 @@ main (int argc, char** argv)
   /* for chroot and program execution */
   char atrcfilename[81], *spool;
   unsigned int len;
-
-  int userchoice = 0;
 
   if (argc == 2)
     config = strdup(argv[1]);
@@ -1451,41 +1519,12 @@ main (int argc, char** argv)
     graceful_exit (110);
 
   initcurses ();
-  while ((userchoice != 'p') | (!loggedin))
-    {
-      drawmenu ();
-      userchoice = getch ();
-      switch (tolower (userchoice))
-        {
-        case 'c':
-          if (loggedin)
-            changepw ();
-          break;
-        case 'w':
-          inprogressmenu ();
-          break;
-        case 'o':
-          if (loggedin)
-            editoptions ();
-          break;
-        case 'q':
-          endwin ();
-          return 0;
-          /* break; */
-        case 'r':
-          if (!loggedin)        /*not visible to loggedin */
-            newuser ();
-          break;
-        case 'l':
-          if (!loggedin)        /* not visible to loggedin */
-            loginprompt ();
-          break;
-        }
-    }
+  menuloop();
 
   assert (loggedin);
 
-  purge_stale_locks ();
+  while (!purge_stale_locks())
+    menuloop();
 
   endwin ();
   signal(SIGWINCH, SIG_DFL);
