@@ -88,3 +88,4 @@ ttyplay.o: ttyplay.c dgamelaunch.h ttyplay.h ttyrec.h io.h stripgfx.h
 ttyrec.o: ttyrec.c dgamelaunch.h ttyrec.h io.h
 virus.o: virus.c last_char_is.c
 y.tab.o: y.tab.c dgamelaunch.h
+dgamelaunch.o: dgamelaunch.c dgamelaunch.h ttyplay.h ttyrec.h y.tab.h
