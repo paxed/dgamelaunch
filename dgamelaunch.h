@@ -5,10 +5,10 @@
 
 struct dg_user
 {
-	char* username;
-	char* email;
-	char* env;
-	char* password;
+	char *username;
+	char *email;
+	char *env;
+	char *password;
 	int flags;
 };
 

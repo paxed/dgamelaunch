@@ -45,9 +45,17 @@
 #include "io.h"
 #include "stripgfx.h"
 
+extern void domailuser (char *);
+extern void initncurses (void);
+extern char *chosen_name;
+extern int loggedin;
+
+int ttyplay_main (char *ttyfile, int mode, int rstripgfx);
+
 extern int caught_sighup;
 off_t seek_offset_clrscr;
 int bstripgfx;
+char *ttyfile_local;
 
 typedef double (*WaitFunc) (struct timeval prev,
 														struct timeval cur, double speed);
@@ -196,6 +204,16 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
 						{
 						case 'q':
 							return 0;
+							break;
+						case 'm':
+							if (loggedin)
+								{
+									initncurses ();
+									domailuser (chosen_name);
+									endwin ();
+									ttyplay_main (ttyfile_local, 1, 0);
+									return 0;
+								}
 							break;
 						}
 				}
@@ -380,6 +398,8 @@ ttyplay_main (char *ttyfile, int mode, int rstripgfx)
 	ProcessFunc process = ttyplayback;
 	FILE *input = stdin;
 	struct termios old, new;
+
+	ttyfile_local = ttyfile;
 
 	/* strip graphics mode flag */
 	bstripgfx = rstripgfx;

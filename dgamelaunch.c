@@ -81,7 +81,7 @@ extern struct winsize win;
 
 /* local functions */
 static void writefile (int);
-static void write_canned_rcfile (char*);
+static void write_canned_rcfile (char *);
 static int userexist (char *);
 static int passwordgood (char *, char *);
 
@@ -92,12 +92,13 @@ int pid_game = 0;
 int loggedin = 0;
 char rcfilename[80];
 char ttyrec_filename[100];
+char *chosen_name;
 
 /* preallocate this mem. bad, but ohwell. is only for pointers */
 /* makes a max number of users compiled in */
 int f_num = 0;
-struct dg_user** users = NULL;
-struct dg_user* me = NULL;
+struct dg_user **users = NULL;
+struct dg_user *me = NULL;
 
 /* ************************************************************* */
 /* for ttyrec */
@@ -227,9 +228,9 @@ inprogressmenu ()
 									strncpy (m_time, replacestr + 12, 8);
 
 									mvprintw (7 + i, 1, "%c) %-15s %s %s (%ldm %lds idle)",
-													 i + 97, m_name, m_date, m_time,
-													 (time (&ctime) - pstat.st_mtime) / 60,
-													 (time (&ctime) - pstat.st_mtime) % 60);
+														i + 97, m_name, m_date, m_time,
+														(time (&ctime) - pstat.st_mtime) / 60,
+														(time (&ctime) - pstat.st_mtime) % 60);
 									i++;
 								}
 						}
@@ -251,6 +252,11 @@ inprogressmenu ()
 					/* valid choice has been made */
 					snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR,
 										games[menuchoice - 97]);
+					chosen_name = strdup (games[menuchoice - 97]);
+					if (!(replacestr = strstr (chosen_name, ":")))
+						exit (145);
+					else
+						*replacestr = '\0';
 					replacestr = strstr (ttyrecname, ":");
 					if (!replacestr)
 						exit (145);
@@ -306,8 +312,8 @@ changepw ()
 			if (buf && *buf == '\0')
 				return;
 
-			if (strstr(buf, ":") != NULL)
-			  exit(112);
+			if (strstr (buf, ":") != NULL)
+				exit (112);
 
 			mvaddstr (12, 1, "And again:");
 			mvaddstr (13, 1, "=> ");
@@ -320,7 +326,7 @@ changepw ()
 				error = 1;
 		}
 
-	me->password = strdup(crypt (buf, buf));
+	me->password = strdup (crypt (buf, buf));
 	writefile (0);
 }
 
@@ -537,7 +543,7 @@ freefile ()
 		}
 
 	if (users)
-		free(users); 
+		free (users);
 
 	users = NULL;
 	f_num = 0;
@@ -559,17 +565,17 @@ initncurses ()
 /* ************************************************************* */
 
 struct dg_user *
-deep_copy (struct dg_user * src)
+deep_copy (struct dg_user *src)
 {
-  struct dg_user *dest = malloc(sizeof (struct dg_user));
+	struct dg_user *dest = malloc (sizeof (struct dg_user));
 
-  dest->username = strdup(src->username);
-  dest->email = strdup(src->email);
-  dest->env = strdup(src->env);
-  dest->password = strdup(src->password);
-  dest->flags = src->flags;
+	dest->username = strdup (src->username);
+	dest->email = strdup (src->email);
+	dest->env = strdup (src->env);
+	dest->password = strdup (src->password);
+	dest->flags = src->flags;
 
-  return dest;
+	return dest;
 }
 
 void
@@ -606,10 +612,10 @@ login ()
 			error = 1;
 
 			if ((me_index = userexist (user_buf)) != -1)
-			{
-			  me = deep_copy(users[me_index]);
-				error = 0;
-			}
+				{
+					me = deep_copy (users[me_index]);
+					error = 0;
+				}
 		}
 
 	clear ();
@@ -644,10 +650,10 @@ newuser ()
 	loggedin = 0;
 
 	if (me)
-	  free(me);
+		free (me);
 
-	me = malloc(sizeof(struct dg_user));
-	
+	me = malloc (sizeof (struct dg_user));
+
 	while (error)
 		{
 			clear ();
@@ -672,7 +678,7 @@ newuser ()
 			if (userexist (buf) == -1)
 				error = 0;
 			else
-			  error = 1;
+				error = 1;
 
 			for (i = 0; i < strlen (buf); i++)
 				{
@@ -691,7 +697,7 @@ newuser ()
 				return;
 		}
 
-	me->username = strdup(buf);
+	me->username = strdup (buf);
 
 	/* password step */
 
@@ -710,10 +716,10 @@ newuser ()
 	getnstr (buf, 20);
 
 	/* we warned em */
-	if (strstr(buf, ":") != NULL)
-	  exit(112);
+	if (strstr (buf, ":") != NULL)
+		exit (112);
 
-	me->password = strdup(crypt (buf, buf));
+	me->password = strdup (crypt (buf, buf));
 
 	/* email step */
 
@@ -732,16 +738,16 @@ newuser ()
 	refresh ();
 	getnstr (buf, 80);
 
-	if (strstr(buf, ":") != NULL)
-	  exit(113);
+	if (strstr (buf, ":") != NULL)
+		exit (113);
 
-	me->email = strdup(buf);
-	me->env = calloc(1, 1);
+	me->email = strdup (buf);
+	me->env = calloc (1, 1);
 
 	loggedin = 1;
 
 	snprintf (rcfilename, 80, "%s%s.nethackrc", LOC_DGLDIR, me->username);
-	write_canned_rcfile(rcfilename);
+	write_canned_rcfile (rcfilename);
 
 	writefile (1);
 }
@@ -751,10 +757,10 @@ newuser ()
 int
 passwordgood (char *cname, char *cpw)
 {
-	if (!strncmp(crypt(cpw, cpw), me->password, 13))
-	  return 1;
-	if (!strncmp(cpw, me->password, 20))
-	  return 1;
+	if (!strncmp (crypt (cpw, cpw), me->password, 13))
+		return 1;
+	if (!strncmp (cpw, me->password, 20))
+		return 1;
 
 	return 0;
 }
@@ -789,8 +795,8 @@ readfile (int nolock)
 		{
 			char *b = buf, *n = buf;
 
-			users = realloc(users, sizeof(struct dg_user*) * (f_num + 1));
-			users[f_num] = malloc(sizeof(struct dg_user));
+			users = realloc (users, sizeof (struct dg_user *) * (f_num + 1));
+			users[f_num] = malloc (sizeof (struct dg_user));
 			users[f_num]->username = (char *) calloc (22, sizeof (char));
 			users[f_num]->email = (char *) calloc (82, sizeof (char));
 			users[f_num]->password = (char *) calloc (22, sizeof (char));
@@ -881,42 +887,45 @@ userexist (char *cname)
 /* ************************************************************* */
 
 void
-write_canned_rcfile (char* target)
+write_canned_rcfile (char *target)
 {
 	FILE *canned, *newfile;
 	char buf[1024];
 	size_t bytes;
 
-	if (!(newfile = fopen(target, "w")))
-	{
-bail:
-		mvaddstr(13,1,"You don't know how to write that! You write \"%s\" was here and the scroll disappears.");
-		mvaddstr(14,1,"(Sorry, but I couldn't open one of the nethackrc files. This is a bug.)");
-		return;
-	}
-			
-	if (!(canned = fopen(LOC_CANNED, "r")))
+	if (!(newfile = fopen (target, "w")))
+		{
+		bail:
+			mvaddstr (13, 1,
+								"You don't know how to write that! You write \"%s\" was here and the scroll disappears.");
+			mvaddstr (14, 1,
+								"(Sorry, but I couldn't open one of the nethackrc files. This is a bug.)");
+			return;
+		}
+
+	if (!(canned = fopen (LOC_CANNED, "r")))
 		goto bail;
 
-	while ((bytes = fread(buf, 1, 1024, canned)) > 0)
-	{
-		if (fwrite(buf, 1, bytes, newfile) != bytes)
+	while ((bytes = fread (buf, 1, 1024, canned)) > 0)
 		{
-			if (ferror(newfile))
-			{
-				mvaddstr(13,1,"Your hand slips while engraving.");
-				mvaddstr(14,1,"(Encountered a problem writing the new file. This is a bug.)");
-				fclose(canned);
-				fclose(newfile);
-				return;
-			}
+			if (fwrite (buf, 1, bytes, newfile) != bytes)
+				{
+					if (ferror (newfile))
+						{
+							mvaddstr (13, 1, "Your hand slips while engraving.");
+							mvaddstr (14, 1,
+												"(Encountered a problem writing the new file. This is a bug.)");
+							fclose (canned);
+							fclose (newfile);
+							return;
+						}
+				}
 		}
-	}
-	
-	fclose(canned);
-	fclose(newfile);
+
+	fclose (canned);
+	fclose (newfile);
 }
-		
+
 
 void
 editoptions ()
@@ -926,9 +935,9 @@ editoptions ()
 
 	rcfile = fopen (rcfilename, "r");
 	printf (" read");
-	if (!rcfile) /* should not really happen except for old users */
-		write_canned_rcfile(rcfilename);
-	
+	if (!rcfile)									/* should not really happen except for old users */
+		write_canned_rcfile (rcfilename);
+
 	/* use virus to edit */
 
 	myargv[0] = "";
@@ -972,18 +981,20 @@ writefile (int requirenew)
 							 * as someone else. just die. */
 							exit (111);
 						}
-					fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password, me->env);
+					fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
+									 me->env);
 					my_done = 1;
 				}
 			else
 				{
-					fprintf (fp, "%s:%s:%s:%s\n", users[i]->username, users[i]->email, users[i]->password,
-									 users[i]->env);
+					fprintf (fp, "%s:%s:%s:%s\n", users[i]->username, users[i]->email,
+									 users[i]->password, users[i]->env);
 				}
 		}
 	if (loggedin && !my_done)
 		{														/* new entry */
-			fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password, me->env);
+			fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
+							 me->env);
 		}
 
 	flock (fileno (fpl), LOCK_UN);
@@ -1076,17 +1087,19 @@ main (void)
 				}
 		}
 
-	assert(loggedin);
-	
+	assert (loggedin);
+
 	endwin ();
 
 	/* environment */
 	snprintf (atrcfilename, 81, "@%s", rcfilename);
 
-	len = (sizeof (LOC_SPOOLDIR) / sizeof (LOC_SPOOLDIR[0])) + strlen (me->username) + 1;
+	len =
+		(sizeof (LOC_SPOOLDIR) / sizeof (LOC_SPOOLDIR[0])) +
+		strlen (me->username) + 1;
 	spool = malloc (len + 1);
 	snprintf (spool, len, "%s/%s", LOC_SPOOLDIR, me->username);
-	
+
 	setenv ("NETHACKOPTIONS", atrcfilename, 1);
 	setenv ("MAIL", spool, 1);
 	setenv ("SIMPLEMAIL", "1", 1);
@@ -1108,8 +1121,8 @@ main (void)
 	freefile ();
 
 	if (me)
-	  free(me);
-	
+		free (me);
+
 	exit (1);
 	return 1;
 }
