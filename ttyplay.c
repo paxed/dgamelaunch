@@ -151,6 +151,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
   while (ttyread (fp, h, buf, 1) == READ_EOF)
     {
       struct timeval w = { 0, 100000 };
+      fflush(stdout);
       select (0, NULL, NULL, NULL, &w);
       clearerr (fp);
       if (counter++ > (20 * 60 * 10))
@@ -233,11 +234,8 @@ ttyplay (FILE * fp, double speed, ReadFunc read_func,
   int r = READ_EOF;
   struct timeval prev;
 
-  setbuf (stdout, NULL);
-  setbuf (fp, NULL);
-
   /* for dtype's attempt to get the last clrscr and playback from there */
-  if (offset)
+  if (offset != -1)
     {
       fseek (fp, offset, SEEK_SET);
     }
@@ -336,6 +334,7 @@ set_seek_offset_clrscr (FILE * fp)
 
 }
 
+#if 0 /* not used anymore */
 void
 ttyskipall (FILE * fp)
 {
@@ -344,6 +343,7 @@ ttyskipall (FILE * fp)
    */
   ttyplay (fp, 0, ttyread, ttynowrite, ttynowait, 0);
 }
+#endif
 
 void
 ttyplayback (FILE * fp, double speed, ReadFunc read_func, WaitFunc wait_func)
@@ -358,13 +358,16 @@ ttypeek (FILE * fp, double speed)
 
   do
   {
-    ttyskipall (fp);
+    setvbuf (fp, NULL, _IOFBF, 0);
     set_seek_offset_clrscr (fp);
     if (seek_offset_clrscr)
       {
         ttyplay (fp, 0, ttyread, ttywrite, ttynowait, seek_offset_clrscr);
       }
-    r = ttyplay (fp, speed, ttypread, ttywrite, ttynowait, 0);
+    clearerr (fp);
+    setvbuf (fp, NULL, _IONBF, 0);
+    fflush (stdout);
+    r = ttyplay (fp, speed, ttypread, ttywrite, ttynowait, -1);
   } while (r == READ_RESTART);
 }
 
