@@ -611,7 +611,7 @@ domailuser (char *username)
   len = strlen(myconfig->spool) + strlen (username) + 1;
   spool_fn = malloc (len + 1);
   time (&now);
-  snprintf (spool_fn, len, "%s/%s", myconfig->spool, username);
+  snprintf (spool_fn, len + 1, "%s/%s", myconfig->spool, username);
 
   /* print the enter your message line */
   clear ();
