@@ -352,7 +352,7 @@ vi_main (int argc, char **argv)
   else
     {
       fprintf (stderr, "%s: no file to edit, bailing out\n", argv[0]);
-      exit (1);
+      exit (-20);
     }
 
   //-----------------------------------------------------------

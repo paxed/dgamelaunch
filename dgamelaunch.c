@@ -112,7 +112,7 @@ ttyrec_getmaster ()
 #else
   if ((master = open ("/dev/ptmx", O_RDWR)) < 0)
 #endif
-    exit (62);
+    graceful_exit (62);
 }
 
 /* ************************************************************* */
@@ -150,7 +150,7 @@ gen_inprogress_lock ()
 
   fd = open (lockfile, O_WRONLY | O_CREAT, 0644);
   if (fcntl (fd, F_SETLKW, &fl) == -1)
-    exit (68);
+    graceful_exit (68);
 }
 
 /* ************************************************************* */
@@ -164,7 +164,7 @@ catch_sighup (int signum)
       kill (pid_game, SIGHUP);
       sleep (5);
     }
-  exit (2);
+  graceful_exit (2);
 }
 
 /* ************************************************************* */
@@ -277,7 +277,7 @@ populate_games (int *l)
   len = 0;
 
   if (!(pdir = opendir (LOC_INPROGRESSDIR)))
-    exit (140);
+    graceful_exit (140);
 
   while ((pdirent = readdir (pdir)))
     {
@@ -297,7 +297,7 @@ populate_games (int *l)
           snprintf (ttyrecname, 130, "%s%s", LOC_TTYRECDIR, pdirent->d_name);
           replacestr = strchr (ttyrecname, ':');
           if (!replacestr)
-            exit (145);
+            graceful_exit (145);
           replacestr[0] = '/';
           if (!stat (ttyrecname, &pstat))
             {
@@ -307,7 +307,7 @@ populate_games (int *l)
               games[len]->ttyrec_fn = strdup (pdirent->d_name);
 
               if (!(replacestr = strchr (pdirent->d_name, ':')))
-                exit (146);
+                graceful_exit (146);
               else
                 *replacestr = '\0';
 
@@ -414,7 +414,7 @@ inprogressmenu ()
               replacestr = strchr (ttyrecname, ':');
 
               if (!replacestr)
-                exit (145);
+                graceful_exit (145);
 
               replacestr[0] = '/';
 
@@ -440,7 +440,7 @@ changepw ()
 
   /* A precondition is that struct `me' exists because we can be not-yet-logged-in. */
   if (!me)
-    exit (122);                 /* Die. */
+    graceful_exit (122);        /* Die. */
 
   while (error)
     {
@@ -475,7 +475,7 @@ changepw ()
         return;
 
       if (strchr (buf, ':') != NULL)
-        exit (112);
+        graceful_exit (112);
 
       mvaddstr (12, 1, "And again:");
       mvaddstr (13, 1, "=> ");
@@ -612,7 +612,7 @@ drawmenu ()
   /* for retarded clients */
   flood++;
   if (flood >= 20)
-    exit (119);
+    graceful_exit (119);
 }
 
 /* ************************************************************* */
@@ -813,7 +813,7 @@ newuser ()
   getnstr (buf, 80);
 
   if (strchr (buf, ':') != NULL)
-    exit (113);
+    graceful_exit (113);
 
   me->email = strdup (buf);
   me->env = calloc (1, 1);
@@ -864,14 +864,14 @@ readfile (int nolock)
     {
       fpl = fopen ("/dgl-lock", "r");
       if (!fpl)
-        exit (106);
+        graceful_exit (106);
       if (fcntl (fileno(fpl), F_SETLKW, &fl) == -1)
-        exit (114);
+        graceful_exit (114);
     }
 
   fp = fopen ("/dgl-login", "r");
   if (!fp)
-    exit (106);
+    graceful_exit (106);
 
   /* once per name in the file */
   while (fgets (buf, 1200, fp))
@@ -894,7 +894,7 @@ readfile (int nolock)
           users[f_num]->username[(b - n)] = *b;
           b++;
           if ((b - n) >= 21)
-            exit (100);
+            graceful_exit (100);
         }
 
       /* advance to next field */
@@ -907,7 +907,7 @@ readfile (int nolock)
           users[f_num]->email[(b - n)] = *b;
           b++;
           if ((b - n) > 80)
-            exit (101);
+            graceful_exit (101);
         }
 
       /* advance to next field */
@@ -920,7 +920,7 @@ readfile (int nolock)
           users[f_num]->password[(b - n)] = *b;
           b++;
           if ((b - n) >= 20)
-            exit (102);
+            graceful_exit (102);
         }
 
       /* advance to next field */
@@ -933,13 +933,13 @@ readfile (int nolock)
           users[f_num]->env[(b - n)] = *b;
           b++;
           if ((b - n) >= 1024)
-            exit (102);
+            graceful_exit (102);
         }
 
       f_num++;
       /* prevent a buffer overrun here */
       if (f_num >= MAXUSERS)
-        exit (109);
+        graceful_exit (109);
     }
 
   if (!nolock)
@@ -1043,16 +1043,16 @@ writefile (int requirenew)
 
   fpl = fopen ("/dgl-lock", "r");
   if (!fpl)
-    exit (115);
+    graceful_exit (115);
   if (flock (fileno (fpl), LOCK_EX))
-    exit (107);
+    graceful_exit (107);
 
   freefile ();
   readfile (1);
 
   fp = fopen ("/dgl-login", "w");
   if (!fp)
-    exit (104);
+    graceful_exit (104);
 
   for (i = 0; i < f_num; i++)
     {
@@ -1062,7 +1062,7 @@ writefile (int requirenew)
             {
               /* this is if someone managed to register at the same time
                * as someone else. just die. */
-              exit (111);
+              graceful_exit (111);
             }
           fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
                    me->env);
@@ -1084,6 +1084,27 @@ writefile (int requirenew)
   fclose (fp);
   fclose (fpl);
 }
+
+/* ************************************************************* */
+
+void
+graceful_exit (int status)
+{
+  /*FILE *fp;
+     if (status != 1) 
+     { 
+     fp = fopen ("/crash.log", "a");
+     char buf[100];
+     sprintf (buf, "graceful_exit called with status %d", status);
+     fputs (buf, fp);
+     } 
+     This doesn't work. Ever.
+   */
+  exit (status);
+}
+
+
+/* ************************************************************* */
 
 /* ************************************************************* */
 /* ************************************************************* */
@@ -1114,7 +1135,7 @@ main (void)
   unlockpt (master);
   if ((slave = open ((const char *) ptsname (master), O_RDWR)) < 0)
     {
-      exit (65);
+      graceful_exit (65);
     }
 #endif
 
@@ -1123,37 +1144,37 @@ main (void)
   if (chroot (LOC_CHROOT))
     {
       perror ("cannot change root directory");
-      exit (1);
+      graceful_exit (1);
     }
 
   if (chdir ("/"))
     {
       perror ("cannot chdir to root directory");
-      exit (1);
+      graceful_exit (1);
     }
 
   /* shed privs. this is done immediately after chroot. */
   if (setgroups (1, &newgid) == -1)
     {
       perror ("setgroups");
-      exit (1);
+      graceful_exit (1);
     }
 
   if (setgid (newgid) == -1)
     {
       perror ("setgid");
-      exit (1);
+      graceful_exit (1);
     }
 
   if (setuid (newuid) == -1)
     {
       perror ("setuid");
-      exit (1);
+      graceful_exit (1);
     }
 
   /* simple login routine, uses ncurses */
   if (readfile (0))
-    exit (110);
+    graceful_exit (110);
 
   initncurses ();
   while ((userchoice != 'p') | (!loggedin))
@@ -1222,6 +1243,6 @@ main (void)
   if (me)
     free (me);
 
-  exit (1);
+  graceful_exit (1);
   return 1;
 }

@@ -147,14 +147,14 @@ ttyread (FILE * fp, Header * h, char **buf, int pread)
   if (h->len > BUFSIZ)
     {
       perror ("hlen");
-      exit (1);
+      exit (-21);
     }
 
   *buf = malloc (h->len);
   if (*buf == NULL)
     {
       perror ("malloc");
-      exit (1);
+      exit (-22);
     }
 
   if (fread (*buf, 1, h->len, fp) != h->len)
@@ -187,7 +187,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
         {
           endwin ();
           printf ("Exiting due to 20 minutes of inactivity.\n");
-          exit (2);
+          exit (-23);
           return 0;
         }
 

@@ -354,7 +354,7 @@ done ()
     {
       (void) tcsetattr (0, TCSAFLUSH, &tt);
     }
-  exit (0);
+  graceful_exit (0);
 }
 
 void
