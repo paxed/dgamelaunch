@@ -63,13 +63,11 @@
 # include <libutil.h>
 #endif
 
-
-
 #ifdef __linux__
 # include <pty.h>
 #endif
 
-#ifndef ARRAY_SIZEK
+#ifndef ARRAY_SIZE
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
