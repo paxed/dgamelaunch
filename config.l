@@ -11,8 +11,6 @@
 unsigned int line = 1, col = 0;
 unsigned int comment_begin_line, comment_begin_col;
 
-static void ccomment(void);
-
 #define YY_USER_ACTION col += yyleng;
 
 %}
@@ -22,7 +20,6 @@ VALUE		\".*\"
 MALSTRING	\"[^\"\n]*\n
 WHITE		[\t ]*
 COMMENT		^#.*
-LONGCOMMENT	"/*"
 
 %%
 
@@ -40,11 +37,6 @@ LONGCOMMENT	"/*"
 
 {WHITE}		{ }
 {COMMENT}	{ }
-{LONGCOMMENT}	{
-  comment_begin_line = line;
-  comment_begin_col = col - 1;
-  ccomment();
-}
 
 "="		{ return '='; }
 "shed_user"	{ return TYPE_SUSER; }
@@ -69,37 +61,3 @@ LONGCOMMENT	"/*"
 }
 
 %%
-
-/* Ripped from ircd-hybrid/src/ircd_lexer.l */
-void ccomment(void)
-{
-  int c;
-
-  while (1)
-  {
-    while ((c = input()) != '*' && c != EOF)
-    {
-      if (c == '\n')
-      {
-        col = 0;
-	++line;
-      }
-      else
-        ++col;
-    }
-      
-    if (c == '*')
-    {
-      ++col;
-      while ((c = input()) == '*') ++col;
-      if (c == '/') { ++col; break; }
-    }
-    if (c == EOF)
-    {
-      fprintf(stderr, "%s: encountered end-of-file in comment starting on line %d, column %d\n", config, col, comment_begin_col);
-      exit(1);
-
-      break;
-    }
-  }
-}
