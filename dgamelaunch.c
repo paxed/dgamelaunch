@@ -295,7 +295,7 @@ loadbanner (struct dg_banner *ban)
                 {
                   strlcat (bufnew, VERSION, 80 - i);
                   b += 8;       /* skip the whole $VERSION string */
-                  i += ARRAY_SIZE (VERSION);
+                  i += ARRAY_SIZE (VERSION) - 2;
                 }
 
               if (strlen (b) == 0)
