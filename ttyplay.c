@@ -146,11 +146,10 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
 #ifdef HAVE_KQUEUE
   struct kevent evt[2];
   static int kq = -1;
-#else
+#endif
   struct timeval w = { 0, 100000 };
   int counter = 0;
   fd_set readfs;
-#endif
   struct termios t;
   int doread = 0;
 
@@ -172,30 +171,46 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
       fflush(stdout);
       clearerr (fp);
 #ifdef HAVE_KQUEUE
-      EV_SET (&evt[0], STDIN_FILENO, EVFILT_READ, EV_ADD | EV_ONESHOT, 0, 0, NULL);
-      EV_SET (&evt[1], fileno (fp), EVFILT_READ, EV_ADD | EV_ONESHOT, 0, 0, NULL);
-      n = kevent (kq, evt, 2, evt, 1, NULL);
-      doread = (n >= 1 && evt[0].ident == STDIN_FILENO &&
-        evt[0].filter == EVFILT_READ) ||
-        (n >= 2 && evt[1].ident == STDIN_FILENO &&
-	 evt[1].filter == EVFILT_READ);
-#else
-      if (counter++ > (20 * 60 * 10))
-        {
-	  /*
-	   * The reason for this timeout is that the select() method uses
-	   * some CPU in waiting. The kqueue() method does not do that, so it
-	   * does not need the timeout.
-	   */
-          endwin ();
-          printf ("Exiting due to 20 minutes of inactivity.\n");
-          exit (-23);
-        }
-      FD_ZERO (&readfs);
-      FD_SET (STDIN_FILENO, &readfs);
-      n = select (1, &readfs, NULL, NULL, &w);
-      doread = n >= 1 && FD_ISSET (0, &readfs);
+      n = -1;
+      if (kq != -2)
+      {
+	EV_SET (&evt[0], STDIN_FILENO, EVFILT_READ, EV_ADD | EV_ONESHOT, 0, 0, NULL);
+	EV_SET (&evt[1], fileno (fp), EVFILT_READ, EV_ADD | EV_ONESHOT, 0, 0, NULL);
+	n = kevent (kq, evt, 2, evt, 1, NULL);
+	doread = (n >= 1 && evt[0].ident == STDIN_FILENO &&
+	  evt[0].filter == EVFILT_READ) ||
+	  (n >= 2 && evt[1].ident == STDIN_FILENO &&
+	   evt[1].filter == EVFILT_READ);
+	if (n == -1)
+	  {
+	    /*
+	     * Perhaps kevent(2) doesn't work on this fstype,
+	     * use select(2) instead. Never use kevent again, assuming all
+	     * active ttyrecs are on the same fstype.
+	     */
+	    close(kq);
+	    kq = -2;
+	  }
+      }
+      if (n == -1)
 #endif
+      {
+	if (counter++ > (20 * 60 * 10))
+	  {
+	    /*
+	     * The reason for this timeout is that the select() method uses
+	     * some CPU in waiting. The kqueue() method does not do that, so it
+	     * does not need the timeout.
+	     */
+	    endwin ();
+	    printf ("Exiting due to 20 minutes of inactivity.\n");
+	    exit (-23);
+	  }
+	FD_ZERO (&readfs);
+	FD_SET (STDIN_FILENO, &readfs);
+	n = select (1, &readfs, NULL, NULL, &w);
+	doread = n >= 1 && FD_ISSET (0, &readfs);
+      }
       if (n == -1)
 	{
 	  printf("select()/kevent() failed.\n");
