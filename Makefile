@@ -15,7 +15,7 @@ INSTALL = install -c
 DEFS = -DVERSION=\"$(VERSION)\"
 SRCS = virus.c ttyrec.c dgamelaunch.c io.c ttyplay.c stripgfx.c strlcpy.c strlcat.c y.tab.c lex.yy.c
 OBJS = $(SRCS:.c=.o)
-LIBS = -lncurses -lcrypt -lutil
+LIBS = -lncurses -lcrypt -lutil -ll
 
 all: $(NAME)
 
