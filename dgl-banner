@@ -1,6 +1,7 @@
-## dgamelaunch - network console game launcher
-## version $VERSION
+## dgamelaunch $VERSION - network console game launcher
 ##
-## (c)2001-4 M. Drew Streib. This program's source is released under the GPL.
-## Send mail to <dtype@dtype.org> for details or a copy of the source code.
+## Copyright (c) 2001-2004 Brett Carrington, Joshua Kwan, M. Drew Streib,
+## Jilles Tjoelker.
+## Source code available on ftp://ftp.alt.org/pub/dgamelaunch/ or
+## http://dev.triplehelix.org/?root=dgamelaunch (development version)
 ## ** Games on this server are recorded for in-progress viewing and playback!
