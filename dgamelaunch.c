@@ -158,6 +158,7 @@ create_config ()
     }
 
     if (myconfig->max == 0) myconfig->max = defconfig.max;
+    if (!myconfig->banner) myconfig->banner = strdup(defconfig.banner);
     if (!myconfig->chroot) myconfig->chroot = strdup(defconfig.chroot);
     if (!myconfig->nethack) myconfig->nethack = strdup(defconfig.nethack);
     if (!myconfig->dglroot) myconfig->dglroot = strdup(defconfig.dglroot);
@@ -1318,7 +1319,7 @@ purge_stale_locks (void)
 }
 
 int
-main (void)
+main (int argc, char** argv)
 {
   /* for chroot and program execution */
   char atrcfilename[81], *spool;
@@ -1327,6 +1328,9 @@ main (void)
 
   int userchoice = 0;
 
+  if (argc == 2)
+    config = strdup(argv[1]);
+  
   create_config();
 
   /* coredumper */
