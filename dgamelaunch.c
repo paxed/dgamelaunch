@@ -60,6 +60,10 @@
 # include <libutil.h>
 #endif
 
+#if defined(__linux__) || defined(BSD)
+# define mysetenv setenv
+#endif
+
 #ifdef __linux__
 # include <pty.h>
 #endif
@@ -124,6 +128,7 @@ struct dg_user **users = NULL;
 struct dg_user *me = NULL;
 struct dg_banner banner;
 
+#if !(defined(__linux__) || defined(BSD))
 int
 mysetenv (const char* name, const char* value, int overwrite)
 {
@@ -142,6 +147,7 @@ mysetenv (const char* name, const char* value, int overwrite)
   
   return retval;  
 }
+#endif /* !linux && !bsd */
 
 void
 create_config ()
