@@ -10,7 +10,7 @@ endif
 
 CC = gcc
 LDFLAGS = 
-CFLAGS = -g3 $(optimize) -Wall $(DEFS)
+CFLAGS = -g3 $(optimize) -Wall -Wno-unused $(DEFS)
 INSTALL = install -c
 DEFS = -DVERSION=\"$(VERSION)\"
 SRCS = virus.c ttyrec.c dgamelaunch.c io.c ttyplay.c stripgfx.c strlcpy.c strlcat.c y.tab.c lex.yy.c
