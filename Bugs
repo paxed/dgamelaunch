@@ -1,6 +1,3 @@
-* On some (X11?) terminals changing the window size closes the dgamelaunch
-session, probably because of sending negotation strings it doesn't understand?
-
 * Since virus kept calling alarm() on itself, I removed SIGALRM handling
 altogether, which breaks occasional refresh of the bottom status line.
 I don't consider this a huge bug, but if one day I, or someone else, 
