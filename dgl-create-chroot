@@ -25,7 +25,7 @@ playground_var="/var/games/nethack"
 # termcap/terminfo (copied recursively) (leave blank to skip)
 termdata="/usr/share/terminfo"
 
-[ -f dgl-create-chroot.conf ] && . dgl-create-chroot.conf
+[ -f dgl-create-chroot.conf ] && . ./dgl-create-chroot.conf
 
 findlibs()
 {
@@ -59,7 +59,7 @@ echo "games:*:$shed_uid:$shed_gid:games:/nonexistent:" >$chroot_path/etc/passwd
 echo "games:*:$shed_gid:" >$chroot_path/etc/group
 
 # Time zone information, NetHack uses this
-[ -e /etc/localtime ] && cp /etc/localtime $chroot_path/etc
+[ -f /etc/localtime ] && cp /etc/localtime $chroot_path/etc
 
 # Dungeon directory setup
 mkdir -p $chroot_path/dgldir/inprogress
@@ -120,8 +120,12 @@ fi
 
 # Curses junk
 if [ -n "$termdata" ]; then
-	mkdir -p $chroot_path`dirname $termdata`
-	cp -RL $termdata $chroot_path`dirname $termdata`
+	mkdir -p $chroot_path$termdata
+	if [ -d $termdata/. ]; then
+		cp -R $termdata/. $chroot_path$termdata
+	else
+		cp $termdata $chroot_path`dirname $termdata`
+	fi
 fi
 
 # Necessary libraries

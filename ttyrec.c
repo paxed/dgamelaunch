@@ -77,8 +77,6 @@
 #include <libutil.h>
 #endif
 
-#define CDEL _POSIX_VDISABLE
-
 extern char ttyrec_filename[100];
 extern int pid_game;
 
@@ -318,12 +316,14 @@ fixtty ()
   rtt.c_iflag = 0;
   rtt.c_lflag &= ~(ISIG | ICANON | XCASE | ECHO | ECHOE | ECHOK | ECHONL);
   rtt.c_oflag = OPOST;
-  rtt.c_cc[VINTR] = CDEL;
-  rtt.c_cc[VQUIT] = CDEL;
-  rtt.c_cc[VERASE] = CDEL;
-  rtt.c_cc[VKILL] = CDEL;
+  rtt.c_cc[VINTR] = _POSIX_VDISABLE;
+  rtt.c_cc[VQUIT] = _POSIX_VDISABLE;
+  rtt.c_cc[VERASE] = _POSIX_VDISABLE;
+  rtt.c_cc[VKILL] = _POSIX_VDISABLE;
   rtt.c_cc[VEOF] = 1;
   rtt.c_cc[VEOL] = 0;
+  rtt.c_cc[VMIN] = 1;
+  rtt.c_cc[VTIME] = 0;
   (void) tcsetattr (0, TCSAFLUSH, &rtt);
 }
 

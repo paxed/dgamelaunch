@@ -49,7 +49,7 @@
 /* program stuff */
 
 #include <stdlib.h>
-#include <curses.h>
+#include <ncurses.h>
 #include <sys/types.h>
 #include <sys/file.h>           /* for flock() */
 #include <sys/time.h>
@@ -1196,7 +1196,7 @@ writefile (int requirenew)
   fl.l_start = 0;
   fl.l_len = 0;
 
-  fpl = fopen ("/dgl-lock", "r");
+  fpl = fopen ("/dgl-lock", "r+");
   if (!fpl)
     graceful_exit (115);
   if (fcntl (fileno (fpl), F_SETLK, &fl))

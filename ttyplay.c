@@ -40,7 +40,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
-#include <curses.h>
+#include <ncurses.h>
 #include "ttyrec.h"
 #include "io.h"
 #include "stripgfx.h"
@@ -408,6 +408,8 @@ ttyplay_main (char *ttyfile, int mode, int rstripgfx)
   tcgetattr (0, &old);          /* Get current terminal state */
   new = old;                    /* Make a copy */
   new.c_lflag &= ~(ICANON | ECHO | ECHONL); /* unbuffered, no echo */
+  new.c_cc[VMIN] = 1;
+  new.c_cc[VTIME] = 0;
   tcsetattr (0, TCSANOW, &new); /* Make it current */
 
   process (input, speed, read_func, wait_func);
