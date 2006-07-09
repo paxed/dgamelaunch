@@ -1,4 +1,4 @@
-1.4.7 (2004/??/??)
+1.4.7 (2006/??/??)
 	* Make the watching code more efficient (particularly on FreeBSD) and
 	  clean it up a bit.
 	* Fix bug where old cruft was left under the watch list after 'm'
@@ -7,6 +7,11 @@
 	* Use kqueue() if available (FreeBSD) to improve watching.
 	* Update svn link.
 	* Use $(DESTDIR) intelligently in installation procedure.
+	* Fix dgl-create-chroot to do a more intelligent $termdata check,
+	  and to not choke on finding linux-gate.so.1 in ldd output (the file
+	  does not actually exist. Also make the copy a dereferncing one, since
+	  Debian now has a weird symlinking deal that makes it hard to accumulate
+	  all the directories together.
 
 1.4.6 (2004/07/03)
 	* Fix some signed/unsigned warnings.
