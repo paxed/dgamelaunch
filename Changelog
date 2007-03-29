@@ -1,4 +1,5 @@
-1.4.7 (2006/??/??)
+1.4.7 (2007/??/??)
+	* Allow more than one game per dgl installation. (by default, up to 3)
 	* Make the watching code more efficient (particularly on FreeBSD) and
 	  clean it up a bit.
 	* Fix bug where old cruft was left under the watch list after 'm'
