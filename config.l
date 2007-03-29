@@ -57,6 +57,8 @@ COMMENT		^#.*
 "shed_gid"	{ return TYPE_SGID; }
 "maxusers"	{ return TYPE_MAX; }
 
+"game_num"     { return TYPE_GAMENUM; }
+
 "chroot_path"	{ return TYPE_PATH_CHROOT; }
 "game_name"     { return TYPE_NAME_GAME; }
 "game_path"	{ return TYPE_PATH_GAME; }
@@ -67,6 +69,9 @@ COMMENT		^#.*
 "passwd"	{ return TYPE_PATH_PASSWD; }
 "lockfile"	{ return TYPE_PATH_LOCKFILE; }
 "savefilefmt"	{ return TYPE_PATH_SAVEFILEFMT; }
+"inprogressdir" { return TYPE_PATH_INPROGRESS; }
+"game_args"	{ return TYPE_GAME_ARGS; }
+"rc_fmt"	{ return TYPE_RC_FMT; }
 
 \n		{ line++; col = 0; }
 

@@ -16,33 +16,100 @@ extern FILE* yyin;
 extern int yyparse ();
 
 /* Data structures */
-struct dg_config *myconfig = NULL;
+struct dg_config **myconfig = NULL;
 struct dg_config defconfig = {
-  /* chroot = */ "/var/lib/dgamelaunch/",
+    /* chroot = */ /*"/var/lib/dgamelaunch/",*/
   /* game_path = */ "/bin/nethack",
   /* game_name = */ "NetHack",
-  /* dglroot = */  "/dgldir/",
+  /* dglroot = *//*  "/dgldir/",*/
   /* lockfile = */ "/dgl-lock",
   /* passwd = */ "/dgl-login",
-  /* banner = */ "/dgl-banner",
-  /* rcfile = */ "/dgl-default-rcfile",
+  /* banner = */ /*"/dgl-banner",*/
+  /* rcfile = */ NULL, /*"/dgl-default-rcfile",*/
   /* spool = */ "/var/mail/",
-  /* shed_user = */ "games",
-  /* shed_group = */ "games",
-  /* shed_uid = */ 5,
-  /* shed_gid = */ 60, /* games:games in Debian */
-  /* max = */ 64000,
-  /* savefilefmt = */ "" /* don't do this by default */
+  /* shed_user = */ /*"games",*/
+  /* shed_group = */ /*"games",*/
+  /* shed_uid = *//* 5,*/
+  /* shed_gid = */ /*60,*/ /* games:games in Debian */
+  /* max = */ /*64000,*/
+  /* savefilefmt = */ "", /* don't do this by default */
+  /* inprogressdir = */ "inprogress/",
+  /* num_args = */ 0,
+  /* bin_args = */ NULL,
+  /* rc_fmt = */ "%rrcfiles/%n.nethackrc" /* [dglroot]rcfiles/[username].nethackrc */
 };
 
 char* config = NULL;
 int silent = 0;
-int set_max = 0; /* XXX */
+/*int set_max = 0;*/ /* XXX */
 int loggedin = 0;
 char *chosen_name;
+int num_games = 0;
+
+struct dg_globalconfig globalconfig;
+
+/*
+ * replace following codes with variables:
+ * %u == shed_uid (number)
+ * %n == user name (string)
+ * %r == chroot (string)
+ */
+char *
+dgl_format_str(int game, struct dg_user *me, char *str)
+{
+    static char buf[1024];
+    char *f, *p, *end;
+    int ispercent = 0;
+
+    if (!str) return NULL;
+
+    f = str;
+    p = buf;
+    end = buf + sizeof(buf) - 10;
+
+    while (*f) {
+	if (ispercent) {
+	    switch (*f) {
+  	    case 'u':
+		snprintf (p, end + 1 - p, "%d", globalconfig.shed_uid);
+		while (*p != '\0')
+		    p++;
+		break;
+  	    case 'n':
+		snprintf (p, end + 1 - p, "%s", me->username);
+		while (*p != '\0')
+		    p++;
+		break;
+	    case 'r':
+		snprintf (p, end + 1 - p, "%s", globalconfig.dglroot);
+		while (*p != '\0')
+		    p++;
+		break;
+  	    default:
+		*p = *f;
+		if (p < end)
+		    p++;
+	    }
+	    ispercent = 0;
+	} else {
+	    if (*f == '%')
+		ispercent = 1;
+	    else {
+		*p = *f;
+		if (p < end)
+		    p++;
+	    }
+	}
+	f++;
+    }
+    *p = '\0';
+
+    return buf;
+}
+
 
 struct dg_game **
-populate_games (int *l)
+populate_games (int xgame, int *l)
 {
   int fd, len, n, is_nhext, pid;
   DIR *pdir;
@@ -54,28 +121,32 @@ populate_games (int *l)
   struct flock fl = { 0 };
   size_t slen;
 
+  int game;
+
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
   fl.l_start = 0;
   fl.l_len = 0;
 
   len = 0;
-  
-  slen = strlen(myconfig->dglroot) + ARRAY_SIZE("inprogress/") + 1;
-  dir = malloc(slen);
-  snprintf(dir, slen, "%sinprogress/", myconfig->dglroot);
 
-  if (!(pdir = opendir (dir)))
+  for (game = ((xgame < 0) ? 0 : xgame); game <= ((xgame < 0) ? num_games : xgame); game++) {
+
+   slen = strlen(globalconfig.dglroot) + strlen(myconfig[game]->inprogressdir) + 1;
+   dir = malloc(slen);
+   snprintf(dir, slen, "%s%s", globalconfig.dglroot, myconfig[game]->inprogressdir);
+
+   if (!(pdir = opendir (dir)))
     graceful_exit (140);
 
-  while ((pdirent = readdir (pdir)))
+   while ((pdirent = readdir (pdir)))
     {
       if (!strcmp (pdirent->d_name, ".") || !strcmp (pdirent->d_name, ".."))
         continue;
 
       is_nhext = !strcmp (pdirent->d_name + strlen (pdirent->d_name) - 6, ".nhext");
 
-      snprintf (fullname, 130, "%sinprogress/%s", myconfig->dglroot, pdirent->d_name);
+      snprintf (fullname, 130, "%s%s%s", globalconfig.dglroot, myconfig[game]->inprogressdir, pdirent->d_name);
 
       fd = 0;
       /* O_RDWR here should be O_RDONLY, but we need to test for
@@ -87,7 +158,7 @@ populate_games (int *l)
           /* stat to check idle status */
 	  if (!is_nhext)
 	    {
-	      snprintf (ttyrecname, 130, "%sttyrec/%s", myconfig->dglroot, pdirent->d_name);
+	      snprintf (ttyrecname, 130, "%sttyrec/%s", globalconfig.dglroot, pdirent->d_name);
 	      replacestr = strchr (ttyrecname, ':');
 	      if (!replacestr)
 		graceful_exit (145);
@@ -172,7 +243,8 @@ populate_games (int *l)
       fl.l_type = F_WRLCK;
     }
 
-  closedir (pdir);
+   closedir (pdir);
+  }
   *l = len;
   return games;
 }
@@ -197,6 +269,7 @@ void
 create_config ()
 {
   FILE *config_file = NULL;
+  int tmp;
 
   if (config)
   {
@@ -217,52 +290,73 @@ create_config ()
   else
   {
 #ifdef DEFCONFIG
+      /*      fprintf(stderr, "DEFCONFIG: %s\n", DEFCONFIG);*/
     config = DEFCONFIG;
     if ((config_file = fopen(DEFCONFIG, "r")) != NULL)
     {
       yyin = config_file;
+      /*      fprintf(stderr, "PARSING\n");*/
       yyparse();
+      /*      fprintf(stderr, "PARSED\n");*/
       fclose(config_file);
     }
 #else
-    myconfig = &defconfig;
+    /*      fprintf(stderr, "NO DEFCONFIG\n");*/
+      myconfig = calloc(DIFF_GAMES, sizeof(myconfig[0]));
+    for (tmp = 0; tmp < DIFF_GAMES; tmp++)
+	myconfig[tmp] = NULL;
+    myconfig[0] = &defconfig;
     return;
 #endif
   }
 
   if (!myconfig) /* a parse error occurred */
   {
-    myconfig = &defconfig;
+      /*      fprintf(stderr, "PARSE ERROR\n");*/
+      myconfig = calloc(DIFF_GAMES, sizeof(myconfig[0]));
+    for (tmp = 0; tmp < DIFF_GAMES; tmp++)
+	myconfig[tmp] = NULL;
+    myconfig[0] = &defconfig;
     return;
   }
   /* Fill the rest with defaults */
-  if (!myconfig->shed_user && myconfig->shed_uid == (uid_t)-1)
-  {
-    struct passwd *pw;
-    if ((pw = getpwnam(defconfig.shed_user)))
-      myconfig->shed_uid = pw->pw_uid;
-    else
-      myconfig->shed_uid = defconfig.shed_uid;
+
+  for (tmp = 0; tmp < DIFF_GAMES; tmp++) {
+
+      if (!myconfig[tmp]->game_path) myconfig[tmp]->game_path = defconfig.game_path;
+      if (!myconfig[tmp]->game_name) myconfig[tmp]->game_name = defconfig.game_name;
+      if (!myconfig[tmp]->rcfile) myconfig[tmp]->rcfile = defconfig.rcfile;
+      if (!myconfig[tmp]->spool) myconfig[tmp]->spool = defconfig.spool;
+      if (!myconfig[tmp]->passwd) myconfig[tmp]->passwd = defconfig.passwd;
+      if (!myconfig[tmp]->lockfile) myconfig[tmp]->lockfile = defconfig.lockfile;
+      if (!myconfig[tmp]->savefilefmt) myconfig[tmp]->savefilefmt = defconfig.savefilefmt;
+      if (!myconfig[tmp]->inprogressdir) myconfig[tmp]->inprogressdir = defconfig.inprogressdir;
+
+
   }
 
-  if (!myconfig->shed_group && myconfig->shed_gid == (gid_t)-1)
-  {
-    struct group *gr;
-    if ((gr = getgrnam(defconfig.shed_group)))
-      myconfig->shed_gid = gr->gr_gid;
-    else
-      myconfig->shed_gid = defconfig.shed_gid;
-  }
+  if (!globalconfig.chroot) globalconfig.chroot = "/var/lib/dgamelaunch/";
 
-  if (myconfig->max == 0 && !set_max) myconfig->max = defconfig.max;
-  if (!myconfig->banner) myconfig->banner = defconfig.banner;
-  if (!myconfig->chroot) myconfig->chroot = defconfig.chroot;
-  if (!myconfig->game_path) myconfig->game_path = defconfig.game_path;
-  if (!myconfig->game_name) myconfig->game_name = defconfig.game_name;
-  if (!myconfig->dglroot) myconfig->dglroot = defconfig.dglroot;
-  if (!myconfig->rcfile) myconfig->rcfile = defconfig.rcfile;
-  if (!myconfig->spool) myconfig->spool = defconfig.spool;
-  if (!myconfig->passwd) myconfig->passwd = defconfig.passwd;
-  if (!myconfig->lockfile) myconfig->lockfile = defconfig.lockfile;
-  if (!myconfig->savefilefmt) myconfig->savefilefmt = defconfig.savefilefmt;
+  if (globalconfig.max == 0) globalconfig.max = 64000;
+  if (!globalconfig.dglroot) globalconfig.dglroot = "/dgldir/";
+  if (!globalconfig.banner)  globalconfig.banner = "/dgl-banner";
+
+  if (!globalconfig.shed_user && globalconfig.shed_uid == (uid_t)-1)
+	  {
+	      struct passwd *pw;
+	      if ((pw = getpwnam("games")))
+		  globalconfig.shed_uid = pw->pw_uid;
+	      else
+		  globalconfig.shed_uid = 5; /* games uid in debian */
+	  }
+
+  if (!globalconfig.shed_group && globalconfig.shed_gid == (gid_t)-1)
+	  {
+	      struct group *gr;
+	      if ((gr = getgrnam("games")))
+		  globalconfig.shed_gid = gr->gr_gid;
+	      else
+		  globalconfig.shed_gid = 60; /* games gid in debian */
+	  }
+
 }

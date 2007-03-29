@@ -70,7 +70,7 @@ usage:
 
   create_config();
 
-  if (chroot (myconfig->chroot))
+  if (chroot (globalconfig.chroot))
   {
     perror("Couldn't change root directory");
     return 1;
@@ -82,7 +82,7 @@ usage:
     return 1;
   }
   
-  games = populate_games (&len);
+  games = populate_games (-1, &len);
 
   if (len == 0)
   {
@@ -95,10 +95,10 @@ usage:
     char* fname = NULL;
     size_t len;
 
-    len = strlen(myconfig->spool) + strlen(games[i]->name) + 2;
+    len = strlen(myconfig[0]->spool) + strlen(games[i]->name) + 2;
     fname = malloc (len + 1);
 
-    snprintf(fname, len, "%s/%s", myconfig->spool, games[i]->name);
+    snprintf(fname, len, "%s/%s", myconfig[0]->spool, games[i]->name);
     
     if ((spool = fopen(fname, "a")) == NULL)
     {

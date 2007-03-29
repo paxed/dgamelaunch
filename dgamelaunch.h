@@ -12,6 +12,10 @@
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
+
+/* max # of different games playable from within this dgl */
+#define DIFF_GAMES 3
+
 struct dg_user
 {
   char *username;
@@ -39,41 +43,54 @@ struct dg_game
 
 struct dg_config
 {
-  char* chroot;
   char* game_path;
   char* game_name;
-  char* dglroot;
   char* lockfile;
   char* passwd;
-  char* banner;
   char* rcfile;
   char* spool;
-  char* shed_user;
-  char* shed_group;
-  uid_t shed_uid;
-  gid_t shed_gid;
-  unsigned long max;
   char* savefilefmt;
+  char* inprogressdir;
+    int num_args; /* # of bin_args */
+    char **bin_args; /* args for game binary */
+    char *rc_fmt;
+};
+
+struct dg_globalconfig
+{
+    char* chroot;
+    char* dglroot;
+    char* banner;
+    unsigned long max;
+    char* shed_user;
+    char* shed_group;
+    uid_t shed_uid;
+    gid_t shed_gid;
 };
 
 /* Global variables */
 extern char* config; /* file path */
-extern struct dg_config *myconfig;
+extern struct dg_config **myconfig;
 extern char *chosen_name;
 extern int loggedin;
 extern int silent;
 extern int set_max;
 
+extern struct dg_globalconfig globalconfig;
+
+extern int num_games;
+
 /* dgamelaunch.c */
 extern void create_config(void);
 extern void ttyrec_getmaster(void);
 extern char *gen_ttyrec_filename(void);
-extern char *gen_inprogress_lock(pid_t pid, char *ttyrec_filename);
+extern char *gen_inprogress_lock(int game, pid_t pid, char *ttyrec_filename);
 extern void catch_sighup(int signum);
-extern void loadbanner(struct dg_banner *ban);
+extern void loadbanner(int game, struct dg_banner *ban);
 extern void drawbanner(unsigned int start_line, unsigned int howmany);
-extern struct dg_game **populate_games(int *l);
-extern void inprogressmenu(void);
+extern char *dgl_format_str(int game, struct dg_user *me, char *str);
+extern struct dg_game **populate_games(int game, int *l);
+extern void inprogressmenu(int gameid);
 extern void change_email(void);
 extern int changepw(int dowrite);
 extern void domailuser(char *username);
@@ -86,12 +103,12 @@ extern void autologin(char *user, char *pass);
 extern int passwordgood(char *cpw);
 extern int readfile(int nolock);
 extern int userexist(char *cname);
-extern void write_canned_rcfile(char *target);
-extern void editoptions(void);
+extern void write_canned_rcfile(int game, char *target);
+extern void editoptions(int game);
 extern void writefile(int requirenew);
 extern void graceful_exit(int status);
-extern int purge_stale_locks(void);
-extern void menuloop(void);
+extern int purge_stale_locks(int game);
+extern int menuloop(void);
 extern void ttyrec_getpty(void);
 #if !defined(BSD) && !defined(__linux__)
 extern int mysetenv (const char* name, const char* value, int overwrite);

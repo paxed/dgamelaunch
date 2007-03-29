@@ -82,11 +82,11 @@ struct winsize win;
 int uflg;
 
 int
-ttyrec_main (char *username, char* ttyrec_filename)
+ttyrec_main (int game, char *username, char* ttyrec_filename)
 {
   char dirname[100];
 
-  snprintf (dirname, 100, "%sttyrec/%s/%s", myconfig->dglroot, username,
+  snprintf (dirname, 100, "%sttyrec/%s/%s", globalconfig.dglroot, username,
             ttyrec_filename);
 
   atexit(&remove_ipfile);
@@ -117,11 +117,11 @@ ttyrec_main (char *username, char* ttyrec_filename)
       if (child)
         {
           close (slave);
-          ipfile = gen_inprogress_lock (child, ttyrec_filename);
+          ipfile = gen_inprogress_lock (game, child, ttyrec_filename);
           dooutput ();
         }
       else
-        doshell (username);
+	  doshell (game, username);
     }
   doinput ();
 
@@ -261,12 +261,8 @@ dooutput ()
 }
 
 void
-doshell (char *username)
+doshell (int game, char *username)
 {
-  char *argv1 = myconfig->game_path;
-  char *argv2 = "-u";
-  char *myargv[10];
-
   getslave ();
   (void) close (master);
   (void) fclose (fscript);
@@ -275,12 +271,7 @@ doshell (char *username)
   (void) dup2 (slave, 2);
   (void) close (slave);
 
-  myargv[0] = argv1;
-  myargv[1] = argv2;
-  myargv[2] = username;
-  myargv[3] = 0;
-
-  execvp (myconfig->game_path, myargv);
+  execvp (myconfig[game]->game_path, myconfig[game]->bin_args);
 
   fail ();
 }

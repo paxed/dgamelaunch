@@ -17,11 +17,11 @@ extern void fixtty (void);
 extern void getslave (void);
 extern void doinput (void);
 extern void dooutput (void);
-extern void doshell (char *);
+extern void doshell (int, char *);
 extern void finish (int);
 extern void remove_ipfile (void);
 
-extern int ttyrec_main(char *username, char *ttyrec_filename);
+extern int ttyrec_main(int, char *username, char *ttyrec_filename);
 
 extern pid_t child; /* nethack process */
 extern int master, slave;

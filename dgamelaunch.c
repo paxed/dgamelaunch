@@ -89,7 +89,7 @@ extern int editor_main (int argc, char **argv);
 /* global variables */
 
 char * __progname;
-char rcfilename[80];
+/*char rcfilename[80];*/
 
 int f_num = 0;
 struct dg_user **users = NULL;
@@ -181,7 +181,7 @@ gen_nhext_filename ()
 /* ************************************************************* */
 
 char*
-gen_inprogress_lock (pid_t pid, char* ttyrec_filename)
+gen_inprogress_lock (int game, pid_t pid, char* ttyrec_filename)
 {
   char *lockfile = NULL, filebuf[80];
   int fd;
@@ -196,10 +196,10 @@ gen_inprogress_lock (pid_t pid, char* ttyrec_filename)
   fl.l_start = 0;
   fl.l_len = 0;
 
-  len = strlen(myconfig->dglroot) + strlen(me->username) + strlen(ttyrec_filename) + 13;
+  len = strlen(globalconfig.dglroot) + strlen(me->username) + strlen(ttyrec_filename) + 13;
   lockfile = calloc(len, sizeof(char));
   
-  snprintf (lockfile, len, "%sinprogress/%s:%s", myconfig->dglroot,
+  snprintf (lockfile, len, "%s%s%s:%s", globalconfig.dglroot, myconfig[game]->inprogressdir,
             me->username, ttyrec_filename);
 
   fd = open (lockfile, O_WRONLY | O_CREAT, 0644);
@@ -228,14 +228,14 @@ catch_sighup (int signum)
 /* ************************************************************* */
 
 void
-loadbanner (struct dg_banner *ban)
+loadbanner (int game, struct dg_banner *ban)
 {
   FILE *bannerfile;
   char buf[80];
 
   memset (buf, 0, 80);
 
-  bannerfile = fopen (myconfig->banner, "r");
+  bannerfile = fopen (globalconfig.banner, "r");
 
   if (!bannerfile)
     {
@@ -245,9 +245,9 @@ loadbanner (struct dg_banner *ban)
       ban->lines[0] =
         strdup ("### dgamelaunch " PACKAGE_VERSION
                 " - network console game launcher");
-      len = strlen(myconfig->banner) + ARRAY_SIZE("### NOTE: administrator has not installed a  file");
+      len = strlen(globalconfig.banner) + ARRAY_SIZE("### NOTE: administrator has not installed a  file");
       ban->lines[1] = malloc(len);
-      snprintf(ban->lines[1], len, "### NOTE: administrator has not installed a %s file", myconfig->banner);
+      snprintf(ban->lines[1], len, "### NOTE: administrator has not installed a %s file", globalconfig.banner);
       return;
     }
 
@@ -310,7 +310,7 @@ drawbanner (unsigned int start_line, unsigned int howmany)
 
   if (!loaded_banner)
     {
-      loadbanner (&banner);
+	loadbanner (0, &banner);
       loaded_banner = 1;
     }
 
@@ -322,7 +322,7 @@ drawbanner (unsigned int start_line, unsigned int howmany)
 }
 
 void
-inprogressmenu ()
+inprogressmenu (int gameid)
 {
   int i, menuchoice, len = 20, offset = 0, doresizewin = 0;
   time_t ctime;
@@ -331,7 +331,7 @@ inprogressmenu ()
   int is_nhext[14];
   sigset_t oldmask, toblock;
 
-  games = populate_games (&len);
+  games = populate_games (gameid, &len);
 
   while (1)
     {
@@ -416,7 +416,7 @@ inprogressmenu ()
 		break;
 
               /* valid choice has been made */
-              snprintf (ttyrecname, 130, "%sttyrec/%s", myconfig->dglroot,
+              snprintf (ttyrecname, 130, "%sttyrec/%s", globalconfig.dglroot,
                         games[menuchoice - 97 + offset]->ttyrec_fn);
               chosen_name = strdup (games[menuchoice - 97 + offset]->name);
 
@@ -452,7 +452,7 @@ inprogressmenu ()
             }
         }
 
-      games = populate_games (&len);
+      games = populate_games (gameid, &len);
     }
 }
 
@@ -623,6 +623,7 @@ domailuser (char *username)
   FILE *user_spool = NULL;
   time_t now;
   int mail_empty = 1;
+  int game;
   struct flock fl = { 0 };
 
   fl.l_type = F_WRLCK;
@@ -632,10 +633,14 @@ domailuser (char *username)
 
   assert (loggedin);
 
-  len = strlen(myconfig->spool) + strlen (username) + 1;
+  game = 0; /*TODO: find_curr_player_game(username) */
+
+  if (strlen(myconfig[game]->spool) < 1) return;
+
+  len = strlen(myconfig[game]->spool) + strlen (username) + 1;
   spool_fn = malloc (len + 1);
   time (&now);
-  snprintf (spool_fn, len + 1, "%s/%s", myconfig->spool, username);
+  snprintf (spool_fn, len + 1, "%s/%s", myconfig[game]->spool, username);
 
   /* print the enter your message line */
   clear ();
@@ -704,9 +709,45 @@ domailuser (char *username)
 }
 
 void
+drawgamemenu(int game)
+{
+  static int flood = 0;
+
+  if (loggedin) {
+
+      clear();
+
+      drawbanner(1,0);
+
+      mvprintw(banner.len + 2, 1, "Logged in as: %s", me->username);
+
+      mvaddstr (banner.len + 4, 1, "c) Change password");
+      mvaddstr (banner.len + 5, 1, "e) Change email address");
+      mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
+      if (myconfig[game]->rcfile)
+	  mvprintw (banner.len + 7, 1, "o) Edit options for %s", myconfig[game]->game_name);
+      mvprintw (banner.len + 8, 1, "p) Play %s", myconfig[game]->game_name);
+      mvaddstr (banner.len + 9, 1, "q) Return to previous menu");
+      mvaddstr (banner.len + 11, 1, "=> ");
+
+      refresh ();
+  }
+
+  /* for retarded clients */
+  flood++;
+  if (flood >= 20)
+  {
+    endwin();
+    graceful_exit (119);
+  }
+
+}
+
+void
 drawmenu ()
 {
   static int flood = 0;
+  int game = 0;
 
   clear ();
 
@@ -717,11 +758,17 @@ drawmenu ()
       mvprintw (banner.len + 2, 1, "Logged in as: %s", me->username);
       mvaddstr (banner.len + 4, 1, "c) Change password");
       mvaddstr (banner.len + 5, 1, "e) Change email address");
-      mvaddstr (banner.len + 6, 1, "o) Edit option file");
-      mvaddstr (banner.len + 7, 1, "w) Watch games in progress");
-      mvprintw (banner.len + 8, 1, "p) Play %s!", myconfig->game_name);
-      mvaddstr (banner.len + 9, 1, "q) Quit");
-      mvaddstr (banner.len + 11, 1, "=> ");
+      mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
+      if (num_games >= 1)
+	  for (game = 0; (game <= num_games) && myconfig && myconfig[game] && myconfig[game]->game_name; game++)
+	      mvprintw (banner.len + 7 + game, 1, "%c) Go to %s menu", '1'+game, myconfig[game]->game_name);
+      else {
+	  if (myconfig[0]->rcfile)
+	      mvprintw (banner.len + 7, 1, "o) Edit options");
+	  mvprintw (banner.len + 8, 1, "p) Play %s", myconfig[0]->game_name);
+      }
+      mvaddstr (banner.len + 9 + game, 1, "q) Quit");
+      mvaddstr (banner.len + 11 + game, 1, "=> ");
     }
   else
     {
@@ -730,7 +777,7 @@ drawmenu ()
       mvaddstr (banner.len + 5, 1, "r) Register new user");
       mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
       mvaddstr (banner.len + 7, 1, "q) Quit");
-      mvaddstr (banner.len + 9, 1, "=> ");
+      mvaddstr (banner.len + 11, 1, "=> ");
     }
 
   refresh ();
@@ -796,7 +843,6 @@ autologin (char* user, char *pass)
     if (passwordgood(pass))
     {
       loggedin = 1;
-      snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
       setproctitle ("%s", me->username);
     }
   }
@@ -859,7 +905,6 @@ loginprompt (int from_ttyplay)
   if (passwordgood (pw_buf))
     {
       loggedin = 1;
-      snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
       setproctitle ("%s", me->username);
     }
   else 
@@ -885,7 +930,7 @@ newuser ()
 
   loggedin = 0;
 
-  if (f_num >= myconfig->max)
+  if (f_num >= globalconfig.max)
   {
       clear ();
 
@@ -1008,14 +1053,10 @@ newuser ()
 
   loggedin = 1;
 
-  snprintf (rcfilename, 80, "%srcfiles/%s.nethackrc", myconfig->dglroot, me->username);
   setproctitle ("%s", me->username);
 
-  if (access (rcfilename, R_OK) == -1)
-    write_canned_rcfile (rcfilename);
-
   /* create their ttyrec dir */
-  snprintf (dirname, 100, "%sttyrec/%s", myconfig->dglroot, me->username);
+  snprintf (dirname, 100, "%sttyrec/%s", globalconfig.dglroot, me->username);
 
   if (access (dirname, F_OK) != 0)
     mkdir (dirname, 0755);
@@ -1057,14 +1098,14 @@ readfile (int nolock)
 
   if (!nolock)
     {
-      fpl = fopen (myconfig->lockfile, "r");
+      fpl = fopen (myconfig[0]->lockfile, "r");
       if (!fpl)
         graceful_exit (106);
       if (fcntl (fileno (fpl), F_SETLKW, &fl) == -1)
         graceful_exit (114);
     }
 
-  fp = fopen (myconfig->passwd, "r");
+  fp = fopen (myconfig[0]->passwd, "r");
   if (!fp)
     graceful_exit (106);
 
@@ -1132,7 +1173,7 @@ readfile (int nolock)
 
       f_num++;
       /* prevent a buffer overrun here */
-      if (f_num > myconfig->max)
+      if (f_num > globalconfig.max)
       {
 	fprintf(stderr,"ERROR: number of users in database exceeds maximum. Exiting.\n");
         graceful_exit (109);
@@ -1164,15 +1205,15 @@ userexist (char *cname)
 /* ************************************************************* */
 
 void
-write_canned_rcfile (char *target)
+write_canned_rcfile (int game, char *target)
 {
   FILE *canned, *newfile;
   char buf[1024], *rfn;
   size_t bytes, len;
 
-  len = strlen(myconfig->rcfile) + 2;
+  len = strlen(myconfig[game]->rcfile) + 2;
   rfn = malloc(len);
-  snprintf (rfn, len, "/%s", myconfig->rcfile);
+  snprintf (rfn, len, "/%s", myconfig[game]->rcfile);
 
   if (!(newfile = fopen (target, "w")))
     {
@@ -1180,7 +1221,7 @@ write_canned_rcfile (char *target)
       mvaddstr (13, 1,
                 "You don't know how to write that! You write \"%s was here\" and the scroll disappears.");
       mvaddstr (14, 1,
-                "(Sorry, but I couldn't open one of the nethackrc files. This is a bug.)");
+                "(Sorry, but I couldn't open one of the config files. This is a bug.)");
       return;
     }
 
@@ -1211,20 +1252,20 @@ write_canned_rcfile (char *target)
 
 
 void
-editoptions ()
+editoptions (int game)
 {
   FILE *rcfile;
   char *myargv[3];
   pid_t editor;
 
-  rcfile = fopen (rcfilename, "r");
-  if (!rcfile)                  /* should not really happen except for old users */
-    write_canned_rcfile (rcfilename);
+  rcfile = fopen (dgl_format_str(game, me, myconfig[game]->rc_fmt), "r");
+  if (!rcfile)
+      write_canned_rcfile (game, dgl_format_str(game, me, myconfig[game]->rc_fmt));
 
   /* use whatever editor_main to edit */
 
   myargv[0] = "";
-  myargv[1] = rcfilename;
+  myargv[1] = dgl_format_str(game, me, myconfig[game]->rc_fmt);
   myargv[2] = 0;
 
   endwin ();
@@ -1270,7 +1311,7 @@ writefile (int requirenew)
   sigaddset(&toblock, SIGTERM);
   sigprocmask(SIG_BLOCK, &toblock, &oldmask);
 
-  fpl = fopen (myconfig->lockfile, "r+");
+  fpl = fopen (myconfig[0]->lockfile, "r+");
   if (!fpl)
     {
       sigprocmask(SIG_SETMASK, &oldmask, NULL);
@@ -1287,7 +1328,7 @@ writefile (int requirenew)
   freefile ();
   readfile (1);
 
-  fp = fopen (myconfig->passwd, "w");
+  fp = fopen (myconfig[0]->passwd, "w");
   if (!fp)
     {
       sigprocmask(SIG_SETMASK, &oldmask, NULL);
@@ -1319,7 +1360,7 @@ writefile (int requirenew)
     }
   if (loggedin && !my_done)
     {                           /* new entry */
-      if (f_num < myconfig->max)
+      if (f_num < globalconfig.max)
         fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
                  me->env);
       else /* Oops, someone else registered the last available slot first */
@@ -1345,65 +1386,30 @@ writefile (int requirenew)
 /* ************************************************************* */
 /* ************************************************************* */
 
+
 /*
  * Backup the savefile, if configured.
  * Returns non-zero if successful, otherwise an error message has been
  * given already.
  */
 int
-backup_savefile (void)
+backup_savefile (int game)
 {
-  char buf[1024];
-  char *f, *p, *end;
+    /*char buf[1024];*/
+    char *f, *p, *end, *buf;
   int ispercent = 0, n;
   int in, out;
 
-  f = myconfig->savefilefmt;
+  f = myconfig[game]->savefilefmt;
 
   if (*f == '\0')
     return 1;
   if (me == NULL)
     graceful_exit (147);
 
+  buf = dgl_format_str(game, me, f);
   p = buf;
-  end = buf + sizeof(buf) - 10; /* make sure we can add .bak */
-  while (*f)
-    {
-      if (ispercent)
-        {
-          switch (*f)
-  	  {
-  	    case 'u':
-  	      snprintf (p, end + 1 - p, "%d", myconfig->shed_uid);
-  	      while (*p != '\0')
-  	        p++;
-  	      break;
-  	    case 'n':
-  	      snprintf (p, end + 1 - p, "%s", me->username);
-  	      while (*p != '\0')
-  	        p++;
-  	      break;
-  	    default:
-  	      *p = *f;
-  	      if (p < end)
-  	        p++;
-  	  }
-	  ispercent = 0;
-	}
-      else
-        {
-	  if (*f == '%')
-	    ispercent = 1;
-	  else
-	    {
-	      *p = *f;
-	      if (p < end)
-	        p++;
-	    }
-	}
-      f++;
-    }
-  *p = '\0';
+  p += strlen(buf);
 
   /*fprintf(stderr, "***\n[SAVEFILE=%s]\n***\n", buf);
   sleep(3);*/
@@ -1443,7 +1449,7 @@ backup_savefile (void)
 }
 
 int
-purge_stale_locks (void)
+purge_stale_locks (int game)
 {
   DIR *pdir;
   struct dirent *dent;
@@ -1451,10 +1457,10 @@ purge_stale_locks (void)
   size_t len;
   short firsttime = 1;
 
-  len = strlen(myconfig->dglroot) + ARRAY_SIZE("inprogress/") + 1;
+  len = strlen(globalconfig.dglroot) + strlen(myconfig[game]->inprogressdir) + 1;
   dir = malloc(len);
-  snprintf(dir, len, "%sinprogress/", myconfig->dglroot);
-  
+  snprintf(dir, len, "%s%s", globalconfig.dglroot, myconfig[game]->inprogressdir);
+
   if (!(pdir = opendir (dir)))
     graceful_exit (200);
 
@@ -1468,7 +1474,7 @@ purge_stale_locks (void)
       pid_t pid;
       size_t len;
       int seconds = 0;
-      
+
       if (!strcmp (dent->d_name, ".") || !strcmp (dent->d_name, ".."))
         continue;
 
@@ -1482,10 +1488,12 @@ purge_stale_locks (void)
       if (strncmp (dent->d_name, me->username, colon - dent->d_name))
         continue;
 
-      len = strlen (dent->d_name) + strlen(myconfig->dglroot) + 12;
+      len = strlen (dent->d_name) + strlen(globalconfig.dglroot) + 12;
       fn = malloc (len);
 
-      snprintf (fn, len, "%sinprogress/%s", myconfig->dglroot, dent->d_name);
+      snprintf (fn, len, "%s%s%s", globalconfig.dglroot, myconfig[game]->inprogressdir, dent->d_name);
+
+      fprintf (stderr, "ERR:'%s'\n", fn);
 
       if (!(ipfile = fopen (fn, "r")))
         graceful_exit (202);
@@ -1503,13 +1511,13 @@ purge_stale_locks (void)
 #define HUP_WAIT 10 /* seconds before HUPPING */
 	mvprintw (3, 1,
 	    "There are some stale %s processes, will recover in %d  seconds.",
-            myconfig->game_name, HUP_WAIT);
+            myconfig[game]->game_name, HUP_WAIT);
 	mvaddstr (4, 1,
 	    "Press a key NOW if you don't want this to happen!");
 
-	move (3, 58); /* pedantry */
+	move (3, 51 + strlen(myconfig[game]->game_name)); /* pedantry */
 	halfdelay(10);
-	
+
 	for (seconds = HUP_WAIT - 1; seconds >= 0; seconds--)
 	{
 	  if (getch() != ERR)
@@ -1518,12 +1526,12 @@ purge_stale_locks (void)
 	    cbreak();
 	    return 0;
 	  }
-	  mvprintw (3, 57, "%d%s", seconds, (seconds > 9) ? "" : " ");
+	  mvprintw (3, 50 + strlen(myconfig[game]->game_name), "%d%s", seconds, (seconds > 9) ? "" : " ");
 	}
 
 	nocbreak();
 	cbreak();
-	
+
 	firsttime = 0;
       }
 
@@ -1545,7 +1553,7 @@ purge_stale_locks (void)
           if (seconds == 10)
             {
               mvprintw (3, 1,
-                        "Couldn't terminate one of your stale %s processes gracefully.", myconfig->game_name);
+                        "Couldn't terminate one of your stale %s processes gracefully.", myconfig[game]->game_name);
               mvaddstr (4, 1, "Force its termination? [yn] ");
               if (tolower (getch ()) == 'y')
                 {
@@ -1556,7 +1564,7 @@ purge_stale_locks (void)
                 {
                   endwin ();
                   fprintf (stderr, "Sorry, no %s for you now, please "
-                           "contact the admin.\n", myconfig->game_name);
+                           "contact the admin.\n", myconfig[game]->game_name);
                   graceful_exit (1);
                 }
             }
@@ -1571,16 +1579,22 @@ purge_stale_locks (void)
   return 1;
 }
 
-void
-menuloop (void)
+int
+gamemenuloop(int game)
 {
   int userchoice = 0;
-  while ((userchoice != 'p') | (!loggedin))
+  while (1)
     {
-      drawmenu ();
+      drawgamemenu (game);
       userchoice = getch ();
       switch (tolower (userchoice))
         {
+	default:
+	    break;
+	case 'p':
+	    if (loggedin)
+		return 1;
+	    break;
         case 'c':
           if (loggedin)
             changepw (1);
@@ -1590,15 +1604,16 @@ menuloop (void)
 	    change_email();
 	  break;
         case 'w':
-          inprogressmenu ();
+          inprogressmenu (game);
           break;
-        case 'o':
-          if (loggedin)
-            editoptions ();
-          break;
+	case 'o':
+          if (loggedin && myconfig[game]->rcfile)
+            editoptions (game);
+	    break;
         case 'q':
-          endwin ();
-          graceful_exit(0);
+	    return 0;
+	    /*          endwin ();
+			graceful_exit(0);*/
           /* break; */
         case 'r':
           if (!loggedin)        /*not visible to loggedin */
@@ -1607,10 +1622,66 @@ menuloop (void)
         case 'l':
           if (!loggedin)        /* not visible to loggedin */
             loginprompt (0);
-          break;
         }
     }
+  return 0;
 }
+
+int
+menuloop (void)
+{
+  int userchoice = 0;
+  while (1)
+    {
+      drawmenu ();
+      userchoice = getch ();
+
+      if ((num_games >= 1) && loggedin && (userchoice >= '1') && (userchoice <= ('1'+num_games))) {
+	  int game = userchoice - '1';
+	  if (myconfig[game] && myconfig[game]->game_name) {
+	      if (gamemenuloop(game)) return game;
+	  }
+      } else {
+	  switch (tolower (userchoice))
+	      {
+	      default:
+		  break;
+	      case 'c':
+		  if (loggedin)
+		      changepw (1);
+		  break;
+	      case 'e':
+		  if (loggedin)
+		      change_email();
+		  break;
+	      case 'w':
+		  inprogressmenu (-1);
+		  break;
+	      case 'o':
+		  if (loggedin && (num_games == 0) && myconfig[0]->rcfile)
+		      editoptions(0);
+		  break;
+	      case 'p':
+		  if (loggedin && (num_games == 0))
+		      return 0;
+		  break;
+	      case 'q':
+		  endwin ();
+		  graceful_exit(0);
+		  /* break; */
+	      case 'r':
+		  if (!loggedin)        /*not visible to loggedin */
+		      newuser ();
+		  break;
+	      case 'l':
+		  if (!loggedin)        /* not visible to loggedin */
+		      loginprompt (0);
+	      }
+      }
+    }
+  return -1;
+}
+
 
 int
 authenticate ()
@@ -1648,7 +1719,7 @@ authenticate ()
       me = users[me_index];
       if (passwordgood (pw_buf))
         {
-	  games = populate_games (&len);
+	    games = populate_games (-1, &len);
 	  for (i = 0; i < len; i++)
 	    if (!strcmp (games[i]->name, user_buf))
 	      {
@@ -1656,7 +1727,7 @@ authenticate ()
 		return 1;
 	      }
 	  win.ws_row = win.ws_col = 0;
-	  gen_inprogress_lock (getppid (), gen_nhext_filename ());
+	  gen_inprogress_lock (0, getppid (), gen_nhext_filename ());
 	  return 0;
 	}
     }
@@ -1674,6 +1745,7 @@ main (int argc, char** argv)
   unsigned int len;
   int c;
   int nhext = 0, nhauth = 0;
+  int userchoice;
 
 #ifndef HAVE_SETPROCTITLE
   /* save argc, argv */
@@ -1754,10 +1826,10 @@ main (int argc, char** argv)
   if (!nhext && !nhauth)
     ttyrec_getpty ();
 
-  if (geteuid () != myconfig->shed_uid)
+  if (geteuid () != globalconfig.shed_uid)
     {
       /* chroot */
-      if (chroot (myconfig->chroot))
+      if (chroot (globalconfig.chroot))
 	{
 	  perror ("cannot change root directory");
 	  graceful_exit (1);
@@ -1770,19 +1842,19 @@ main (int argc, char** argv)
 	}
 
       /* shed privs. this is done immediately after chroot. */
-      if (setgroups (1, &myconfig->shed_gid) == -1)
+      if (setgroups (1, &globalconfig.shed_gid) == -1)
 	{
 	  perror ("setgroups");
 	  graceful_exit (1);
 	}
 
-      if (setgid (myconfig->shed_gid) == -1)
+      if (setgid (globalconfig.shed_gid) == -1)
 	{
 	  perror ("setgid");
 	  graceful_exit (1);
 	}
 
-      if (setuid (myconfig->shed_uid) == -1)
+      if (setuid (globalconfig.shed_uid) == -1)
 	{
 	  perror ("setuid");
 	  graceful_exit (1);
@@ -1793,12 +1865,12 @@ main (int argc, char** argv)
     {
       char *myargv[3];
 
-      myargv[0] = myconfig->game_path;
+      myargv[0] = myconfig[0]->game_path;
       myargv[1] = "--proxy";
       myargv[2] = 0;
 
-      execvp (myconfig->game_path, myargv);
-      perror (myconfig->game_path);
+      execvp (myconfig[0]->game_path, myargv);
+      perror (myconfig[0]->game_path);
       graceful_exit (1);
     }
 
@@ -1829,29 +1901,44 @@ main (int argc, char** argv)
   }
   
   initcurses ();
-  menuloop();
+
+  userchoice = menuloop();
 
   assert (loggedin);
 
-  while (!purge_stale_locks())
-    menuloop();
+  if ((userchoice >= 0) && (userchoice <= num_games)) {
+      while (!purge_stale_locks(userchoice)) {
+	  userchoice = gamemenuloop(userchoice);
+      }
+      if (!((userchoice >= 0) && (userchoice <= num_games)))
+	  graceful_exit (1);
+  } else {
+      graceful_exit (1);
+  }
+
+  if (myconfig[userchoice]->rcfile) {
+      if (access (dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt), R_OK) == -1)
+	  write_canned_rcfile (userchoice, dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt));
+  }
 
   setproctitle ("%s [playing]", me->username);
 
   endwin ();
   signal(SIGWINCH, SIG_DFL);
 
-  if (!backup_savefile ())
+  if (!backup_savefile (userchoice))
     graceful_exit (5);
 
   /* environment */
-  snprintf (atrcfilename, 81, "@%s", rcfilename);
+  if (myconfig[userchoice]->rcfile) {
+      snprintf (atrcfilename, 81, "@%s", dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt));
+      mysetenv ("NETHACKOPTIONS", atrcfilename, 1);
+  }
 
-  len = strlen(myconfig->spool) + strlen (me->username) + 1;
+  len = strlen(myconfig[userchoice]->spool) + strlen (me->username) + 1;
   spool = malloc (len + 1);
-  snprintf (spool, len + 1, "%s/%s", myconfig->spool, me->username);
+  snprintf (spool, len + 1, "%s/%s", myconfig[userchoice]->spool, me->username);
 
-  mysetenv ("NETHACKOPTIONS", atrcfilename, 1);
   mysetenv ("MAIL", spool, 1);
   mysetenv ("SIMPLEMAIL", "1", 1);
 
@@ -1861,15 +1948,40 @@ main (int argc, char** argv)
 
   free (spool);
 
+  /* fix the variables in the arguments */
+  for (i = 0; i < myconfig[userchoice]->num_args; i++) {
+      char *tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i]));
+      free(myconfig[userchoice]->bin_args[i]);
+      myconfig[userchoice]->bin_args[i] = tmp;
+  }
+
   /* launch program */
-  ttyrec_main (me->username, gen_ttyrec_filename());
+  ttyrec_main (userchoice, me->username, gen_ttyrec_filename());
 
   /* NOW we can safely kill this */
   freefile ();
+
+  /*
+  printf("config:'%s'\n", config);
+
+  printf("chroot:'%s'\n", globalconfig.chroot);
+  printf("gamepath:'%s'\n", myconfig[userchoice]->game_path);
+  printf("game:'%s'\n", myconfig[userchoice]->game_name);
+  printf("dglroot:'%s'\n", globalconfig.dglroot);
+  printf("lockfile:'%s'\n", myconfig[userchoice]->lockfile);
+  printf("passwd:'%s'\n", myconfig[userchoice]->passwd);
+  printf("banner:'%s'\n", globalconfig.banner);
+  printf("rcfile:'%s'\n", myconfig[userchoice]->rcfile);
+  printf("spool:'%s'\n", myconfig[userchoice]->spool);
+  printf("savefilefmt:'%s'\n", myconfig[userchoice]->savefilefmt);
+  printf("dgl_format_str(savefilefmt):'%s'\n", dgl_format_str(userchoice, myconfig[userchoice]->savefilefmt));
+  printf("inprogressdir:'%s'\n", myconfig[userchoice]->inprogressdir);
+  */
 
   if (me)
     free (me);
 
   graceful_exit (1);
+
   return 1;
 }
