@@ -271,6 +271,9 @@ doshell (int game, char *username)
   (void) dup2 (slave, 2);
   (void) close (slave);
 
+  if (myconfig[game]->chdir)
+      (void) chdir(myconfig[game]->chdir);
+
   execvp (myconfig[game]->game_path, myconfig[game]->bin_args);
 
   fail ();

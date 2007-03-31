@@ -45,6 +45,7 @@ struct dg_config
 {
   char* game_path;
   char* game_name;
+  char* chdir;
   char* lockfile;
   char* passwd;
   char* rcfile;

@@ -21,6 +21,7 @@ struct dg_config defconfig = {
     /* chroot = */ /*"/var/lib/dgamelaunch/",*/
   /* game_path = */ "/bin/nethack",
   /* game_name = */ "NetHack",
+  /* chdir = */ NULL,
   /* dglroot = *//*  "/dgldir/",*/
   /* lockfile = */ "/dgl-lock",
   /* passwd = */ "/dgl-login",
@@ -331,7 +332,6 @@ create_config ()
       if (!myconfig[tmp]->lockfile) myconfig[tmp]->lockfile = defconfig.lockfile;
       if (!myconfig[tmp]->savefilefmt) myconfig[tmp]->savefilefmt = defconfig.savefilefmt;
       if (!myconfig[tmp]->inprogressdir) myconfig[tmp]->inprogressdir = defconfig.inprogressdir;
-
 
   }
 
