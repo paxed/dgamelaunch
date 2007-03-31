@@ -1108,7 +1108,7 @@ readfile (int nolock)
         graceful_exit (114);
     }
 
-  fp = fopen (myconfig[0]->passwd, "r");
+  fp = fopen (globalconfig.passwd, "r");
   if (!fp)
     graceful_exit (106);
 
@@ -1331,7 +1331,7 @@ writefile (int requirenew)
   freefile ();
   readfile (1);
 
-  fp = fopen (myconfig[0]->passwd, "w");
+  fp = fopen (globalconfig.passwd, "w");
   if (!fp)
     {
       sigprocmask(SIG_SETMASK, &oldmask, NULL);
@@ -1972,7 +1972,7 @@ main (int argc, char** argv)
   printf("game:'%s'\n", myconfig[userchoice]->game_name);
   printf("dglroot:'%s'\n", globalconfig.dglroot);
   printf("lockfile:'%s'\n", myconfig[userchoice]->lockfile);
-  printf("passwd:'%s'\n", myconfig[userchoice]->passwd);
+  printf("passwd:'%s'\n", globalconfig.passwd);
   printf("banner:'%s'\n", globalconfig.banner);
   printf("rcfile:'%s'\n", myconfig[userchoice]->rcfile);
   printf("spool:'%s'\n", myconfig[userchoice]->spool);

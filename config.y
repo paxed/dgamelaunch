@@ -170,8 +170,8 @@ KeyPair: KeyType '=' TYPE_VALUE {
       break;
 
     case TYPE_PATH_PASSWD:
-      if (myconfig[ncnf]->passwd) free(myconfig[ncnf]->passwd);
-      myconfig[ncnf]->passwd = strdup($3);
+      if (globalconfig.passwd) free(globalconfig.passwd);
+      globalconfig.passwd = strdup($3);
       break;
 
     case TYPE_PATH_SAVEFILEFMT:

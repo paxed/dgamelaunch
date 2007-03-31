@@ -47,7 +47,6 @@ struct dg_config
   char* game_name;
   char* chdir;
   char* lockfile;
-  char* passwd;
   char* rcfile;
   char* spool;
   char* savefilefmt;
@@ -68,6 +67,7 @@ struct dg_globalconfig
     char* shed_group;
     uid_t shed_uid;
     gid_t shed_gid;
+    char* passwd;
 };
 
 /* Global variables */
