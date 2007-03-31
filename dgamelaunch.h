@@ -62,6 +62,7 @@ struct dg_globalconfig
     char* dglroot;
     char* banner;
     unsigned long max;
+    int max_newnick_len; /* maximum length of new registered names. must be less than 20 chars. */
     char* shed_user;
     char* shed_group;
     uid_t shed_uid;
@@ -102,7 +103,7 @@ extern void newuser(void);
 extern void autologin(char *user, char *pass);
 extern int passwordgood(char *cpw);
 extern int readfile(int nolock);
-extern int userexist(char *cname);
+extern int userexist(char *cname, int isnew);
 extern void write_canned_rcfile(int game, char *target);
 extern void editoptions(int game);
 extern void writefile(int requirenew);

@@ -837,7 +837,7 @@ void
 autologin (char* user, char *pass)
 {
   int me_index = -1;
-  if ((me_index = userexist(user)) != -1)
+  if ((me_index = userexist(user, 0)) != -1)
   {
     me = users[me_index];
     if (passwordgood(pass))
@@ -877,6 +877,7 @@ loginprompt (int from_ttyplay)
 
       refresh ();
 
+      /* keep this at 20 chars for hysterical raisins */
       mygetnstr (user_buf, 20, 1);
 
       if (user_buf && *user_buf == '\0')
@@ -884,7 +885,7 @@ loginprompt (int from_ttyplay)
 
       error = 1;
 
-      if ((me_index = userexist (user_buf)) != -1)
+      if ((me_index = userexist (user_buf, 0)) != -1)
         {
           me = users[me_index];
           error = 0;
@@ -953,12 +954,14 @@ newuser ()
     {
       clear ();
 
+      sprintf(buf, "%i character max.", globalconfig.max_newnick_len);
+
       drawbanner (1, 1);
 
       mvaddstr (5, 1, "Welcome new user. Please enter a username.");
       mvaddstr (6, 1,
                 "Only characters and numbers are allowed, with no spaces.");
-      mvaddstr (7, 1, "20 character max.");
+      mvaddstr (7, 1, buf);
       mvaddstr (9, 1, "=> ");
 
       if (error == 1)
@@ -969,8 +972,8 @@ newuser ()
 
       refresh ();
 
-      mygetnstr (buf, 20, 1);
-      if (userexist (buf) == -1)
+      mygetnstr (buf, globalconfig.max_newnick_len, 1);
+      if (userexist (buf, 1) == -1)
         error = 0;
       else
         error = 1;
@@ -1189,13 +1192,13 @@ readfile (int nolock)
 /* ************************************************************* */
 
 int
-userexist (char *cname)
+userexist (char *cname, int isnew)
 {
   int i;
 
   for (i = 0; i < f_num; i++)
     {
-      if (!strncasecmp (cname, users[i]->username, 20))
+	if (!strncasecmp (cname, users[i]->username, (isnew ? globalconfig.max_newnick_len : 20)))
         return i;
     }
 
@@ -1714,7 +1717,7 @@ authenticate ()
       return 1;
     }
 
-  if ((me_index = userexist (user_buf)) != -1)
+  if ((me_index = userexist (user_buf, 0)) != -1)
     {
       me = users[me_index];
       if (passwordgood (pw_buf))

@@ -338,6 +338,7 @@ create_config ()
   if (!globalconfig.chroot) globalconfig.chroot = "/var/lib/dgamelaunch/";
 
   if (globalconfig.max == 0) globalconfig.max = 64000;
+  if (globalconfig.max_newnick_len == 0) globalconfig.max_newnick_len = 20;
   if (!globalconfig.dglroot) globalconfig.dglroot = "/dgldir/";
   if (!globalconfig.banner)  globalconfig.banner = "/dgl-banner";
 

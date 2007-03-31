@@ -56,6 +56,7 @@ COMMENT		^#.*
 "shed_uid"	{ return TYPE_SUID; }
 "shed_gid"	{ return TYPE_SGID; }
 "maxusers"	{ return TYPE_MAX; }
+"maxnicklen"	{ return TYPE_MAXNICKLEN; }
 
 "game_num"     { return TYPE_GAMENUM; }
 

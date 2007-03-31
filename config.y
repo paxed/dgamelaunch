@@ -30,7 +30,7 @@ static const char* lookup_token (int t);
 	unsigned long i;
 }
 
-%token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX
+%token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX TYPE_MAXNICKLEN
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT TYPE_GAMENUM
 %token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_SAVEFILEFMT
@@ -270,6 +270,10 @@ KeyPair: KeyType '=' TYPE_VALUE {
       globalconfig.max = $3;
       break;
 
+  case TYPE_MAXNICKLEN:
+      globalconfig.max_newnick_len = $3;
+      break;
+
     default:
       fprintf(stderr, "%s:%d: token %s does not take a number, bailing out\n",
         config, line, lookup_token($1)); 
@@ -282,6 +286,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_SUID	{ $$ = TYPE_SUID; }
 	| TYPE_SGID	{ $$ = TYPE_SGID; }
 	| TYPE_MAX	{ $$ = TYPE_MAX; }
+	| TYPE_MAXNICKLEN	{ $$ = TYPE_MAXNICKLEN; }
 	| TYPE_GAMENUM	{ $$ = TYPE_GAMENUM; }
 	| TYPE_PATH_CHROOT	{ $$ = TYPE_PATH_CHROOT; }
 	| TYPE_PATH_GAME	{ $$ = TYPE_PATH_GAME; }
@@ -309,6 +314,7 @@ const char* lookup_token (int t)
     case TYPE_SUID: return "shed_uid";
     case TYPE_SGID: return "shed_gid";
     case TYPE_MAX: return "maxusers";
+    case TYPE_MAXNICKLEN: return "maxnicklen";
     case TYPE_GAMENUM: return "game_num";
     case TYPE_PATH_CHROOT: return "chroot_path";
     case TYPE_PATH_GAME: return "game_path";
