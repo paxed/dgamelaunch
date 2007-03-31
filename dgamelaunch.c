@@ -1746,14 +1746,14 @@ main (int argc, char** argv)
   /* for chroot and program execution */
   char atrcfilename[81], *spool, *p, *auth = NULL;
   unsigned int len;
-  int c;
+  int c, i;
   int nhext = 0, nhauth = 0;
   int userchoice;
 
 #ifndef HAVE_SETPROCTITLE
   /* save argc, argv */
   char** saved_argv;
-  int saved_argc, i;
+  int saved_argc;
 
   saved_argc = argc;
 

@@ -148,6 +148,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
   static int kq = -1;
 #endif
   struct timeval w = { 0, 100000 };
+  struct timeval origw = { 0, 100000 };
   int counter = 0;
   fd_set readfs;
   struct termios t;
@@ -209,6 +210,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
 	FD_ZERO (&readfs);
 	FD_SET (STDIN_FILENO, &readfs);
 	n = select (1, &readfs, NULL, NULL, &w);
+	w = origw;
 	doread = n >= 1 && FD_ISSET (0, &readfs);
       }
       if (n == -1)
