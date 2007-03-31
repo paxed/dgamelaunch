@@ -1101,7 +1101,7 @@ readfile (int nolock)
 
   if (!nolock)
     {
-      fpl = fopen (myconfig[0]->lockfile, "r");
+      fpl = fopen (globalconfig.lockfile, "r");
       if (!fpl)
         graceful_exit (106);
       if (fcntl (fileno (fpl), F_SETLKW, &fl) == -1)
@@ -1314,7 +1314,7 @@ writefile (int requirenew)
   sigaddset(&toblock, SIGTERM);
   sigprocmask(SIG_BLOCK, &toblock, &oldmask);
 
-  fpl = fopen (myconfig[0]->lockfile, "r+");
+  fpl = fopen (globalconfig.lockfile, "r+");
   if (!fpl)
     {
       sigprocmask(SIG_SETMASK, &oldmask, NULL);
@@ -1971,7 +1971,7 @@ main (int argc, char** argv)
   printf("gamepath:'%s'\n", myconfig[userchoice]->game_path);
   printf("game:'%s'\n", myconfig[userchoice]->game_name);
   printf("dglroot:'%s'\n", globalconfig.dglroot);
-  printf("lockfile:'%s'\n", myconfig[userchoice]->lockfile);
+  printf("lockfile:'%s'\n", globalconfig.lockfile);
   printf("passwd:'%s'\n", globalconfig.passwd);
   printf("banner:'%s'\n", globalconfig.banner);
   printf("rcfile:'%s'\n", myconfig[userchoice]->rcfile);

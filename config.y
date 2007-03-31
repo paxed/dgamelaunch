@@ -165,8 +165,8 @@ KeyPair: KeyType '=' TYPE_VALUE {
       break;
 
     case TYPE_PATH_LOCKFILE:
-      if (myconfig[ncnf]->lockfile) free (myconfig[ncnf]->lockfile);
-      myconfig[ncnf]->lockfile = strdup($3);
+      if (globalconfig.lockfile) free (globalconfig.lockfile);
+      globalconfig.lockfile = strdup($3);
       break;
 
     case TYPE_PATH_PASSWD:

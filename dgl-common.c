@@ -23,7 +23,7 @@ struct dg_config defconfig = {
   /* game_name = */ "NetHack",
   /* chdir = */ NULL,
   /* dglroot = *//*  "/dgldir/",*/
-  /* lockfile = */ "/dgl-lock",
+  /* lockfile = */ /*"/dgl-lock",*/
   /* passwd = */ /*"/dgl-login",*/
   /* banner = */ /*"/dgl-banner",*/
   /* rcfile = */ NULL, /*"/dgl-default-rcfile",*/
@@ -328,7 +328,6 @@ create_config ()
       if (!myconfig[tmp]->game_name) myconfig[tmp]->game_name = defconfig.game_name;
       if (!myconfig[tmp]->rcfile) myconfig[tmp]->rcfile = defconfig.rcfile;
       if (!myconfig[tmp]->spool) myconfig[tmp]->spool = defconfig.spool;
-      if (!myconfig[tmp]->lockfile) myconfig[tmp]->lockfile = defconfig.lockfile;
       if (!myconfig[tmp]->savefilefmt) myconfig[tmp]->savefilefmt = defconfig.savefilefmt;
       if (!myconfig[tmp]->inprogressdir) myconfig[tmp]->inprogressdir = defconfig.inprogressdir;
 
@@ -342,7 +341,7 @@ create_config ()
   if (!globalconfig.banner)  globalconfig.banner = "/dgl-banner";
 
   if (!globalconfig.passwd) globalconfig.passwd = "/dgl-login";
-
+  if (!globalconfig.lockfile) globalconfig.lockfile = "/dgl-lock";
   if (!globalconfig.shed_user && globalconfig.shed_uid == (uid_t)-1)
 	  {
 	      struct passwd *pw;
