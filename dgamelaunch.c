@@ -196,7 +196,7 @@ gen_inprogress_lock (int game, pid_t pid, char* ttyrec_filename)
   fl.l_start = 0;
   fl.l_len = 0;
 
-  len = strlen(globalconfig.dglroot) + strlen(me->username) + strlen(ttyrec_filename) + 13;
+  len = strlen(globalconfig.dglroot) + strlen(myconfig[game]->inprogressdir) + strlen(me->username) + strlen(ttyrec_filename) + 13;
   lockfile = calloc(len, sizeof(char));
   
   snprintf (lockfile, len, "%s%s%s:%s", globalconfig.dglroot, myconfig[game]->inprogressdir,
