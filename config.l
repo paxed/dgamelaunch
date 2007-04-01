@@ -65,6 +65,7 @@ COMMENT		^#.*
 "short_name"	{ return TYPE_GAME_SHORT_NAME; }
 "game_path"	{ return TYPE_PATH_GAME; }
 "chdir"		{ return TYPE_PATH_CHDIR; }
+"mkdir"		{ return TYPE_PATH_MKDIR; }
 "dglroot"	{ return TYPE_PATH_DGLDIR; }
 "spooldir"	{ return TYPE_PATH_SPOOL; }
 "banner"	{ return TYPE_PATH_BANNER; }

@@ -14,7 +14,7 @@
 
 
 /* max # of different games playable from within this dgl */
-#define DIFF_GAMES 3
+#define DIFF_GAMES 4
 
 struct dg_user
 {
@@ -48,6 +48,7 @@ struct dg_config
   char* game_name;
   char* shortname;
   char* chdir;
+  char* mkdir;
   char* rcfile;
   char* spool;
   char* savefilefmt;

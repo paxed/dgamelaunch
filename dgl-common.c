@@ -23,6 +23,7 @@ struct dg_config defconfig = {
   /* game_name = */ "NetHack",
   /* shortname = */ "NH",
   /* chdir = */ NULL,
+  /* mkdir = */ NULL,
   /* dglroot = *//*  "/dgldir/",*/
   /* lockfile = */ /*"/dgl-lock",*/
   /* passwd = */ /*"/dgl-login",*/

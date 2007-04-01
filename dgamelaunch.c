@@ -1749,6 +1749,7 @@ main (int argc, char** argv)
   int c, i;
   int nhext = 0, nhauth = 0;
   int userchoice;
+  char *tmp;
 
 #ifndef HAVE_SETPROCTITLE
   /* save argc, argv */
@@ -1953,10 +1954,18 @@ main (int argc, char** argv)
 
   /* fix the variables in the arguments */
   for (i = 0; i < myconfig[userchoice]->num_args; i++) {
-      char *tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i]));
+      tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i]));
       free(myconfig[userchoice]->bin_args[i]);
       myconfig[userchoice]->bin_args[i] = tmp;
   }
+
+  tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->mkdir));
+  free(myconfig[userchoice]->mkdir);
+  myconfig[userchoice]->mkdir = tmp;
+
+  tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->chdir));
+  free(myconfig[userchoice]->chdir);
+  myconfig[userchoice]->chdir = tmp;
 
   /* launch program */
   ttyrec_main (userchoice, me->username, gen_ttyrec_filename());

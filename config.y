@@ -31,7 +31,7 @@ static const char* lookup_token (int t);
 }
 
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX TYPE_MAXNICKLEN
-%token TYPE_PATH_CHDIR TYPE_GAME_SHORT_NAME
+%token TYPE_PATH_CHDIR TYPE_PATH_MKDIR TYPE_GAME_SHORT_NAME
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT TYPE_GAMENUM
 %token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_SAVEFILEFMT
@@ -147,6 +147,11 @@ KeyPair: KeyType '=' TYPE_VALUE {
     case TYPE_PATH_CHDIR:
       if (myconfig[ncnf]->chdir) free(myconfig[ncnf]->chdir);
       myconfig[ncnf]->chdir = strdup ($3);
+      break;
+
+    case TYPE_PATH_MKDIR:
+      if (myconfig[ncnf]->mkdir) free(myconfig[ncnf]->mkdir);
+      myconfig[ncnf]->mkdir = strdup ($3);
       break;
 
     case TYPE_PATH_DGLDIR:
@@ -304,6 +309,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
         | TYPE_NAME_GAME        { $$ = TYPE_NAME_GAME; }
 	| TYPE_GAME_SHORT_NAME	{ $$ = TYPE_GAME_SHORT_NAME; }
 	| TYPE_PATH_CHDIR	{ $$ = TYPE_PATH_CHDIR; }
+	| TYPE_PATH_MKDIR	{ $$ = TYPE_PATH_MKDIR; }
 	| TYPE_PATH_DGLDIR	{ $$ = TYPE_PATH_DGLDIR; }
 	| TYPE_PATH_SPOOL	{ $$ = TYPE_PATH_SPOOL; }
 	| TYPE_PATH_BANNER	{ $$ = TYPE_PATH_BANNER; }
@@ -331,6 +337,7 @@ const char* lookup_token (int t)
     case TYPE_GAMENUM: return "game_num";
     case TYPE_PATH_CHROOT: return "chroot_path";
     case TYPE_PATH_CHDIR: return "chdir";
+    case TYPE_PATH_MKDIR: return "mkdir";
     case TYPE_PATH_GAME: return "game_path";
     case TYPE_NAME_GAME: return "game_name";
     case TYPE_GAME_SHORT_NAME: return "short_name";
