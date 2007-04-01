@@ -21,6 +21,7 @@ struct dg_config defconfig = {
     /* chroot = */ /*"/var/lib/dgamelaunch/",*/
   /* game_path = */ "/bin/nethack",
   /* game_name = */ "NetHack",
+  /* shortname = */ "NH",
   /* chdir = */ NULL,
   /* dglroot = *//*  "/dgldir/",*/
   /* lockfile = */ /*"/dgl-lock",*/
@@ -189,6 +190,8 @@ populate_games (int xgame, int *l)
 
               games[len]->idle_time = pstat.st_mtime;
 
+	      games[len]->gamenum = game;
+
 	      n = read(fd, pidws, sizeof(pidws) - 1);
 	      if (n > 0)
 	        {
@@ -326,6 +329,7 @@ create_config ()
 
       if (!myconfig[tmp]->game_path) myconfig[tmp]->game_path = defconfig.game_path;
       if (!myconfig[tmp]->game_name) myconfig[tmp]->game_name = defconfig.game_name;
+      if (!myconfig[tmp]->shortname) myconfig[tmp]->shortname = defconfig.shortname;
       if (!myconfig[tmp]->rcfile) myconfig[tmp]->rcfile = defconfig.rcfile;
       if (!myconfig[tmp]->spool) myconfig[tmp]->spool = defconfig.spool;
       if (!myconfig[tmp]->savefilefmt) myconfig[tmp]->savefilefmt = defconfig.savefilefmt;

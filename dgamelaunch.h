@@ -39,12 +39,14 @@ struct dg_game
   char *time;
   time_t idle_time;
   int ws_row, ws_col; /* Window size */
+  int gamenum;
 };
 
 struct dg_config
 {
   char* game_path;
   char* game_name;
+  char* shortname;
   char* chdir;
   char* rcfile;
   char* spool;

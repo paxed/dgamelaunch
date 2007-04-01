@@ -367,8 +367,8 @@ inprogressmenu (int gameid)
 	    snprintf (gametype, sizeof gametype, "%3dx%3d",
 		games[i + offset]->ws_col, games[i + offset]->ws_row);
 
-          mvprintw (7 + i, 1, "%c) %-15s (%s) %s %s (%ldm %lds idle)",
-                    i + 97, games[i + offset]->name, gametype,
+          mvprintw (7 + i, 1, "%c) %-15s  %-5s  (%s) %s %s (%ldm %lds idle)",
+                    i + 97, games[i + offset]->name, myconfig[games[i + offset]->gamenum]->shortname, gametype,
                     games[i + offset]->date, games[i + offset]->time,
                     (time (&ctime) - games[i + offset]->idle_time) / 60,
                     (time (&ctime) - games[i + offset]->idle_time) % 60);

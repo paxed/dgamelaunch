@@ -62,6 +62,7 @@ COMMENT		^#.*
 
 "chroot_path"	{ return TYPE_PATH_CHROOT; }
 "game_name"     { return TYPE_NAME_GAME; }
+"short_name"	{ return TYPE_GAME_SHORT_NAME; }
 "game_path"	{ return TYPE_PATH_GAME; }
 "chdir"		{ return TYPE_PATH_CHDIR; }
 "dglroot"	{ return TYPE_PATH_DGLDIR; }
