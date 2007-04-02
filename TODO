@@ -1,8 +1,7 @@
+-make dgl show # of watchers
 -configurable environment variables for when the game is launched
--configurable rcfilefmt and default rcfile name
--configurable stuff: max user name len, allowed chars in usernames,
- allow mailing, allow char stripping, ...
--allow different banners for different games
+-configurable stuff: allowed chars in usernames,
+ allow char stripping, ...
 
 - Flags for operators/staff/admins or (optionally) user-bans.
 
