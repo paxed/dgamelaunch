@@ -1,3 +1,5 @@
+-allow more than one editor per dgl
+-allow users to run recover themselves
 -make dgl show # of watchers
 -configurable environment variables for when the game is launched
 -configurable stuff: allowed chars in usernames,
