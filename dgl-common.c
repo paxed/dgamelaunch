@@ -276,6 +276,8 @@ create_config ()
   FILE *config_file = NULL;
   int tmp;
 
+  if (!globalconfig.allow_registration) globalconfig.allow_registration = 1;
+
   if (config)
   {
     if ((config_file = fopen(config, "r")) != NULL)

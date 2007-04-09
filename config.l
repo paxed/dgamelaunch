@@ -57,6 +57,7 @@ COMMENT		^#.*
 "shed_gid"	{ return TYPE_SGID; }
 "maxusers"	{ return TYPE_MAX; }
 "maxnicklen"	{ return TYPE_MAXNICKLEN; }
+"allow_new_nicks"	{ return TYPE_ALLOW_REGISTRATION; }
 
 "game_num"     { return TYPE_GAMENUM; }
 

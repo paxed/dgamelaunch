@@ -774,7 +774,10 @@ drawmenu ()
     {
       mvaddstr (banner.len + 2, 1, "Not logged in.");
       mvaddstr (banner.len + 4, 1, "l) Login");
-      mvaddstr (banner.len + 5, 1, "r) Register new user");
+      if (globalconfig.allow_registration)
+	  mvaddstr (banner.len + 5, 1, "r) Register new user");
+      else
+	  mvaddstr (banner.len + 5, 1, "   Register new user - DISABLED");
       mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
       mvaddstr (banner.len + 7, 1, "q) Quit");
       mvaddstr (banner.len + 11, 1, "=> ");
@@ -1619,7 +1622,7 @@ gamemenuloop(int game)
 			graceful_exit(0);*/
           /* break; */
         case 'r':
-          if (!loggedin)        /*not visible to loggedin */
+          if (!loggedin && globalconfig.allow_registration)
             newuser ();
           break;
         case 'l':

@@ -32,6 +32,7 @@ static const char* lookup_token (int t);
 
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX TYPE_MAXNICKLEN
 %token TYPE_PATH_CHDIR TYPE_PATH_MKDIR TYPE_GAME_SHORT_NAME
+%token TYPE_ALLOW_REGISTRATION
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT TYPE_GAMENUM
 %token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_SAVEFILEFMT
@@ -282,6 +283,10 @@ KeyPair: KeyType '=' TYPE_VALUE {
 	  num_games = ncnf;
       break;
 
+  case TYPE_ALLOW_REGISTRATION:
+      globalconfig.allow_registration = $3;
+      break;
+
     case TYPE_MAX:
       globalconfig.max = $3;
       break;
@@ -305,6 +310,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_MAXNICKLEN	{ $$ = TYPE_MAXNICKLEN; }
 	| TYPE_GAMENUM	{ $$ = TYPE_GAMENUM; }
 	| TYPE_PATH_CHROOT	{ $$ = TYPE_PATH_CHROOT; }
+	| TYPE_ALLOW_REGISTRATION	{ $$ = TYPE_ALLOW_REGISTRATION; }
 	| TYPE_PATH_GAME	{ $$ = TYPE_PATH_GAME; }
         | TYPE_NAME_GAME        { $$ = TYPE_NAME_GAME; }
 	| TYPE_GAME_SHORT_NAME	{ $$ = TYPE_GAME_SHORT_NAME; }
@@ -340,6 +346,7 @@ const char* lookup_token (int t)
     case TYPE_PATH_MKDIR: return "mkdir";
     case TYPE_PATH_GAME: return "game_path";
     case TYPE_NAME_GAME: return "game_name";
+    case TYPE_ALLOW_REGISTRATION: return "allow_new_nicks";
     case TYPE_GAME_SHORT_NAME: return "short_name";
     case TYPE_PATH_DGLDIR: return "dglroot";
     case TYPE_PATH_SPOOL: return "spooldir";

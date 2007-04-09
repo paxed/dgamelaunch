@@ -71,6 +71,7 @@ struct dg_globalconfig
     gid_t shed_gid;
     char* passwd;
     char* lockfile;
+    int allow_registration; /* allow registering new nicks */
 };
 
 /* Global variables */
