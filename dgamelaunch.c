@@ -1494,7 +1494,7 @@ purge_stale_locks (int game)
       if (strncmp (dent->d_name, me->username, colon - dent->d_name))
         continue;
 
-      len = strlen (dent->d_name) + strlen(globalconfig.dglroot) + 12;
+      len = strlen (dent->d_name) + strlen(globalconfig.dglroot) + strlen(myconfig[game]->inprogressdir) + 1;
       fn = malloc (len);
 
       snprintf (fn, len, "%s%s%s", globalconfig.dglroot, myconfig[game]->inprogressdir, dent->d_name);
