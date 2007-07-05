@@ -10,7 +10,7 @@
 	* Use $(DESTDIR) intelligently in installation procedure.
 	* Fix dgl-create-chroot to do a more intelligent $termdata check,
 	  and to not choke on finding linux-gate.so.1 in ldd output (the file
-	  does not actually exist. Also make the copy a dereferncing one, since
+	  does not actually exist. Also make the copy a dereferencing one, since
 	  Debian now has a weird symlinking deal that makes it hard to accumulate
 	  all the directories together.
 
