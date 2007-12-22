@@ -1,3 +1,8 @@
+-change the watching screen not to show the 'press 'm' to mail user'
+ part, if spool isn't enabled.
+-allow sorting the watching screen by username or idle time
+-info screen (more than just the banner), for info about the game(s)
+ and the server, etc.
 -allow more than one editor per dgl
 -allow users to run recover themselves
 -make dgl show # of watchers
