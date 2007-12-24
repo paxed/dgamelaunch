@@ -325,6 +325,7 @@ void
 inprogressmenu (int gameid)
 {
   int i, menuchoice, len = 20, offset = 0, doresizewin = 0;
+  dg_sortmode sortmode = SORTMODE_NONE;
   time_t ctime;
   struct dg_game **games;
   char ttyrecname[130], *replacestr = NULL, gametype[10];
@@ -332,6 +333,7 @@ inprogressmenu (int gameid)
   sigset_t oldmask, toblock;
 
   games = populate_games (gameid, &len);
+  games = sort_games (games, len, sortmode);
 
   while (1)
     {
@@ -374,6 +376,8 @@ inprogressmenu (int gameid)
                     (time (&ctime) - games[i + offset]->idle_time) % 60);
         }
 
+      mvprintw (22, 1, "'s' and 'S' change sort mode (current: %s)", SORTMODE_NAME[sortmode]);
+
       if (len > 0)
         mvprintw (21, 1, "(%d-%d of %d)", offset + 1, offset + i, len);
       mvaddstr (23, 1,
@@ -398,6 +402,13 @@ inprogressmenu (int gameid)
 
 	case 'q': case 'Q':
           return;
+
+	case 's':
+	    if (sortmode < (NUM_SORTMODES-1)) sortmode++; else sortmode = SORTMODE_NONE;
+	    break;
+	case 'S':
+	    if (sortmode > SORTMODE_NONE) sortmode--; else sortmode = (NUM_SORTMODES-1);
+	    break;
 
 	case 12: case 18: /* ^L, ^R */
 	  clear ();
@@ -453,6 +464,7 @@ inprogressmenu (int gameid)
         }
 
       games = populate_games (gameid, &len);
+      games = sort_games (games, len, sortmode);
     }
 }
 

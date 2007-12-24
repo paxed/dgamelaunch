@@ -74,6 +74,28 @@ struct dg_globalconfig
     int allow_registration; /* allow registering new nicks */
 };
 
+
+/* username asc and idletime desc are most important */
+typedef enum
+{
+    SORTMODE_NONE = 0,
+    SORTMODE_USERNAME_ASC,
+    SORTMODE_IDLETIME_DESC,
+    SORTMODE_IDLETIME_ASC,
+    SORTMODE_USERNAME_DESC,
+    NUM_SORTMODES
+} dg_sortmode;
+
+static const char *SORTMODE_NAME[] = {
+    "Unsorted",
+    "Username, asc",
+    "Idletime, desc",
+    "Idletime, asc",
+    "Username, desc",
+    "",
+};
+
+
 /* Global variables */
 extern char* config; /* file path */
 extern struct dg_config **myconfig;
@@ -96,6 +118,9 @@ extern void loadbanner(int game, struct dg_banner *ban);
 extern void drawbanner(unsigned int start_line, unsigned int howmany);
 extern char *dgl_format_str(int game, struct dg_user *me, char *str);
 extern struct dg_game **populate_games(int game, int *l);
+
+extern struct dg_game **sort_games(struct dg_game **games, int len, dg_sortmode sortmode);
+
 extern void inprogressmenu(int gameid);
 extern void change_email(void);
 extern int changepw(int dowrite);
