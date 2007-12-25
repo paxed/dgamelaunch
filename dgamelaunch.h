@@ -75,23 +75,18 @@ struct dg_globalconfig
 };
 
 
-/* username asc and idletime desc are most important */
 typedef enum
 {
     SORTMODE_NONE = 0,
-    SORTMODE_USERNAME_ASC,
-    SORTMODE_IDLETIME_DESC,
-    SORTMODE_IDLETIME_ASC,
-    SORTMODE_USERNAME_DESC,
+    SORTMODE_USERNAME,
+    SORTMODE_IDLETIME,
     NUM_SORTMODES
 } dg_sortmode;
 
 static const char *SORTMODE_NAME[] = {
     "Unsorted",
-    "Username, asc",
-    "Idletime, desc",
-    "Idletime, asc",
-    "Username, desc",
+    "Username",
+    "Idletime",
     "",
 };
 

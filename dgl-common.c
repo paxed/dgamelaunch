@@ -112,46 +112,30 @@ dgl_format_str(int game, struct dg_user *me, char *str)
 
 
 static int
-sort_game_username_asc(const void *g1, const void *g2)
+sort_game_username(const void *g1, const void *g2)
 {
     const struct dg_game *game1 = *(const struct dg_game **)g1;
     const struct dg_game *game2 = *(const struct dg_game **)g2;
-    return strcmp(game1->name, game2->name);
+    return strcasecmp(game1->name, game2->name);
 }
 
 static int
-sort_game_username_desc(const void *g1, const void *g2)
+sort_game_idletime(const void *g1, const void *g2)
 {
     const struct dg_game *game1 = *(const struct dg_game **)g1;
     const struct dg_game *game2 = *(const struct dg_game **)g2;
-    return strcmp(game2->name, game1->name);
+    if (game2->idle_time != game1->idle_time)
+	return difftime(game2->idle_time, game1->idle_time);
+    else
+	return strcasecmp(game1->name, game2->name);
 }
-
-static int
-sort_game_idletime_asc(const void *g1, const void *g2)
-{
-    const struct dg_game *game1 = *(const struct dg_game **)g1;
-    const struct dg_game *game2 = *(const struct dg_game **)g2;
-    return difftime(game1->idle_time, game2->idle_time);
-}
-
-static int
-sort_game_idletime_desc(const void *g1, const void *g2)
-{
-    const struct dg_game *game1 = *(const struct dg_game **)g1;
-    const struct dg_game *game2 = *(const struct dg_game **)g2;
-    return difftime(game2->idle_time, game1->idle_time);
-}
-
 
 struct dg_game **
 sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
 {
     switch (sortmode) {
-    case SORTMODE_USERNAME_ASC:  qsort(games, len, sizeof(struct dg_game *), sort_game_username_asc); break;
-    case SORTMODE_USERNAME_DESC: qsort(games, len, sizeof(struct dg_game *), sort_game_username_desc); break;
-    case SORTMODE_IDLETIME_ASC:  qsort(games, len, sizeof(struct dg_game *), sort_game_idletime_asc); break;
-    case SORTMODE_IDLETIME_DESC: qsort(games, len, sizeof(struct dg_game *), sort_game_idletime_desc); break;
+    case SORTMODE_USERNAME: qsort(games, len, sizeof(struct dg_game *), sort_game_username); break;
+    case SORTMODE_IDLETIME: qsort(games, len, sizeof(struct dg_game *), sort_game_idletime); break;
     default: ;
     }
     return games;
