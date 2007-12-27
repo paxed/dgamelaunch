@@ -1320,7 +1320,7 @@ userexist (char *cname, int isnew)
 {
     sqlite3 *db;
     char *errmsg = NULL;
-    int ret;
+    int ret, retry = 10;
 
     char *qbuf;
 
@@ -1344,7 +1344,10 @@ userexist (char *cname, int isnew)
 	userexist_tmp_me = NULL;
     }
 
-    ret = sqlite3_exec(db, qbuf, userexist_callback, 0, &errmsg);
+    do {
+	ret = sqlite3_exec(db, qbuf, userexist_callback, 0, &errmsg);
+	if (ret == SQLITE_BUSY) sleep(1);
+    } while ((ret == SQLITE_BUSY) && (retry-- > 0));
 
     if (ret != SQLITE_OK) {
 	sqlite3_close(db);
@@ -1540,7 +1543,7 @@ writefile (int requirenew)
 {
     sqlite3 *db;
     char *errmsg = NULL;
-    int ret;
+    int ret, retry = 10;
 
     char *qbuf;
     char tmpbuf[32];
@@ -1560,7 +1563,10 @@ writefile (int requirenew)
 	graceful_exit(107);
     }
 
-    ret = sqlite3_exec(db, qbuf, NULL, NULL, &errmsg);
+    do {
+	ret = sqlite3_exec(db, qbuf, NULL, NULL, &errmsg);
+	if (ret == SQLITE_BUSY) sleep(1);
+    } while ((ret == SQLITE_BUSY) && (retry-- > 0));
 
     sqlite3_free(qbuf);
 
