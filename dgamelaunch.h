@@ -18,6 +18,9 @@
 
 struct dg_user
 {
+#ifdef USE_SQLITE3
+    long id;
+#endif
   char *username;
   char *email;
   char *env;
@@ -128,7 +131,11 @@ extern void newuser(void);
 extern void autologin(char *user, char *pass);
 extern int passwordgood(char *cpw);
 extern int readfile(int nolock);
+#ifndef USE_SQLITE3
 extern int userexist(char *cname, int isnew);
+#else
+extern struct dg_user *userexist(char *cname, int isnew);
+#endif
 extern void write_canned_rcfile(int game, char *target);
 extern void editoptions(int game);
 extern void writefile(int requirenew);
