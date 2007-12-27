@@ -1548,14 +1548,11 @@ writefile (int requirenew)
     char *qbuf;
     char tmpbuf[32];
 
-    /* FIXME: escape the strings passed to sqlite */
-
     if (requirenew) {
 	qbuf = sqlite3_mprintf("insert into dglusers (username, email, env, password, flags) values ('%q', '%q', '%q', '%q', %li)", me->username, me->email, me->env, me->password, me->flags);
     } else {
 	qbuf = sqlite3_mprintf("update dglusers set username='%q', email='%q', env='%q', password='%q', flags=%li where id=%i", me->username, me->email, me->env, me->password, me->flags, me->id);
     }
-    /* TODO: sqlite3 version of writefile() */
 
     ret = sqlite3_open(DGL_SQLITE_DB, &db); /* FIXME: use globalconfig->passwd? */
     if (ret) {
