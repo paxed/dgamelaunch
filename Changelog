@@ -1,4 +1,5 @@
 1.4.8 (2008/??/??)
+	* Allow using SQLite3 for the user login database instead of flat text.
 	* Allow sorting the watchlist, by username of idletime.
 
 1.4.7 (2007/12/22)
