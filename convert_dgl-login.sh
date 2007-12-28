@@ -1,21 +1,18 @@
 #!/bin/sh
 #
-# This script converts the flat-text file password file
+# This script converts the flat-text password file
 # to the new sqlite3 database.
 #
 
 DBFILE="dgamelaunch.db"
 
-sqlite3 $DBFILE "create table dglusers (id integer primary key, username text, email text, env text, password text, flags integer);"
+if [-e "$DBFILE"]; then
+    echo "$DBFILE already exists.";
+    exit;
+fi
 
-for x in `cat dgl-login`; do
-    username="`echo $x | cut -d':' -f1`";
-    email="`echo $x | cut -d':' -f2`";
-    password="`echo $x | cut -d':' -f3`";
-    env="`echo $x | cut -d':' -f4`";
-    flags="0";
+sqlite3 "$DBFILE" "create table dglusers (id integer primary key, username text, email text, env text, password text, flags integer);"
 
-    cmdstring="insert into dglusers (username, email, env, password, flags) values ('"$username"', '"$email"', '"$env"', '"$password"', "$flags")"
-    sqlite3 $DBFILE "$cmdstring"
-done;
+cat dgl-login | sed -e "s/'/''/g" -e "s/^\([^:]*\):\([^:]*\):\([^:]*\):/insert into dglusers (username, email, password, env, flags) values ('\1', '\2', '\3', '', 0); /g" > dgl-login.tmp
 
+sqlite3 "$DBFILE" ".read dgl-login.tmp"
