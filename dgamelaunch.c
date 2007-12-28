@@ -1327,7 +1327,11 @@ userexist (char *cname, int isnew)
     char tmpbuf[32];
     strncpy(tmpbuf, cname, (isnew ? globalconfig.max_newnick_len : 20));
 
-    qbuf = sqlite3_mprintf("select * from dglusers where username='%q' limit 1", tmpbuf);
+    /* Check that the nick doesn't interfere with already registered nicks */
+    if (isnew && (strlen(cname) >= globalconfig.max_newnick_len))
+	strcat(tmpbuf, "%");
+
+    qbuf = sqlite3_mprintf("select * from dglusers where username like '%q' limit 1", tmpbuf);
 
     ret = sqlite3_open(DGL_SQLITE_DB, &db); /* FIXME: use globalconfig->passwd? */
     if (ret) {
