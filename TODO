@@ -1,3 +1,9 @@
+-add the sqlite3 stuff to autotools configure (#define USE_SQLITE3 1
+ and #define DGL_SQLITE_DB "/dgldir/dgamelaunch.db" in config.h)
+-allow configuring ttyplay.c; some games may use different clear-screen
+ commands. (see for example crawl)
+-return back to dgl after exiting the game. (on NAO, the dgl processes
+ take 33m+ resident memory, so might not be viable unless we use sqlite3)
 -public (no-password) accounts?
 -change the watching screen not to show the 'press 'm' to mail user'
  part, if spool isn't enabled.
