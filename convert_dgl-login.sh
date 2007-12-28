@@ -6,7 +6,7 @@
 
 DBFILE="dgamelaunch.db"
 
-if [-e "$DBFILE"]; then
+if [ -e "$DBFILE" ]; then
     echo "$DBFILE already exists.";
     exit;
 fi
