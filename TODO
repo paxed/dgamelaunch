@@ -1,5 +1,3 @@
--add the sqlite3 stuff to autotools configure (#define USE_SQLITE3 1
- and #define DGL_SQLITE_DB "/dgldir/dgamelaunch.db" in config.h)
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
 -return back to dgl after exiting the game. (on NAO, the dgl processes
