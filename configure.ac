@@ -2,7 +2,7 @@ dnl Use autoconf 2.53
 dnl (Things tend to break across versions, they're neither upwards nor
 dnl downward compatible. Blame GNU.)
 
-AC_INIT(dgamelaunch, [1.4.7])
+AC_INIT(dgamelaunch, [1.4.8])
 AC_PREREQ(2.53)
 
 AC_CONFIG_HEADER(config.h)
@@ -70,6 +70,25 @@ AC_ARG_ENABLE(enable-virus,
 [EDITOR=virus.c], [EDITOR=virus.c])
 
 AC_SUBST(EDITOR)
+
+
+AC_ARG_ENABLE(enable-sqlite,
+[AC_HELP_STRING([--enable-sqlite], [Use SQLite for the database instead of flat text file.])],
+[], [])
+
+if test "$enable_sqlite" = yes; then
+   AC_MSG_RESULT([Using SQLite for the database])
+   AC_DEFINE(USE_SQLITE3,1,[Use SQLite for the database instead of flat text file.])
+   LIBS="$LIBS -lsqlite3"
+fi
+
+AC_ARG_WITH(sqlite-db,
+[AC_HELP_STRING([--with-sqlite-db=PATH], [Define the path and filename of the SQLite database.])],
+[dgl_sqlite_db=$withval], [dgl_sqlite_db="/dgldir/dgamelaunch.db"])
+
+AC_DEFINE_UNQUOTED(DGL_SQLITE_DB, "$dgl_sqlite_db", [Path and filename of the SQLite database.])
+
+
 
 AC_ARG_WITH(config-file,
 [AC_HELP_STRING([--with-config-file=PATH], [Define the path to the default configuration file.])],
