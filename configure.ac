@@ -86,7 +86,7 @@ AC_ARG_WITH(sqlite-db,
 [AC_HELP_STRING([--with-sqlite-db=PATH], [Define the path and filename of the SQLite database.])],
 [dgl_sqlite_db=$withval], [dgl_sqlite_db="/dgldir/dgamelaunch.db"])
 
-AC_DEFINE_UNQUOTED(DGL_SQLITE_DB, "$dgl_sqlite_db", [Path and filename of the SQLite database.])
+AC_DEFINE_UNQUOTED(USE_SQLITE_DB, "$dgl_sqlite_db", [Path and filename of the SQLite database.])
 
 
 
