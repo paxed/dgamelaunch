@@ -102,14 +102,15 @@ struct dg_user **users = NULL;
 struct dg_user *me = NULL;
 struct dg_banner banner;
 
-#ifdef USE_SQLITE3
 struct dg_user *
 cpy_me(struct dg_user *me)
 {
     struct dg_user *tmp = malloc(sizeof(struct dg_user));
 
     if (tmp && me) {
+#ifdef USE_SQLITE3
 	tmp->id = me->id;
+#endif
 	if (me->username) tmp->username = strdup(me->username);
 	if (me->email)    tmp->email    = strdup(me->email);
 	if (me->env)      tmp->env      = strdup(me->env);
@@ -118,7 +119,6 @@ cpy_me(struct dg_user *me)
     }
     return tmp;
 }
-#endif
 
 #ifndef HAVE_SETENV
 int
@@ -877,18 +877,6 @@ initcurses ()
 void
 autologin (char* user, char *pass)
 {
-#ifndef USE_SQLITE3
-  int me_index = -1;
-  if ((me_index = userexist(user, 0)) != -1)
-  {
-    me = users[me_index];
-    if (passwordgood(pass))
-    {
-      loggedin = 1;
-      setproctitle ("%s", me->username);
-    }
-  }
-#else
   struct dg_user *tmp;
   tmp = userexist(user, 0);
   if (tmp) {
@@ -898,14 +886,13 @@ autologin (char* user, char *pass)
 	  setproctitle ("%s", me->username);
       }
   }
-#endif
 }
 
 void
 loginprompt (int from_ttyplay)
 {
   char user_buf[22], pw_buf[22];
-  int error = 2, me_index = -1;
+  int error = 2;
 
   loggedin = 0;
 
@@ -938,13 +925,6 @@ loginprompt (int from_ttyplay)
 
       error = 1;
 
-#ifndef USE_SQLITE3
-      if ((me_index = userexist (user_buf, 0)) != -1)
-        {
-          me = users[me_index];
-          error = 0;
-        }
-#else
       {
 	  struct dg_user *tmpme;
 	  if ((tmpme = userexist(user_buf, 0))) {
@@ -952,7 +932,6 @@ loginprompt (int from_ttyplay)
 	      error = 0;
 	  }
       }
-#endif
     }
 
   clear ();
@@ -1045,17 +1024,10 @@ newuser ()
 	  return;
       }
 
-#ifndef USE_SQLITE3
-      if (userexist (buf, 1) == -1)
-        error = 0;
-      else
-        error = 1;
-#else
       if (!userexist(buf, 1)) {
 	  error = 0;
       } else
 	  error = 1;
-#endif
 
       for (i = 0; i < strlen (buf); i++)
         {
@@ -1273,18 +1245,31 @@ readfile (int nolock)
 /* ************************************************************* */
 
 #ifndef USE_SQLITE3
-int
+struct dg_user *userexist_tmp_me = NULL;
+
+struct dg_user *
 userexist (char *cname, int isnew)
 {
   int i;
 
+  if (userexist_tmp_me) {
+      free(userexist_tmp_me->username);
+      free(userexist_tmp_me->email);
+      free(userexist_tmp_me->env);
+      free(userexist_tmp_me->password);
+      free(userexist_tmp_me);
+      userexist_tmp_me = NULL;
+  }
+
   for (i = 0; i < f_num; i++)
     {
-	if (!strncasecmp (cname, users[i]->username, (isnew ? globalconfig.max_newnick_len : 20)))
-        return i;
+	if (!strncasecmp (cname, users[i]->username, (isnew ? globalconfig.max_newnick_len : 20))) {
+	    userexist_tmp_me = cpy_me(users[i]);
+	    return userexist_tmp_me;
+	}
     }
 
-  return -1;
+  return NULL;
 }
 #else
 
@@ -1916,25 +1901,6 @@ authenticate ()
       return 1;
     }
 
-#ifndef USE_SQLITE3
-  if ((me_index = userexist (user_buf, 0)) != -1)
-    {
-      me = users[me_index];
-      if (passwordgood (pw_buf))
-        {
-	    games = populate_games (-1, &len);
-	  for (i = 0; i < len; i++)
-	    if (!strcmp (games[i]->name, user_buf))
-	      {
-		fprintf (stderr, "Game already in progress.\n");
-		return 1;
-	      }
-	  win.ws_row = win.ws_col = 0;
-	  gen_inprogress_lock (0, getppid (), gen_nhext_filename ());
-	  return 0;
-	}
-    }
-#else
   {
       struct dg_user *tmpme;
       if ((tmpme = userexist(user_buf, 0))) {
@@ -1954,7 +1920,6 @@ authenticate ()
 	}
       }
   }
-#endif
 
   sleep (2);
   fprintf (stderr, "Login failed.\n");
