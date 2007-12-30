@@ -552,7 +552,7 @@ change_email ()
 
     mygetnstr (buf, 80, 1);
 
-    if (buf && *buf == '\0')
+    if (*buf == '\0')
       return;
     else if (!strcmp(me->email, buf))
     {
@@ -623,7 +623,7 @@ changepw (int dowrite)
 
       mygetnstr (buf, 20, 0);
 
-      if (buf && *buf == '\0')
+      if (*buf == '\0')
         return 0;
 
       if (strchr (buf, ':') != NULL)
@@ -920,7 +920,7 @@ loginprompt (int from_ttyplay)
       /* keep this at 20 chars for hysterical raisins */
       mygetnstr (user_buf, 20, 1);
 
-      if (user_buf && *user_buf == '\0')
+      if (*user_buf == '\0')
         return;
 
       error = 1;
@@ -1018,7 +1018,7 @@ newuser ()
 
       mygetnstr (buf, globalconfig.max_newnick_len, 1);
 
-      if (buf && *buf == '\0') {
+      if (*buf == '\0') {
 	  free(me);
 	  me = NULL;
 	  return;
@@ -1092,7 +1092,7 @@ newuser ()
       else
         error = 1;
  
-      if (buf && *buf == '\0')
+      if (*buf == '\0')
       {
         free (me->username);
         free (me->password);
