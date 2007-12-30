@@ -1,6 +1,6 @@
 1.4.8 (2008/??/??)
 	* Allow using SQLite3 for the user login database instead of flat text.
-	* Allow sorting the watchlist, by username of idletime.
+	* Allow sorting the watchlist, by username or idletime.
 
 1.4.7 (2007/12/22)
 	* Allow more than one game per dgl installation. (by default, up to 3)
