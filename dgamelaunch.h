@@ -67,8 +67,6 @@ struct dg_config
   char* game_path;
   char* game_name;
   char* shortname;
-  char* chdir;
-  char* mkdir;
   char* rcfile;
   char* spool;
     /*char* savefilefmt;*/

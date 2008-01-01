@@ -2106,17 +2106,21 @@ main (int argc, char** argv)
       myconfig[userchoice]->bin_args[i] = tmp;
   }
 
+  /*
   if (myconfig[userchoice]->mkdir) {
       tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->mkdir));
       free(myconfig[userchoice]->mkdir);
       myconfig[userchoice]->mkdir = tmp;
   }
+  */
 
+  /*
   if (myconfig[userchoice]->chdir) {
       tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->chdir));
       free(myconfig[userchoice]->chdir);
       myconfig[userchoice]->chdir = tmp;
   }
+  */
 
   /* launch program */
   ttyrec_main (userchoice, me->username, gen_ttyrec_filename());

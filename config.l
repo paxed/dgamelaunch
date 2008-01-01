@@ -69,8 +69,6 @@ COMMENT		^#.*
 "game_name"     { return TYPE_NAME_GAME; }
 "short_name"	{ return TYPE_GAME_SHORT_NAME; }
 "game_path"	{ return TYPE_PATH_GAME; }
-"chdir"		{ return TYPE_PATH_CHDIR; }
-"mkdir"		{ return TYPE_PATH_MKDIR; }
 "dglroot"	{ return TYPE_PATH_DGLDIR; }
 "spooldir"	{ return TYPE_PATH_SPOOL; }
 "banner"	{ return TYPE_PATH_BANNER; }
@@ -85,11 +83,11 @@ dglstart	{ yylval.i = DGLTIME_DGLSTART; return TYPE_CMDQUEUENAME; }
 login		{ yylval.i = DGLTIME_LOGIN;    return TYPE_CMDQUEUENAME; }
 register	{ yylval.i = DGLTIME_REGISTER; return TYPE_CMDQUEUENAME; }
 game_start	{ yylval.i = DGLTIME_GAMESTART; return TYPE_CMDQUEUENAME; }
-cmdmkdir	{ yylval.i = DGLCMD_MKDIR;  return TYPE_DGLCMD1; }
-cmdchdir	{ yylval.i = DGLCMD_CHDIR;  return TYPE_DGLCMD1; }
-cmdcp		{ yylval.i = DGLCMD_CP;     return TYPE_DGLCMD1; }
-cmdunlink	{ yylval.i = DGLCMD_UNLINK; return TYPE_DGLCMD1; }
-cmdsetenv	{ yylval.i = DGLCMD_SETENV; return TYPE_DGLCMD2; }
+mkdir		{ yylval.i = DGLCMD_MKDIR;  return TYPE_DGLCMD1; }
+chdir		{ yylval.i = DGLCMD_CHDIR;  return TYPE_DGLCMD1; }
+cp		{ yylval.i = DGLCMD_CP;     return TYPE_DGLCMD2; }
+unlink		{ yylval.i = DGLCMD_UNLINK; return TYPE_DGLCMD1; }
+setenv		{ yylval.i = DGLCMD_SETENV; return TYPE_DGLCMD2; }
 DEFINE		{ return TYPE_DEFINE_GAME; }
 
 
