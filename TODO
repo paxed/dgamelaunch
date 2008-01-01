@@ -1,8 +1,17 @@
+-allow admin to define series of actions dgl makes when user does
+ something. for example, do "mkdir dgldir/rcfiles/$nick" and
+ "cp defaultrc dgldir/rcfiles/$nick/" when a new nick is registered.
+ (action times: new nick registration, starting a game, login, edit options...)
+ (actions: mkdir, cp, setenv, ...)
+ this should allow for crawl's macro-file copying, while doing away any
+ specific limitations for having just one config file per game, and
+ allowing admin to set what env vars are defined for each game.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
 -return back to dgl after exiting the game. (on NAO, the dgl processes
  take 33m+ resident memory, so might not be viable unless we use sqlite3)
--public (no-password) accounts?
+-public (no-password) accounts? (a per-user flag) what happens when someone
+ is playing on the account and someone else logins and we start playing?
 -change the watching screen not to show the 'press 'm' to mail user'
  part, if spool isn't enabled.
 -info screen (more than just the banner), for info about the game(s)
