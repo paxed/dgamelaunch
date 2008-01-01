@@ -1,12 +1,4 @@
 -allow setting the default watch-screen sortmode in config file.
--allow admin to define series of actions dgl makes when user does
- something. for example, do "mkdir dgldir/rcfiles/$nick" and
- "cp defaultrc dgldir/rcfiles/$nick/" when a new nick is registered.
- (action times: new nick registration, starting a game, login, edit options...)
- (actions: mkdir, cp, setenv, ...)
- this should allow for crawl's macro-file copying, while doing away any
- specific limitations for having just one config file per game, and
- allowing admin to set what env vars are defined for each game.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
 -return back to dgl after exiting the game. (on NAO, the dgl processes
