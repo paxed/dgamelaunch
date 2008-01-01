@@ -76,17 +76,16 @@ AC_ARG_ENABLE(enable-sqlite,
 [AC_HELP_STRING([--enable-sqlite], [Use SQLite for the database instead of flat text file.])],
 [], [])
 
-if test "$enable_sqlite" = yes; then
-   AC_MSG_RESULT([Using SQLite for the database])
-   AC_DEFINE(USE_SQLITE3,1,[Use SQLite for the database instead of flat text file.])
-   LIBS="$LIBS -lsqlite3"
-fi
-
 AC_ARG_WITH(sqlite-db,
 [AC_HELP_STRING([--with-sqlite-db=PATH], [Define the path and filename of the SQLite database.])],
-[dgl_sqlite_db=$withval], [dgl_sqlite_db="/dgldir/dgamelaunch.db"])
+[dgl_sqlite_db=$withval; enable_sqlite=yes], [dgl_sqlite_db="/dgldir/dgamelaunch.db"])
 
-AC_DEFINE_UNQUOTED(USE_SQLITE_DB, "$dgl_sqlite_db", [Path and filename of the SQLite database.])
+if test "$enable_sqlite" = yes; then
+   AC_MSG_RESULT([Using SQLite for the database, located at $dgl_sqlite_db])
+   AC_DEFINE(USE_SQLITE3,1,[Use SQLite for the database instead of flat text file.])
+   LIBS="$LIBS -lsqlite3"
+   AC_DEFINE_UNQUOTED(USE_SQLITE_DB, "$dgl_sqlite_db", [Path and filename of the SQLite database.])
+fi
 
 
 
