@@ -2075,10 +2075,12 @@ main (int argc, char** argv)
   */
 
   /* environment */
+  /*
   if (myconfig[userchoice]->rcfile) {
       snprintf (atrcfilename, 81, "@%s", dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt));
       mysetenv ("NETHACKOPTIONS", atrcfilename, 1);
   }
+  */
 
   len = strlen(myconfig[userchoice]->spool) + strlen (me->username) + 1;
   spool = malloc (len + 1);
