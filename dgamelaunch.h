@@ -69,7 +69,6 @@ struct dg_config
   char* shortname;
   char* rcfile;
   char* spool;
-    /*char* savefilefmt;*/
   char* inprogressdir;
     int num_args; /* # of bin_args */
     char **bin_args; /* args for game binary */

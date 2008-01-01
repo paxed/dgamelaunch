@@ -45,7 +45,6 @@ struct dg_config defconfig = {
 
 char* config = NULL;
 int silent = 0;
-/*int set_max = 0;*/ /* XXX */
 int loggedin = 0;
 char *chosen_name;
 int num_games = 0;

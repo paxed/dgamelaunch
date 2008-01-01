@@ -93,7 +93,6 @@ extern int editor_main (int argc, char **argv);
 /* global variables */
 
 char * __progname;
-/*char rcfilename[80];*/
 
 #ifndef USE_SQLITE3
 int f_num = 0;
@@ -1439,7 +1438,7 @@ editoptions (int game)
   }
   else
     waitpid(editor, NULL, 0);
-    
+
   refresh ();
 }
 
@@ -1480,7 +1479,7 @@ writefile (int requirenew)
     }
 
   fl.l_type = F_UNLCK;
-  
+
   freefile ();
   readfile (1);
 
@@ -1745,9 +1744,6 @@ gamemenuloop(int game)
 	    break;
         case 'q':
 	    return 0;
-	    /*          endwin ();
-			graceful_exit(0);*/
-          /* break; */
         case 'r':
           if (!loggedin && globalconfig.allow_registration)
             newuser ();
@@ -1927,15 +1923,15 @@ main (int argc, char** argv)
 	    fprintf(stderr, "warning: using %s\n", argv[optind]);
 	  free(config);
 	}
-	  
+
 	config = strdup(optarg);
 	break;
-	
+
       default:
 	break; /*ignore */
     }
   }
-  
+
   while (optind < argc)
   {
     size_t len = strlen(argv[optind]);
@@ -2105,22 +2101,6 @@ main (int argc, char** argv)
       free(myconfig[userchoice]->bin_args[i]);
       myconfig[userchoice]->bin_args[i] = tmp;
   }
-
-  /*
-  if (myconfig[userchoice]->mkdir) {
-      tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->mkdir));
-      free(myconfig[userchoice]->mkdir);
-      myconfig[userchoice]->mkdir = tmp;
-  }
-  */
-
-  /*
-  if (myconfig[userchoice]->chdir) {
-      tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->chdir));
-      free(myconfig[userchoice]->chdir);
-      myconfig[userchoice]->chdir = tmp;
-  }
-  */
 
   /* launch program */
   ttyrec_main (userchoice, me->username, gen_ttyrec_filename());
