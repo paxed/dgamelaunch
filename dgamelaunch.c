@@ -1857,7 +1857,7 @@ menuloop (void)
 		  graceful_exit(0);
 		  /* break; */
 	      case 'r':
-		  if (!loggedin)        /*not visible to loggedin */
+		  if (!loggedin && globalconfig.allow_registration)
 		      newuser ();
 		  break;
 	      case 'l':
