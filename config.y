@@ -229,7 +229,6 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
   }
 };
 
-
 game_definition : TYPE_CMDQUEUE
 	{
 	    if (myconfig[ncnf]->cmdqueue) {
@@ -241,6 +240,10 @@ game_definition : TYPE_CMDQUEUE
 	'=' cmdlist
 	{
 	    myconfig[ncnf]->cmdqueue = curr_cmdqueue;
+	}
+	| TYPE_GAME_ARGS '=' game_args_list
+	{
+	    /* nothing */
 	}
 	| KeyType '=' TYPE_VALUE
 	{
@@ -280,24 +283,6 @@ game_definition : TYPE_CMDQUEUE
 		myconfig[ncnf]->inprogressdir = strdup($3);
 		break;
 
-	    case TYPE_GAME_ARGS:
-		{
-		    char **tmpargs;
-		    if (myconfig[ncnf]->bin_args) {
-			myconfig[ncnf]->num_args++;
-			tmpargs = calloc((myconfig[ncnf]->num_args+1), sizeof(char *));
-			memcpy(tmpargs, myconfig[ncnf]->bin_args, (myconfig[ncnf]->num_args * sizeof(char *)));
-			free(myconfig[ncnf]->bin_args);
-			myconfig[ncnf]->bin_args = tmpargs;
-		    } else {
-			myconfig[ncnf]->num_args = 1;
-			myconfig[ncnf]->bin_args = calloc(2, sizeof(char *));
-		    }
-		    myconfig[ncnf]->bin_args[(myconfig[ncnf]->num_args)-1] = strdup($3);
-		    myconfig[ncnf]->bin_args[(myconfig[ncnf]->num_args)] = 0;
-		}
-		break;
-
 	    default:
 		fprintf(stderr, "%s:%d: token does not belong into game definition, bailing out\n",
 			config, line);
@@ -306,8 +291,30 @@ game_definition : TYPE_CMDQUEUE
 	}
 	;
 
-game_definitions : game_definitions game_definition
-	| game_definition
+game_arg : TYPE_VALUE
+	{
+	    char **tmpargs;
+	    if (myconfig[ncnf]->bin_args) {
+		myconfig[ncnf]->num_args++;
+		tmpargs = calloc((myconfig[ncnf]->num_args+1), sizeof(char *));
+		memcpy(tmpargs, myconfig[ncnf]->bin_args, (myconfig[ncnf]->num_args * sizeof(char *)));
+		free(myconfig[ncnf]->bin_args);
+		myconfig[ncnf]->bin_args = tmpargs;
+	    } else {
+		myconfig[ncnf]->num_args = 1;
+		myconfig[ncnf]->bin_args = calloc(2, sizeof(char *));
+	    }
+	    myconfig[ncnf]->bin_args[(myconfig[ncnf]->num_args)-1] = strdup($1);
+	    myconfig[ncnf]->bin_args[(myconfig[ncnf]->num_args)] = 0;
+	}
+	;
+
+game_args_list : game_arg
+	| game_arg ',' game_args_list
+	;
+
+game_definitions : game_definition
+	| game_definition game_definitions
 	;
 
 definegame : TYPE_DEFINE_GAME '{'
@@ -388,7 +395,6 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_PASSWD	{ $$ = TYPE_PATH_PASSWD; }
 	| TYPE_PATH_LOCKFILE	{ $$ = TYPE_PATH_LOCKFILE; }
 	| TYPE_PATH_INPROGRESS	{ $$ = TYPE_PATH_INPROGRESS; }
-	| TYPE_GAME_ARGS	{ $$ = TYPE_GAME_ARGS; }
 	| TYPE_RC_FMT		{ $$ = TYPE_RC_FMT; }
 	;
 
