@@ -19,8 +19,8 @@ NEGNUMBER	-[0-9]+
 NUMBER		[0-9]+
 VALUE		\"[^"]*\"
 MALSTRING	\"[^\"\n]*\n
+COMMENT		^[\t ]*#.*
 WHITE		[\t ]*
-COMMENT		^#.*
 
 %%
 
