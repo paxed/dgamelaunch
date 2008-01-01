@@ -1,3 +1,4 @@
+-allow setting the default watch-screen sortmode in config file.
 -allow admin to define series of actions dgl makes when user does
  something. for example, do "mkdir dgldir/rcfiles/$nick" and
  "cp defaultrc dgldir/rcfiles/$nick/" when a new nick is registered.

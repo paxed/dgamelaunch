@@ -39,7 +39,8 @@ struct dg_config defconfig = {
   /* inprogressdir = */ "inprogress/",
   /* num_args = */ 0,
   /* bin_args = */ NULL,
-  /* rc_fmt = */ "%rrcfiles/%n.nethackrc" /* [dglroot]rcfiles/[username].nethackrc */
+  /* rc_fmt = */ "%rrcfiles/%n.nethackrc", /* [dglroot]rcfiles/[username].nethackrc */
+  /* cmdqueue = */ NULL
 };
 
 char* config = NULL;
@@ -55,7 +56,8 @@ struct dg_globalconfig globalconfig;
  * replace following codes with variables:
  * %u == shed_uid (number)
  * %n == user name (string)
- * %r == chroot (string)
+ * %r == chroot (string)  (aka "dglroot" config var)
+ * %g == game name
  */
 char *
 dgl_format_str(int game, struct dg_user *me, char *str)
@@ -79,7 +81,12 @@ dgl_format_str(int game, struct dg_user *me, char *str)
 		    p++;
 		break;
   	    case 'n':
-		snprintf (p, end + 1 - p, "%s", me->username);
+		if (me) snprintf (p, end + 1 - p, "%s", me->username);
+		while (*p != '\0')
+		    p++;
+		break;
+  	    case 'g':
+		if (game >= 0 && game <=num_games && myconfig[game]) snprintf (p, end + 1 - p, "%s", myconfig[game]->game_name);
 		while (*p != '\0')
 		    p++;
 		break;
@@ -109,6 +116,65 @@ dgl_format_str(int game, struct dg_user *me, char *str)
 
     return buf;
 }
+
+int
+dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
+{
+    int i;
+    struct dg_cmdpart *tmp = queue;
+
+    if (!queue) return 1;
+
+    while (tmp) {
+	char *p1 = NULL; /* FIXME: should probably use fixed-size buffers instead of doing strdup() every time */
+	char *p2 = NULL;
+	if (tmp->param1) p1 = strdup(dgl_format_str(game, me, tmp->param1));
+	if (tmp->param2) p2 = strdup(dgl_format_str(game, me, tmp->param2));
+
+	switch (tmp->cmd) {
+	default: break;
+	case DGLCMD_MKDIR:
+	    if (p1 && (access(p1, F_OK) != 0)) mkdir(p1, 0755);
+	    break;
+	case DGLCMD_UNLINK:
+	    if (p1 && (access(p1, F_OK) != 0)) unlink(p1);
+	    break;
+	case DGLCMD_CHDIR:
+	    if (p1) chdir(p1);
+	    break;
+	case DGLCMD_CP:
+	    if (p1 && p2) {
+		FILE *cannedf, *newfile;
+		char buf[1024];
+		size_t bytes;
+		/* FIXME: use nethack-themed error messages here, as per write_canned_rcfile() */
+		if (!(newfile = fopen (p2, "w"))) return 1;
+		if (!(cannedf = fopen (p1, "r"))) return 1;
+		while ((bytes = fread (buf, 1, 1024, cannedf)) > 0) {
+		    if (fwrite (buf, 1, bytes, newfile) != bytes) {
+			if (ferror (newfile)) {
+			    fclose (cannedf);
+			    fclose (newfile);
+			    return 1;
+			}
+		    }
+		}
+		fclose (cannedf);
+		fclose (newfile);
+	    }
+	    break;
+	case DGLCMD_SETENV:
+	    if (p1 && p2) mysetenv(p1, p2, 1);
+	    break;
+	}
+	free(p1);
+	free(p2);
+
+	tmp = tmp->next;
+    }
+    return 0;
+}
+
 
 
 static int
@@ -396,5 +462,9 @@ create_config ()
 	      else
 		  globalconfig.shed_gid = 60; /* games gid in debian */
 	  }
+
+  for (tmp = 0; tmp < NUM_DGLTIMES; tmp++) {
+	  globalconfig.cmdqueue[0] = NULL;
+  }
 
 }

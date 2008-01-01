@@ -884,6 +884,7 @@ autologin (char* user, char *pass)
       if (passwordgood(pass)) {
 	  loggedin = 1;
 	  setproctitle ("%s", me->username);
+	  dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_LOGIN], 0, me);
       }
   }
 }
@@ -949,6 +950,7 @@ loginprompt (int from_ttyplay)
     {
       loggedin = 1;
       setproctitle ("%s", me->username);
+      dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_LOGIN], 0, me);
     }
   else 
   {
@@ -1109,11 +1111,16 @@ newuser ()
 
   setproctitle ("%s", me->username);
 
+  dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_REGISTER], 0, me);
+
   /* create their ttyrec dir */
+  /*
   snprintf (dirname, 100, "%sttyrec/%s", globalconfig.dglroot, me->username);
 
   if (access (dirname, F_OK) != 0)
     mkdir (dirname, 0755);
+  */
+
   writefile (1);
 }
 
@@ -2051,6 +2058,8 @@ main (int argc, char** argv)
 	}
     }
 
+  dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_DGLSTART], 0, NULL);
+
   if (nhext)
     {
       char *myargv[3];
@@ -2115,6 +2124,11 @@ main (int argc, char** argv)
 
   endwin ();
   signal(SIGWINCH, SIG_DFL);
+
+  /* first run the generic "do these when a game is started" commands */
+  dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMESTART], userchoice, me);
+  /* then run the game-specific commands */
+  dgl_exec_cmdqueue(myconfig[userchoice]->cmdqueue, userchoice, me);
 
   if (!backup_savefile (userchoice))
     graceful_exit (5);
@@ -2182,6 +2196,8 @@ main (int argc, char** argv)
 
   if (me)
     free (me);
+
+  /* FIXME: free data in globalconfig */
 
   graceful_exit (1);
 

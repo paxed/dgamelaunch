@@ -16,6 +16,23 @@
 /* max # of different games playable from within this dgl */
 #define DIFF_GAMES 4
 
+typedef enum
+{
+    DGLTIME_DGLSTART = 0,	/* when someone telnets in */
+    DGLTIME_LOGIN,		/* right after user login */
+    DGLTIME_REGISTER,		/* right after new nick is registered */
+    DGLTIME_GAMESTART,		/* right before a game is started */
+    NUM_DGLTIMES
+} dglcmd_times;
+
+struct dg_cmdpart
+{
+    dglcmd_times cmd;
+    char *param1;
+    char *param2;
+    struct dg_cmdpart *next;
+};
+
 struct dg_user
 {
 #ifdef USE_SQLITE3
@@ -59,6 +76,7 @@ struct dg_config
     int num_args; /* # of bin_args */
     char **bin_args; /* args for game binary */
     char *rc_fmt;
+    struct dg_cmdpart *cmdqueue;
 };
 
 struct dg_globalconfig
@@ -75,8 +93,19 @@ struct dg_globalconfig
     char* passwd;
     char* lockfile;
     int allow_registration; /* allow registering new nicks */
+
+    struct dg_cmdpart *cmdqueue[NUM_DGLTIMES];
 };
 
+typedef enum
+{
+    DGLCMD_NONE = 0,
+    DGLCMD_MKDIR,	/* mkdir foo */
+    DGLCMD_CHDIR,	/* chdir foo */
+    DGLCMD_CP,		/* cp foo bar */
+    DGLCMD_UNLINK,	/* unlink foo */
+    DGLCMD_SETENV	/* setenv foo bar */
+} dglcmd_actions;
 
 typedef enum
 {
@@ -115,6 +144,9 @@ extern void catch_sighup(int signum);
 extern void loadbanner(int game, struct dg_banner *ban);
 extern void drawbanner(unsigned int start_line, unsigned int howmany);
 extern char *dgl_format_str(int game, struct dg_user *me, char *str);
+
+extern int dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me);
+
 extern struct dg_game **populate_games(int game, int *l);
 
 extern struct dg_game **sort_games(struct dg_game **games, int len, dg_sortmode sortmode);

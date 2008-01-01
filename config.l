@@ -17,7 +17,7 @@ unsigned int line = 1, col = 0;
 
 NEGNUMBER	-[0-9]+
 NUMBER		[0-9]+
-VALUE		\".*\"
+VALUE		\"[^"]*\"
 MALSTRING	\"[^\"\n]*\n
 WHITE		[\t ]*
 COMMENT		^#.*
@@ -51,6 +51,11 @@ COMMENT		^#.*
 {COMMENT}	{ }
 
 "="		{ return '='; }
+","		{ return ','; }
+"["		{ return '['; }
+"]"		{ return ']'; }
+"{"		{ return '{'; }
+"}"		{ return '}'; }
 "shed_user"	{ return TYPE_SUSER; }
 "shed_group"	{ return TYPE_SGROUP; }
 "shed_uid"	{ return TYPE_SUID; }
@@ -59,7 +64,6 @@ COMMENT		^#.*
 "maxnicklen"	{ return TYPE_MAXNICKLEN; }
 "allow_new_nicks"	{ return TYPE_ALLOW_REGISTRATION; }
 
-"game_num"     { return TYPE_GAMENUM; }
 
 "chroot_path"	{ return TYPE_PATH_CHROOT; }
 "game_name"     { return TYPE_NAME_GAME; }
@@ -77,6 +81,18 @@ COMMENT		^#.*
 "inprogressdir" { return TYPE_PATH_INPROGRESS; }
 "game_args"	{ return TYPE_GAME_ARGS; }
 "rc_fmt"	{ return TYPE_RC_FMT; }
+commands	{ return TYPE_CMDQUEUE; }
+dglstart	{ yylval.i = DGLTIME_DGLSTART; return TYPE_CMDQUEUENAME; }
+login		{ yylval.i = DGLTIME_LOGIN;    return TYPE_CMDQUEUENAME; }
+register	{ yylval.i = DGLTIME_REGISTER; return TYPE_CMDQUEUENAME; }
+game_start	{ yylval.i = DGLTIME_GAMESTART; return TYPE_CMDQUEUENAME; }
+cmdmkdir	{ yylval.i = DGLCMD_MKDIR;  return TYPE_DGLCMD1; }
+cmdchdir	{ yylval.i = DGLCMD_CHDIR;  return TYPE_DGLCMD1; }
+cmdcp		{ yylval.i = DGLCMD_CP;     return TYPE_DGLCMD1; }
+cmdunlink	{ yylval.i = DGLCMD_UNLINK; return TYPE_DGLCMD1; }
+cmdsetenv	{ yylval.i = DGLCMD_SETENV; return TYPE_DGLCMD2; }
+DEFINE		{ return TYPE_DEFINE_GAME; }
+
 
 \n		{ line++; col = 0; }
 
