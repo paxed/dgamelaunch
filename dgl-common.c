@@ -35,7 +35,7 @@ struct dg_config defconfig = {
   /* shed_uid = *//* 5,*/
   /* shed_gid = */ /*60,*/ /* games:games in Debian */
   /* max = */ /*64000,*/
-  /* savefilefmt = */ "", /* don't do this by default */
+  /* savefilefmt = */ /*"",*/ /* don't do this by default */
   /* inprogressdir = */ "inprogress/",
   /* num_args = */ 0,
   /* bin_args = */ NULL,
@@ -431,7 +431,7 @@ create_config ()
       if (!myconfig[tmp]->shortname) myconfig[tmp]->shortname = defconfig.shortname;
       if (!myconfig[tmp]->rcfile) myconfig[tmp]->rcfile = defconfig.rcfile;
       if (!myconfig[tmp]->spool) myconfig[tmp]->spool = defconfig.spool;
-      if (!myconfig[tmp]->savefilefmt) myconfig[tmp]->savefilefmt = defconfig.savefilefmt;
+      /*if (!myconfig[tmp]->savefilefmt) myconfig[tmp]->savefilefmt = defconfig.savefilefmt;*/
       if (!myconfig[tmp]->inprogressdir) myconfig[tmp]->inprogressdir = defconfig.inprogressdir;
 
   }

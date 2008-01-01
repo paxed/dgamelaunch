@@ -37,7 +37,7 @@ static const char* lookup_token (int t);
 %token TYPE_ALLOW_REGISTRATION
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
-%token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_SAVEFILEFMT
+%token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE
 %token TYPE_MALSTRING TYPE_PATH_INPROGRESS TYPE_GAME_ARGS TYPE_RC_FMT
 %token TYPE_CMDQUEUE
 %token <s> TYPE_VALUE
@@ -280,11 +280,6 @@ game_definition : TYPE_CMDQUEUE
 		myconfig[ncnf]->mkdir = strdup ($3);
 		break;
 
-	    case TYPE_PATH_SAVEFILEFMT:
-		if (myconfig[ncnf]->savefilefmt) free(myconfig[ncnf]->savefilefmt);
-		myconfig[ncnf]->savefilefmt = strdup($3);
-		break;
-
 	    case TYPE_RC_FMT:
 		if (myconfig[ncnf]->rc_fmt) free(myconfig[ncnf]->rc_fmt);
 		myconfig[ncnf]->rc_fmt = strdup($3);
@@ -404,7 +399,6 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_CANNED	{ $$ = TYPE_PATH_CANNED; }
 	| TYPE_PATH_PASSWD	{ $$ = TYPE_PATH_PASSWD; }
 	| TYPE_PATH_LOCKFILE	{ $$ = TYPE_PATH_LOCKFILE; }
-	| TYPE_PATH_SAVEFILEFMT	{ $$ = TYPE_PATH_SAVEFILEFMT; }
 	| TYPE_PATH_INPROGRESS	{ $$ = TYPE_PATH_INPROGRESS; }
 	| TYPE_GAME_ARGS	{ $$ = TYPE_GAME_ARGS; }
 	| TYPE_RC_FMT		{ $$ = TYPE_RC_FMT; }
@@ -433,7 +427,6 @@ const char* lookup_token (int t)
     case TYPE_PATH_SPOOL: return "spooldir";
     case TYPE_PATH_BANNER: return "banner";
     case TYPE_PATH_CANNED: return "rc_template";
-    case TYPE_PATH_SAVEFILEFMT: return "savefilefmt";
     case TYPE_PATH_INPROGRESS: return "inprogressdir";
     case TYPE_GAME_ARGS: return "game_args";
     case TYPE_RC_FMT: return "rc_fmt";

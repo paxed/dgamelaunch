@@ -1581,67 +1581,6 @@ writefile (int requirenew)
 /* ************************************************************* */
 
 
-/*
- * Backup the savefile, if configured.
- * Returns non-zero if successful, otherwise an error message has been
- * given already.
- */
-int
-backup_savefile (int game)
-{
-    /*char buf[1024];*/
-    char *f, *p, *end, *buf;
-  int ispercent = 0, n;
-  int in, out;
-
-  f = myconfig[game]->savefilefmt;
-
-  if (*f == '\0')
-    return 1;
-  if (me == NULL)
-    graceful_exit (147);
-
-  buf = dgl_format_str(game, me, f);
-  p = buf;
-  p += strlen(buf);
-
-  /*fprintf(stderr, "***\n[SAVEFILE=%s]\n***\n", buf);
-  sleep(3);*/
-  in = open (buf, O_RDONLY);
-  if (in == -1)
-    {
-      if (errno == ENOENT)
-        return 1; /* Nothing to back up */
-      else
-        {
-          fprintf (stderr, "Cannot open savefile '%s'\n", buf);
-	  perror ("for input");
-          return 0;
-        }
-    }
-  strcpy (p, ".bak");
-  out = open (buf, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-  if (out == -1)
-    {
-      close (in);
-      fprintf (stderr, "Cannot open backup savefile '%s'\n", buf);
-      perror ("for output");
-      return 0;
-    }
-
-  while ((n = read (in, buf, sizeof(buf))) > 0)
-    {
-      n = write (out, buf, n);
-      if (n < 0)
-        break;
-    }
-  close (out);
-  close (in);
-  if (n < 0)
-    perror ("I/O error while backing up savefile");
-  return n >= 0;
-}
-
 int
 purge_stale_locks (int game)
 {
@@ -2130,8 +2069,10 @@ main (int argc, char** argv)
   /* then run the game-specific commands */
   dgl_exec_cmdqueue(myconfig[userchoice]->cmdqueue, userchoice, me);
 
+  /*
   if (!backup_savefile (userchoice))
     graceful_exit (5);
+  */
 
   /* environment */
   if (myconfig[userchoice]->rcfile) {

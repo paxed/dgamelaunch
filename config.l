@@ -77,7 +77,6 @@ COMMENT		^#.*
 "rc_template"	{ return TYPE_PATH_CANNED; }
 "passwd"	{ return TYPE_PATH_PASSWD; }
 "lockfile"	{ return TYPE_PATH_LOCKFILE; }
-"savefilefmt"	{ return TYPE_PATH_SAVEFILEFMT; }
 "inprogressdir" { return TYPE_PATH_INPROGRESS; }
 "game_args"	{ return TYPE_GAME_ARGS; }
 "rc_fmt"	{ return TYPE_RC_FMT; }
