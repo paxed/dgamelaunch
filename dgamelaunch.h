@@ -14,7 +14,7 @@
 
 
 /* max # of different games playable from within this dgl */
-#define DIFF_GAMES 4
+/*#define DIFF_GAMES 4*/
 
 typedef enum
 {
