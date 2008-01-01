@@ -1876,7 +1876,7 @@ int
 main (int argc, char** argv)
 {
   /* for chroot and program execution */
-  char atrcfilename[81], *spool, *p, *auth = NULL;
+    char atrcfilename[81], /**spool,*/ *p, *auth = NULL;
   unsigned int len;
   int c, i;
   int nhext = 0, nhauth = 0;
@@ -2082,18 +2082,22 @@ main (int argc, char** argv)
   }
   */
 
+  /*
   len = strlen(myconfig[userchoice]->spool) + strlen (me->username) + 1;
   spool = malloc (len + 1);
   snprintf (spool, len + 1, "%s/%s", myconfig[userchoice]->spool, me->username);
 
   mysetenv ("MAIL", spool, 1);
   mysetenv ("SIMPLEMAIL", "1", 1);
+  */
 
   /* don't let the mail file grow */
+  /*
   if (access (spool, F_OK) == 0)
     unlink (spool);
 
   free (spool);
+  */
 
   /* fix the variables in the arguments */
   for (i = 0; i < myconfig[userchoice]->num_args; i++) {
