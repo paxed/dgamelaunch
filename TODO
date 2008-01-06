@@ -1,3 +1,8 @@
+-add commands
+ -exec foo bar (executes foo with bar as it's param)
+ -ifncp foo bar (copy file foo to bar, but only if bar does not exist) 
+-maybe allow new menu options configurable in config file, like
+ commands['O', "Edit config file with foo"] = exec "foo" "rcfile"
 -allow setting the default watch-screen sortmode in config file.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
@@ -24,6 +29,3 @@
 
 - Honor window size changes (currently the player has to relogin if window
   size changes)
-
-- A way (config file or compile time) to disable things like registration or
-  mail
