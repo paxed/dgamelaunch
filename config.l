@@ -93,8 +93,9 @@ DEFINE		{ return TYPE_DEFINE_GAME; }
 
 \n		{ line++; col = 0; }
 
-. {
+[0-9a-zA-Z_]+ {
   fprintf(stderr, "%s:%d:%d unrecognized token \"%s\"\n", config, line, col, yytext);
+  graceful_exit(1);
 }
 
 %%
