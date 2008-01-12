@@ -2,6 +2,8 @@
 
 #include "dgamelaunch.h"
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <dirent.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -11,6 +13,7 @@
 #include <unistd.h>
 #include <pwd.h>
 #include <grp.h>
+#include <curses.h>
 
 extern FILE* yyin;
 extern int yyparse ();
@@ -160,6 +163,28 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		}
 		fclose (cannedf);
 		fclose (newfile);
+	    }
+	    break;
+	case DGLCMD_EXEC:
+	    if (p1 && p2) {
+		pid_t child;
+		char *myargv[3];
+
+		myargv[0] = p1;
+		myargv[1] = p2;
+		myargv[2] = 0;
+
+		endwin();
+		child = fork();
+		if (child == -1) {
+		    perror("fork");
+		    graceful_exit(114);
+		} else if (child == 0) {
+		    execvp(p1, myargv);
+		    exit(0);
+		} else
+		    waitpid(child, NULL, 0);
+		refresh();
 	    }
 	    break;
 	case DGLCMD_SETENV:
