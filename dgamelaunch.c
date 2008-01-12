@@ -373,7 +373,7 @@ inprogressmenu (int gameid)
       mvprintw (3, 1,
                 "During playback, hit 'q' to return here, 'm' to send mail (requires login),");
       mvaddstr (4, 1,
-                "'s' to toggle graphic-set stripping for DEC, IBM, and none.");
+                "'s' to toggle graphic-set stripping for DEC, IBM, and none (default).");
       mvaddstr (5, 1, "The following games are in progress: (use uppercase to try to change size)");
 
       /* clean old games and list good ones */
@@ -699,8 +699,9 @@ domailuser (char *username)
 
   if (mail_empty)
     {
-      mvaddstr (9, 1, "This scroll appears to be blank.--More--");
+      mvaddstr (9, 1, "This scroll appears to be blank.");
       mvaddstr (10, 1, "(Aborting your message.)");
+      mvaddstr (12, 1, "--More--");
       getch ();
       return;
     }
@@ -708,23 +709,26 @@ domailuser (char *username)
   if ((user_spool = fopen (spool_fn, "a")) == NULL)
     {
       mvaddstr (9, 1,
-                "You fall into the water! You sink like a rock.--More--");
+                "You fall into the water!  You sink like a rock.");
       mvprintw (10, 1,
-                "(I couldn't open %s'%c spool file for some reason, so I'm giving up.)",
+                "(Couldn't open %s'%c spool file.  Aborting.)",
                 username, (username[strlen (username) - 1] != 's') ? 's' : 0);
+      mvaddstr (12, 1, "--More--");
       getch ();
       return;
     }
 
-  mvaddstr (9, 1, "Getting a lock on the mailspool...");
+  mvaddstr (9, 1, "Sending your scroll...");
   refresh ();
 
+  /* Getting a lock on the mailspool... */
   while (fcntl (fileno (user_spool), F_SETLK, &fl) == -1)
     {
       if (errno != EAGAIN)
         {
           mvaddstr (10, 1,
-                    "Received a weird error from fcntl, so I'm giving up.");
+                    "(Received a weird error from fcntl.  Aborting.)");
+	  mvaddstr (12, 1, "--More--");
           getch ();
           return;
         }
@@ -740,8 +744,8 @@ domailuser (char *username)
 
   fclose (user_spool);
 
-  mvaddstr (9, 1, "Message sent successfully         ");
-  move(9, 26); /* Pedantry! */
+  mvaddstr (9, 1, "Scroll delivered!         ");
+  move(9, 19); /* Pedantry! */
   refresh ();
   sleep (2);
 
