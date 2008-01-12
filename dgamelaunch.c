@@ -480,7 +480,15 @@ inprogressmenu (int gameid)
 		    games[menuchoice - 97 + offset]->ws_col);
 		  fflush (stdout);
 		}
+	      if (loggedin)
+		  setproctitle("%s [watching %s]", me->username, chosen_name);
+	      else
+		  setproctitle("<Anonymous> [watching %s]", chosen_name);
               ttyplay_main (ttyrecname, 1);
+	      if (loggedin)
+		  setproctitle("%s", me->username);
+	      else
+		  setproctitle("<Anonymous>");
               initcurses ();
 	      if (doresizewin)
 	        sigprocmask (SIG_SETMASK, &oldmask, NULL);
@@ -959,7 +967,10 @@ loginprompt (int from_ttyplay)
   if (passwordgood (pw_buf))
     {
       loggedin = 1;
-      setproctitle ("%s", me->username);
+      if (from_ttyplay)
+	  setproctitle("%s [watching %s]", me->username, chosen_name);
+      else
+	  setproctitle("%s", me->username);
       dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_LOGIN], 0, me);
     }
   else 
@@ -1952,7 +1963,7 @@ main (int argc, char** argv)
     size_t len = strlen(argv[optind]);
     memset(argv[optind++], 0, len);
   }
-  setproctitle ("(not logged in)");
+  setproctitle("<Anonymous>");
 
   create_config();
 
@@ -2070,7 +2081,7 @@ main (int argc, char** argv)
 	  write_canned_rcfile (userchoice, dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt));
   }
 
-  setproctitle ("%s [playing]", me->username);
+  setproctitle("%s [playing %s]", me->username, myconfig[userchoice]->shortname);
 
   endwin ();
   signal(SIGWINCH, SIG_DFL);
