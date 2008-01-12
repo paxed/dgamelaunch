@@ -423,6 +423,7 @@ inprogressmenu (int gameid)
             offset -= 14;
           break;
 
+	case ERR:
 	case 'q': case 'Q':
           return;
 
@@ -549,7 +550,8 @@ change_email ()
     mvaddstr(4, 1, "Please enter a new one (max 80 chars; blank line aborts)");
     mvaddstr(6, 1, "=> ");
 
-    mygetnstr (buf, 80, 1);
+    if (mygetnstr (buf, 80, 1) != OK)
+	return;
 
     if (*buf == '\0')
       return;
@@ -620,7 +622,8 @@ changepw (int dowrite)
 
       refresh ();
 
-      mygetnstr (buf, 20, 0);
+      if (mygetnstr (buf, 20, 0) != OK)
+	  return 0;
 
       if (*buf == '\0')
         return 0;
@@ -631,7 +634,8 @@ changepw (int dowrite)
       mvaddstr (12, 1, "And again:");
       mvaddstr (13, 1, "=> ");
 
-      mygetnstr (repeatbuf, 20, 0);
+      if (mygetnstr (repeatbuf, 20, 0) != OK)
+	  return 0;
 
       if (!strcmp (buf, repeatbuf))
         error = 0;
@@ -684,7 +688,8 @@ domailuser (char *username)
             "Enter your message here. It is to be one line only and 80 characters or less.");
   mvaddstr (7, 1, "=> ");
 
-  mygetnstr (message, 80, 1);
+  if (mygetnstr (message, 80, 1) != OK)
+      return;
 
   for (i = 0; i < strlen (message); i++)
     {
@@ -918,7 +923,8 @@ loginprompt (int from_ttyplay)
       refresh ();
 
       /* keep this at 20 chars for hysterical raisins */
-      mygetnstr (user_buf, 20, 1);
+      if (mygetnstr (user_buf, 20, 1) != OK)
+	  return;
 
       if (*user_buf == '\0')
         return;
@@ -943,7 +949,8 @@ loginprompt (int from_ttyplay)
 
   refresh ();
 
-  mygetnstr (pw_buf, 20, 0);
+  if (mygetnstr (pw_buf, 20, 0) != OK)
+      return;
 
   if (passwordgood (pw_buf))
     {
@@ -1017,7 +1024,8 @@ newuser ()
 
       refresh ();
 
-      mygetnstr (buf, globalconfig.max_newnick_len, 1);
+      if (mygetnstr (buf, globalconfig.max_newnick_len, 1) != OK)
+	  buf[0] = 0;
 
       if (*buf == '\0') {
 	  free(me);
@@ -1086,8 +1094,9 @@ newuser ()
         }
 
       refresh ();
-      mygetnstr (buf, 80, 1);
- 
+      if (mygetnstr (buf, 80, 1) != OK)
+	  buf[0] = 0;
+
       if (check_email (buf))
         error = 0;
       else
@@ -1742,6 +1751,7 @@ gamemenuloop(int game)
           if (loggedin && myconfig[game]->rcfile)
             editoptions (game);
 	    break;
+	case ERR:
         case 'q':
 	    return 0;
         case 'r':
@@ -1794,6 +1804,7 @@ menuloop (void)
 		  if (loggedin && (num_games == 0))
 		      return 0;
 		  break;
+	      case ERR:
 	      case 'q':
 		  endwin ();
 		  graceful_exit(0);
