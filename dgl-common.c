@@ -200,6 +200,9 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_CHPASSWD:
 	    if (loggedin) changepw(1);
 	    break;
+	case DGLCMD_CHMAIL:
+	    if (loggedin) change_email();
+	    break;
 	}
 	free(p1);
 	free(p2);

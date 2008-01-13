@@ -104,6 +104,7 @@ typedef enum
     DGLCMD_UNLINK,	/* unlink foo */
     DGLCMD_EXEC,	/* exec foo bar */
     DGLCMD_SETENV,	/* setenv foo bar */
+    DGLCMD_CHMAIL,	/* chmail */
     DGLCMD_CHPASSWD	/* chpasswd */
 } dglcmd_actions;
 
