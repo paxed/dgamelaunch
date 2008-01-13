@@ -197,6 +197,9 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_SETENV:
 	    if (p1 && p2) mysetenv(p1, p2, 1);
 	    break;
+	case DGLCMD_CHPASSWD:
+	    if (loggedin) changepw(1);
+	    break;
 	}
 	free(p1);
 	free(p2);

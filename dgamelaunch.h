@@ -103,7 +103,8 @@ typedef enum
     DGLCMD_CP,		/* cp foo bar */
     DGLCMD_UNLINK,	/* unlink foo */
     DGLCMD_EXEC,	/* exec foo bar */
-    DGLCMD_SETENV	/* setenv foo bar */
+    DGLCMD_SETENV,	/* setenv foo bar */
+    DGLCMD_CHPASSWD	/* chpasswd */
 } dglcmd_actions;
 
 typedef enum

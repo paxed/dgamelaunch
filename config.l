@@ -92,6 +92,7 @@ ifnxcp		{ yylval.i = DGLCMD_IF_NX_CP; return TYPE_DGLCMD2; }
 unlink		{ yylval.i = DGLCMD_UNLINK; return TYPE_DGLCMD1; }
 setenv		{ yylval.i = DGLCMD_SETENV; return TYPE_DGLCMD2; }
 exec		{ yylval.i = DGLCMD_EXEC;   return TYPE_DGLCMD2; }
+chpasswd	{ yylval.i = DGLCMD_CHPASSWD;   return TYPE_DGLCMD0; }
 DEFINE		{ return TYPE_DEFINE_GAME; }
 
 

@@ -22,21 +22,17 @@ EDITOR = @EDITOR@
 STATIC_SRCS = $(EDITOR) dgl-common.c ttyrec.c dgamelaunch.c io.c ttyplay.c mygetnstr.c stripgfx.c strlcpy.c strlcat.c @SETPROCTITLE_C@
 DYN_SRCS = y.tab.c lex.yy.c
 EXTRA_SRCS = nethackstub.c
-DEP_SRCS := $(STATIC_SRCS) $(EXTRA_SRCS) dgl-wall.c
+DEP_SRCS := $(STATIC_SRCS) $(EXTRA_SRCS)
 SRCS := $(STATIC_SRCS) $(DYN_SRCS)
 OBJS = $(SRCS:.c=.o)
-WALL_OBJS = y.tab.o lex.yy.o dgl-common.o dgl-wall.o strlcat.o strlcpy.o
 
-all: .depend $(NAME) dgl-wall
+all: .depend $(NAME)
 
 $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
-dgl-wall: $(WALL_OBJS)
-	$(CC) $(CFLAGS) -o $@ $(WALL_OBJS) $(LIBS)
-	
 clean:
-	rm -f $(NAME) nethackstub dgl-wall
+	rm -f $(NAME) nethackstub
 	rm -f *.o *~ y.tab.* lex.yy.c .depend .depend.bak
 
 distclean: clean
