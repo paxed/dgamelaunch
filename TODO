@@ -1,5 +1,5 @@
 -add new config file commands:
-  -chpasswd       (change user's password)
+  x -chpasswd       (change user's password)
   -chmail         (change user's email address)
   -watch_menu     (go to the watching menu)
   -login          (login user)
@@ -96,6 +96,10 @@
  and maybe allow changing the watching-screen layout too?
 
 
+-add commandline parameters to dgamelaunch:
+   dgamelaunch --chpasswd "nick" "newpass"
+   dgamelaunch --wall "message to mail everyone"
+ these are obviously only for the server admin...
 -allow setting the default watch-screen sortmode in config file.
 -some games (robotfindskitten?) are not worth saving into ttyrecs, make it configurable.
 -allow configuring ttyplay.c; some games may use different clear-screen
