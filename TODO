@@ -104,8 +104,6 @@
 -some games (robotfindskitten?) are not worth saving into ttyrecs, make it configurable.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
--return back to dgl after exiting the game. (on NAO, the dgl processes
- take 33m+ resident memory, so might not be viable unless we use sqlite3)
 -public (no-password) accounts? (a per-user flag) what happens when someone
  is playing on the account and someone else logins and we start playing?
 -change the watching screen not to show the 'press 'm' to mail user'
