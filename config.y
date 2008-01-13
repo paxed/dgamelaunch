@@ -45,6 +45,7 @@ static const char* lookup_token (int t);
 %type  <kt> KeyType
 %token <i> TYPE_DGLCMD1 TYPE_DGLCMD2
 %token TYPE_DEFINE_GAME
+%token <i> TYPE_BOOL
 
 %%
 
@@ -180,6 +181,17 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
   free($3);
 }
 	| KeyType '=' TYPE_MALSTRING {}
+	| KeyType '=' TYPE_BOOL {
+	    switch ($1) {
+	    case TYPE_ALLOW_REGISTRATION:
+		globalconfig.allow_registration = $<i>3;
+		break;
+	    default:
+		fprintf(stderr, "%s:%d: token %s does not take a boolean, bailing out\n",
+			config, line, lookup_token($1)); 
+		exit(1);
+	    }
+  	}
 	| KeyType '=' TYPE_NUMBER {
 
     globalconfig.shed_uid = (uid_t)-1;
@@ -208,10 +220,6 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
 	  config, line, $3, globalconfig.shed_gid);
 
       globalconfig.shed_gid = $3;
-      break;
-
-  case TYPE_ALLOW_REGISTRATION:
-      globalconfig.allow_registration = $3;
       break;
 
     case TYPE_MAX:

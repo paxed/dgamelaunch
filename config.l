@@ -79,6 +79,8 @@ WHITE		[\t ]*
 "game_args"	{ return TYPE_GAME_ARGS; }
 "rc_fmt"	{ return TYPE_RC_FMT; }
 commands	{ return TYPE_CMDQUEUE; }
+yes		{ yylval.i = 1; return TYPE_BOOL; }
+no		{ yylval.i = 0; return TYPE_BOOL; }
 dglstart	{ yylval.i = DGLTIME_DGLSTART; return TYPE_CMDQUEUENAME; }
 login		{ yylval.i = DGLTIME_LOGIN;    return TYPE_CMDQUEUENAME; }
 register	{ yylval.i = DGLTIME_REGISTER; return TYPE_CMDQUEUENAME; }
