@@ -1,4 +1,5 @@
 1.4.8 (2008/??/??)
+	* Better handling of tty loss.
 	* Allow admin to define different actions taken when something happens.
 	* Allow using SQLite3 for the user login database instead of flat text.
 	* Allow sorting the watchlist, by username or idletime.
