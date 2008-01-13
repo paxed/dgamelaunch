@@ -2059,102 +2059,57 @@ main (int argc, char** argv)
       }
     }
   }
-  
-  initcurses ();
 
-  userchoice = menuloop();
+  while (1) {
+      initcurses ();
 
-  assert (loggedin);
+      userchoice = menuloop();
 
-  if ((userchoice >= 0) && (userchoice <= num_games)) {
-      while (!purge_stale_locks(userchoice)) {
-	  userchoice = gamemenuloop(userchoice);
-      }
-      if (!((userchoice >= 0) && (userchoice <= num_games)))
+      assert (loggedin);
+
+      if ((userchoice >= 0) && (userchoice <= num_games)) {
+	  while (!purge_stale_locks(userchoice)) {
+	      userchoice = gamemenuloop(userchoice);
+	  }
+	  if (!((userchoice >= 0) && (userchoice <= num_games)))
+	      graceful_exit (1);
+      } else {
 	  graceful_exit (1);
-  } else {
-      graceful_exit (1);
+      }
+
+      if (myconfig[userchoice]->rcfile) {
+	  if (access (dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt), R_OK) == -1)
+	      write_canned_rcfile (userchoice, dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt));
+      }
+
+      setproctitle("%s [playing %s]", me->username, myconfig[userchoice]->shortname);
+
+      endwin ();
+      signal(SIGWINCH, SIG_DFL);
+
+      /* first run the generic "do these when a game is started" commands */
+      dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMESTART], userchoice, me);
+      /* then run the game-specific commands */
+      dgl_exec_cmdqueue(myconfig[userchoice]->cmdqueue, userchoice, me);
+
+      /* fix the variables in the arguments */
+      for (i = 0; i < myconfig[userchoice]->num_args; i++) {
+	  tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i]));
+	  free(myconfig[userchoice]->bin_args[i]);
+	  myconfig[userchoice]->bin_args[i] = tmp;
+      }
+
+      /* launch program */
+      ttyrec_main (userchoice, me->username, gen_ttyrec_filename());
+
+      setproctitle ("%s", me->username);
   }
-
-  if (myconfig[userchoice]->rcfile) {
-      if (access (dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt), R_OK) == -1)
-	  write_canned_rcfile (userchoice, dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt));
-  }
-
-  setproctitle("%s [playing %s]", me->username, myconfig[userchoice]->shortname);
-
-  endwin ();
-  signal(SIGWINCH, SIG_DFL);
-
-  /* first run the generic "do these when a game is started" commands */
-  dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMESTART], userchoice, me);
-  /* then run the game-specific commands */
-  dgl_exec_cmdqueue(myconfig[userchoice]->cmdqueue, userchoice, me);
-
-  /*
-  if (!backup_savefile (userchoice))
-    graceful_exit (5);
-  */
-
-  /* environment */
-  /*
-  if (myconfig[userchoice]->rcfile) {
-      snprintf (atrcfilename, 81, "@%s", dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt));
-      mysetenv ("NETHACKOPTIONS", atrcfilename, 1);
-  }
-  */
-
-  /*
-  len = strlen(myconfig[userchoice]->spool) + strlen (me->username) + 1;
-  spool = malloc (len + 1);
-  snprintf (spool, len + 1, "%s/%s", myconfig[userchoice]->spool, me->username);
-
-  mysetenv ("MAIL", spool, 1);
-  mysetenv ("SIMPLEMAIL", "1", 1);
-  */
-
-  /* don't let the mail file grow */
-  /*
-  if (access (spool, F_OK) == 0)
-    unlink (spool);
-
-  free (spool);
-  */
-
-  /* fix the variables in the arguments */
-  for (i = 0; i < myconfig[userchoice]->num_args; i++) {
-      tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i]));
-      free(myconfig[userchoice]->bin_args[i]);
-      myconfig[userchoice]->bin_args[i] = tmp;
-  }
-
-  /* launch program */
-  ttyrec_main (userchoice, me->username, gen_ttyrec_filename());
 
   /* NOW we can safely kill this */
   freefile ();
 
-  /*
-  printf("config:'%s'\n", config);
-
-  printf("chroot:'%s'\n", globalconfig.chroot);
-  printf("gamepath:'%s'\n", myconfig[userchoice]->game_path);
-  printf("game:'%s'\n", myconfig[userchoice]->game_name);
-  printf("dglroot:'%s'\n", globalconfig.dglroot);
-  printf("lockfile:'%s'\n", globalconfig.lockfile);
-  printf("passwd:'%s'\n", globalconfig.passwd);
-  printf("banner:'%s'\n", globalconfig.banner);
-  printf("rcfile:'%s'\n", myconfig[userchoice]->rcfile);
-  printf("spool:'%s'\n", myconfig[userchoice]->spool);
-  printf("savefilefmt:'%s'\n", myconfig[userchoice]->savefilefmt);
-  printf("dgl_format_str(savefilefmt):'%s'\n", dgl_format_str(userchoice, myconfig[userchoice]->savefilefmt));
-  printf("inprogressdir:'%s'\n", myconfig[userchoice]->inprogressdir);
-  */
-
   if (me)
     free (me);
-
-  /* FIXME: free data in globalconfig */
 
   graceful_exit (1);
 

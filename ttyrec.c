@@ -72,7 +72,10 @@
 
 int slave;
 pid_t child, subchild;
+pid_t input_child;
 char* ipfile = NULL;
+
+volatile int wait_for_menu = 0;
 
 FILE *fscript;
 int master;
@@ -85,6 +88,8 @@ int
 ttyrec_main (int game, char *username, char* ttyrec_filename)
 {
   char dirname[100];
+
+  child = subchild = input_child = 0;
 
   snprintf (dirname, 100, "%sttyrec/%s/%s", globalconfig.dglroot, username,
             ttyrec_filename);
@@ -123,10 +128,26 @@ ttyrec_main (int game, char *username, char* ttyrec_filename)
       else
 	  doshell (game, username);
     }
-  doinput ();
+
+  (void) fclose (fscript);
+
+  wait_for_menu = 1;
+  input_child = fork();
+  if (input_child < 0)
+  {
+      perror ("fork2");
+      fail ();
+  }
+  if (!input_child)
+      doinput ();
+  else
+  {
+      while (wait_for_menu)
+	  sleep(1);
+  }
 
   unlink (ipfile);
-  
+
   return 0;
 }
 
@@ -136,7 +157,6 @@ doinput ()
   register int cc;
   char ibuf[BUFSIZ];
 
-  (void) fclose (fscript);
   while ((cc = read (0, ibuf, BUFSIZ)) > 0)
     (void) write (master, ibuf, cc);
   done ();
@@ -158,7 +178,17 @@ finish (int sig)
   }
 
   if (die)
-    done ();
+  {
+      if (wait_for_menu && input_child)
+      {
+	  // Need to kill the child that's writing input to pty.
+	  kill(input_child, SIGTERM);
+	  while ((pid = wait3(&status, WNOHANG, 0)) > 0);
+	  wait_for_menu = 0;
+      }
+      else
+	  done ();
+  }
 }
 
 struct linebuf
