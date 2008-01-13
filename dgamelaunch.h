@@ -99,6 +99,7 @@ typedef enum
     DGLCMD_NONE = 0,
     DGLCMD_MKDIR,	/* mkdir foo */
     DGLCMD_CHDIR,	/* chdir foo */
+    DGLCMD_IF_NX_CP,	/* ifnxcp foo bar */
     DGLCMD_CP,		/* cp foo bar */
     DGLCMD_UNLINK,	/* unlink foo */
     DGLCMD_EXEC,	/* exec foo bar */

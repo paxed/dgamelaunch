@@ -86,6 +86,7 @@ game_start	{ yylval.i = DGLTIME_GAMESTART; return TYPE_CMDQUEUENAME; }
 mkdir		{ yylval.i = DGLCMD_MKDIR;  return TYPE_DGLCMD1; }
 chdir		{ yylval.i = DGLCMD_CHDIR;  return TYPE_DGLCMD1; }
 cp		{ yylval.i = DGLCMD_CP;     return TYPE_DGLCMD2; }
+ifnxcp		{ yylval.i = DGLCMD_IF_NX_CP; return TYPE_DGLCMD2; }
 unlink		{ yylval.i = DGLCMD_UNLINK; return TYPE_DGLCMD1; }
 setenv		{ yylval.i = DGLCMD_SETENV; return TYPE_DGLCMD2; }
 exec		{ yylval.i = DGLCMD_EXEC;   return TYPE_DGLCMD2; }

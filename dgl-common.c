@@ -144,6 +144,13 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_CHDIR:
 	    if (p1) chdir(p1);
 	    break;
+	case DGLCMD_IF_NX_CP:
+	    if (p1 && p2) {
+		FILE *tmpfile;
+		tmpfile = fopen(p2, "r");
+		if (tmpfile) break;
+	    }
+	    /* else fall through to cp */
 	case DGLCMD_CP:
 	    if (p1 && p2) {
 		FILE *cannedf, *newfile;
