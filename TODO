@@ -97,6 +97,7 @@
 
 
 -allow setting the default watch-screen sortmode in config file.
+-some games (robotfindskitten?) are not worth saving into ttyrecs, make it configurable.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
 -return back to dgl after exiting the game. (on NAO, the dgl processes
