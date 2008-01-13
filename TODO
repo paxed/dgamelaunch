@@ -1,8 +1,23 @@
--add commands
- -exec foo bar (executes foo with bar as it's param)
- -ifncp foo bar (copy file foo to bar, but only if bar does not exist) 
 -maybe allow new menu options configurable in config file, like
  commands['O', "Edit config file with foo"] = exec "foo" "rcfile"
+
+ menu {
+  option {
+   keys = 'o', 'O'
+   name = "Edit config file with foo"
+   commands = exec "foo" "rcfile"
+  }
+  option {
+   keys = 'x', 'X'
+   name = "Blahblahblah"
+   commands = blahblah
+   require_login = 1
+  }
+ } 
+
+ menus:  main menu, game-specific menu, ...
+
+
 -allow setting the default watch-screen sortmode in config file.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
