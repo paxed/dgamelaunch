@@ -1,10 +1,10 @@
 -add new config file commands:
   x -chpasswd       (change user's password)
-  -chmail         (change user's email address)
-  -watch_menu     (go to the watching menu)
-  -login          (login user)
-  -newuser        (register new user)
-  -quit           (quit from dgl)
+  x -chmail         (change user's email address)
+  x -watch_menu     (go to the watching menu)
+  x -login          (login user)
+  x -newuser        (register new user)
+  x -quit           (quit from dgl)
   -game_menu "x"  (go to game menu "x")
   -return         (return to main menu)
   -start_game     (start the selected game)
@@ -95,6 +95,23 @@
 
  and maybe allow changing the watching-screen layout too?
 
+ struct dg_menuoption
+ {
+     char *keys;
+     struct dg_cmdpart *cmdqueue;
+     struct dg_menuoption *next;
+ };
+
+ struct dg_menu
+ {
+     char *banner_fn;
+     int cursor_x, cursor_y; /* coord to put cursor after drawing banner */
+     struct dg_menuoption *options;
+ };
+
+
+
+
 
 -add commandline parameters to dgamelaunch:
    dgamelaunch --chpasswd "nick" "newpass"
@@ -104,6 +121,8 @@
 -some games (robotfindskitten?) are not worth saving into ttyrecs, make it configurable.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
+-allow configuring the gfx stripping. (number of chars, types of stripping,
+ include unicode stripping from crawl dgl, etc)
 -public (no-password) accounts? (a per-user flag) what happens when someone
  is playing on the account and someone else logins and we start playing?
 -change the watching screen not to show the 'press 'm' to mail user'

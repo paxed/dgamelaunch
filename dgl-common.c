@@ -203,6 +203,19 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_CHMAIL:
 	    if (loggedin) change_email();
 	    break;
+	case DGLCMD_WATCH_MENU:
+	    inprogressmenu(game);
+	    break;
+	case DGLCMD_LOGIN:
+	    if (!loggedin) loginprompt(0);
+	    break;
+	case DGLCMD_REGISTER:
+	    if (!loggedin && globalconfig.allow_registration) newuser();
+	    break;
+	case DGLCMD_QUIT:
+	    endwin();
+	    graceful_exit(0);
+	    /* break; */
 	}
 	free(p1);
 	free(p2);
