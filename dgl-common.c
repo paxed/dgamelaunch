@@ -157,8 +157,8 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		char buf[1024];
 		size_t bytes;
 		/* FIXME: use nethack-themed error messages here, as per write_canned_rcfile() */
-		if (!(newfile = fopen (p2, "w"))) break;
 		if (!(cannedf = fopen (p1, "r"))) break;
+		if (!(newfile = fopen (p2, "w"))) break;
 		while ((bytes = fread (buf, 1, 1024, cannedf)) > 0) {
 		    if (fwrite (buf, 1, bytes, newfile) != bytes) {
 			if (ferror (newfile)) {
