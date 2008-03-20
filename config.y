@@ -78,6 +78,7 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
 	    }
 	    */
 	    globalconfig.cmdqueue[cmdqueue_num] = curr_cmdqueue;
+	    curr_cmdqueue = NULL;
 	}
 	| definegame
 	{
@@ -248,6 +249,7 @@ game_definition : TYPE_CMDQUEUE
 	'=' cmdlist
 	{
 	    myconfig[ncnf]->cmdqueue = curr_cmdqueue;
+	    curr_cmdqueue = NULL;
 	}
 	| TYPE_GAME_ARGS '=' game_args_list
 	{
