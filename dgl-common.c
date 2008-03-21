@@ -54,6 +54,16 @@ int num_games = 0;
 
 struct dg_globalconfig globalconfig;
 
+
+int
+check_retard(int reset)
+{
+    static int retardation = 0;  /* counter for retarded clients & flooding */
+    if (reset) retardation = 0;
+    else retardation++;
+    return ((retardation > 20) ? 1 : 0);
+}
+
 /*
  * replace following codes with variables:
  * %u == shed_uid (number)

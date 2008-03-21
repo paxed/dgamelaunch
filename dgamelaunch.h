@@ -148,6 +148,7 @@ extern char *gen_inprogress_lock(int game, pid_t pid, char *ttyrec_filename);
 extern void catch_sighup(int signum);
 extern void loadbanner(int game, struct dg_banner *ban);
 extern void drawbanner(unsigned int start_line, unsigned int howmany);
+extern int check_retard(int reset);
 extern char *dgl_format_str(int game, struct dg_user *me, char *str);
 
 extern int dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me);

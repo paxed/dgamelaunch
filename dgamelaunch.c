@@ -763,8 +763,6 @@ domailuser (char *username)
 void
 drawgamemenu(int game)
 {
-  static int flood = 0;
-
   if (loggedin) {
 
       clear();
@@ -785,9 +783,7 @@ drawgamemenu(int game)
       refresh ();
   }
 
-  /* for retarded clients */
-  flood++;
-  if (flood >= 20)
+  if (check_retard(0))
   {
     endwin();
     graceful_exit (119);
@@ -2101,6 +2097,7 @@ main (int argc, char** argv)
 
       /* launch program */
       ttyrec_main (userchoice, me->username, gen_ttyrec_filename());
+      check_retard(1); /* reset retard counter */
 
       setproctitle ("%s", me->username);
   }
