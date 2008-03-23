@@ -794,7 +794,6 @@ drawgamemenu(int game)
 void
 drawmenu ()
 {
-  static int flood = 0;
   int game = 0;
 
   clear ();
@@ -833,9 +832,7 @@ drawmenu ()
 
   refresh ();
 
-  /* for retarded clients */
-  flood++;
-  if (flood >= 20)
+  if (check_retard(0))
   {
     endwin();
     graceful_exit (119);
@@ -1460,6 +1457,7 @@ editoptions (int game)
     waitpid(editor, NULL, 0);
 
   refresh ();
+  check_retard(1);
 }
 
 /* ************************************************************* */
