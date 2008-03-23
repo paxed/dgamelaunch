@@ -223,7 +223,6 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    if (!loggedin && globalconfig.allow_registration) newuser();
 	    break;
 	case DGLCMD_QUIT:
-	    endwin();
 	    graceful_exit(0);
 	    /* break; */
 	}
@@ -423,6 +422,7 @@ graceful_exit (int status)
      } 
      This doesn't work. Ever.
    */
+  endwin();
   exit (status);
 }
 

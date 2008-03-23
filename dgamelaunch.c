@@ -785,7 +785,6 @@ drawgamemenu(int game)
 
   if (check_retard(0))
   {
-    endwin();
     graceful_exit (119);
   }
 
@@ -834,7 +833,6 @@ drawmenu ()
 
   if (check_retard(0))
   {
-    endwin();
     graceful_exit (119);
   }
 }
@@ -1815,7 +1813,6 @@ menuloop (void)
 		  break;
 	      case ERR:
 	      case 'q':
-		  endwin ();
 		  graceful_exit(0);
 		  /* break; */
 	      case 'r':
