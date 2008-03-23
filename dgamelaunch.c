@@ -1417,6 +1417,7 @@ write_canned_rcfile (int game, char *target)
 
   fclose (canned);
   fclose (newfile);
+  chmod (target, default_fmode);
 }
 
 

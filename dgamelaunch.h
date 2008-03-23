@@ -6,6 +6,7 @@
 #include "config.h"
 #include <sys/param.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <time.h>
 
 #ifndef ARRAY_SIZE
@@ -139,6 +140,8 @@ extern int set_max;
 extern struct dg_globalconfig globalconfig;
 
 extern int num_games;
+
+extern mode_t default_fmode;
 
 /* dgamelaunch.c */
 extern void create_config(void);

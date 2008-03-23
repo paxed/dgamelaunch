@@ -52,6 +52,8 @@ int loggedin = 0;
 char *chosen_name;
 int num_games = 0;
 
+mode_t default_fmode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+
 struct dg_globalconfig globalconfig;
 
 
@@ -180,6 +182,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		}
 		fclose (cannedf);
 		fclose (newfile);
+		chmod (p2, default_fmode);
 	    }
 	    break;
 	case DGLCMD_EXEC:

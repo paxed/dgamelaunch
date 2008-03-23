@@ -1,3 +1,5 @@
+-make default_fmode configurable, and add config
+ file command "chmod file mode"
 -allow setting the new rcfile access rights.
 -allow configuring the ttyrec dir location & file format.
 
