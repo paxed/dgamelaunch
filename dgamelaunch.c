@@ -1692,6 +1692,10 @@ runmenuloop(struct dg_menu *menu)
 	    return_from_submenu = 0;
 	    return;
 	}
+
+	if (check_retard(0)) {
+	    graceful_exit(119);
+	}
     }
 }
 

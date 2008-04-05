@@ -229,6 +229,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		} else
 		    waitpid(child, NULL, 0);
 		refresh();
+		check_retard(1);
 	    }
 	    break;
 	case DGLCMD_SETENV:
@@ -266,6 +267,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		for (i = 0; i < num_games; i++) {
 		    if ((!strcmp(myconfig[i]->game_name, p1) || !strcmp(myconfig[i]->shortname, p1)) && myconfig[i]->rcfile) {
 			editoptions(i);
+			check_retard(1);
 			break;
 		    }
 		}
@@ -307,6 +309,8 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 			    setproctitle ("%s", me->username);
 
 			    initcurses ();
+
+			    check_retard(1);
 			}
 			break;
 		    }
