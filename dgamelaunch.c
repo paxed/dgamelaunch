@@ -296,15 +296,17 @@ loadbanner (char *fname, struct dg_banner *ban)
 
   if (!bannerfile)
     {
+#define NOTE_NO_DGL_BANNER "### NOTE: administrator has not installed a %s file"
       size_t len;
       ban->len = 2;
       ban->lines = malloc (sizeof (char *));
       ban->lines[0] =
         strdup ("### dgamelaunch " PACKAGE_VERSION
                 " - network console game launcher");
-      len = strlen(fname) + ARRAY_SIZE("### NOTE: administrator has not installed a  file");
+      len = strlen(fname) + ARRAY_SIZE(NOTE_NO_DGL_BANNER);
       ban->lines[1] = malloc(len);
-      snprintf(ban->lines[1], len, "### NOTE: administrator has not installed a %s file", fname);
+      snprintf(ban->lines[1], len, NOTE_NO_DGL_BANNER, fname);
+#undef NOTE_NO_DGL_BANNER
       return;
     }
 
