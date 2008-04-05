@@ -765,84 +765,6 @@ domailuser (char *username)
   return;
 }
 
-/*
-void
-drawgamemenu(int game)
-{
-  if (loggedin) {
-
-      clear();
-
-      drawbanner(&banner, 1,0);
-
-      mvprintw(banner.len + 2, 1, "Logged in as: %s", me->username);
-
-      mvaddstr (banner.len + 4, 1, "c) Change password");
-      mvaddstr (banner.len + 5, 1, "e) Change email address");
-      mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
-      if (myconfig[game]->rcfile)
-	  mvprintw (banner.len + 7, 1, "o) Edit options for %s", myconfig[game]->game_name);
-      mvprintw (banner.len + 8, 1, "p) Play %s", myconfig[game]->game_name);
-      mvaddstr (banner.len + 9, 1, "q) Return to previous menu");
-      mvaddstr (banner.len + 11, 1, "=> ");
-
-      refresh ();
-  }
-
-  if (check_retard(0))
-  {
-    graceful_exit (119);
-  }
-
-}
-*/
-
-void
-drawmenu ()
-{
-  int game = 0;
-
-  clear ();
-
-  drawbanner (&banner, 1, 0);
-
-  if (loggedin)
-    {
-      mvprintw (banner.len + 2, 1, "Logged in as: %s", me->username);
-      mvaddstr (banner.len + 4, 1, "c) Change password");
-      mvaddstr (banner.len + 5, 1, "e) Change email address");
-      mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
-      if (num_games >= 1)
-	  for (game = 0; (game <= num_games) && myconfig && myconfig[game] && myconfig[game]->game_name; game++)
-	      mvprintw (banner.len + 7 + game, 1, "%c) Go to %s menu", '1'+game, myconfig[game]->game_name);
-      else {
-	  if (myconfig[0]->rcfile)
-	      mvprintw (banner.len + 7, 1, "o) Edit options");
-	  mvprintw (banner.len + 8, 1, "p) Play %s", myconfig[0]->game_name);
-      }
-      mvaddstr (banner.len + 9 + game, 1, "q) Quit");
-      mvaddstr (banner.len + 11 + game, 1, "=> ");
-    }
-  else
-    {
-      mvaddstr (banner.len + 2, 1, "Not logged in.");
-      mvaddstr (banner.len + 4, 1, "l) Login");
-      if (globalconfig.allow_registration)
-	  mvaddstr (banner.len + 5, 1, "r) Register new user");
-      else
-	  mvaddstr (banner.len + 5, 1, "   Register new user - DISABLED");
-      mvaddstr (banner.len + 6, 1, "w) Watch games in progress");
-      mvaddstr (banner.len + 7, 1, "q) Quit");
-      mvaddstr (banner.len + 11, 1, "=> ");
-    }
-
-  refresh ();
-
-  if (check_retard(0))
-  {
-    graceful_exit (119);
-  }
-}
 
 /* ************************************************************* */
 
@@ -1735,53 +1657,6 @@ purge_stale_locks (int game)
   return 1;
 }
 
-/*
-int
-gamemenuloop(int game)
-{
-  int userchoice = 0;
-  while (1)
-    {
-      drawgamemenu (game);
-      userchoice = getch ();
-      switch (tolower (userchoice))
-        {
-	default:
-	    break;
-	case 'p':
-	    if (loggedin)
-		return 1;
-	    break;
-        case 'c':
-          if (loggedin)
-            changepw (1);
-          break;
-	case 'e':
-	  if (loggedin)
-	    change_email();
-	  break;
-        case 'w':
-          inprogressmenu (game);
-          break;
-	case 'o':
-          if (loggedin && myconfig[game]->rcfile)
-            editoptions (game);
-	    break;
-	case ERR:
-        case 'q':
-	    return 0;
-        case 'r':
-          if (!loggedin && globalconfig.allow_registration)
-            newuser ();
-          break;
-        case 'l':
-          if (!loggedin)
-            loginprompt (0);
-        }
-    }
-  return 0;
-}
-*/
 
 void
 runmenuloop(struct dg_menu *menu)
