@@ -87,15 +87,6 @@ if test "$enable_sqlite" = yes; then
    AC_DEFINE_UNQUOTED(USE_SQLITE_DB, "$dgl_sqlite_db", [Path and filename of the SQLite database.])
 fi
 
-def_dgl_num_games=4
-
-AC_ARG_WITH(num-games,
-[AC_HELP_STRING([--num-games=INT], [Max. number of games this dgamelaunch supports per dgl installation.])],
-[dgl_num_games=$withval], [dgl_num_games=$def_dgl_num_games])
-
-AC_DEFINE_UNQUOTED(DIFF_GAMES, $dgl_num_games, [Max. number of games this dgamelaunch supports per dgl installation.])
-AC_MSG_RESULT([Number of games this dgamelaunch supports: $dgl_num_games]);
-
 AC_ARG_WITH(config-file,
 [AC_HELP_STRING([--with-config-file=PATH], [Define the path to the default configuration file.])],
 [configfile=$withval], [configfile="/etc/dgamelaunch.conf"])

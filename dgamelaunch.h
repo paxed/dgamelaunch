@@ -14,9 +14,6 @@
 #endif
 
 
-/* max # of different games playable from within this dgl */
-/*#define DIFF_GAMES 4*/
-
 typedef enum
 {
     DGLTIME_DGLSTART = 0,	/* when someone telnets in */

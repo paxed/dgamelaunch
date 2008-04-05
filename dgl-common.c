@@ -559,9 +559,8 @@ create_config ()
     }
 #else
     /*      fprintf(stderr, "NO DEFCONFIG\n");*/
-      myconfig = calloc(DIFF_GAMES, sizeof(myconfig[0]));
-    for (tmp = 0; tmp < DIFF_GAMES; tmp++)
-	myconfig[tmp] = NULL;
+    num_games = 0;
+    myconfig = calloc(1, sizeof(myconfig[0]));
     myconfig[0] = &defconfig;
     return;
 #endif
@@ -569,25 +568,8 @@ create_config ()
 
   if (!myconfig) /* a parse error occurred */
   {
-      /*      fprintf(stderr, "PARSE ERROR\n");*/
-      myconfig = calloc(DIFF_GAMES, sizeof(myconfig[0]));
-    for (tmp = 0; tmp < DIFF_GAMES; tmp++)
-	myconfig[tmp] = NULL;
-    myconfig[0] = &defconfig;
-    return;
-  }
-  /* Fill the rest with defaults */
-
-  for (tmp = 0; tmp < DIFF_GAMES; tmp++) {
-
-      if (!myconfig[tmp]->game_path) myconfig[tmp]->game_path = defconfig.game_path;
-      if (!myconfig[tmp]->game_name) myconfig[tmp]->game_name = defconfig.game_name;
-      if (!myconfig[tmp]->shortname) myconfig[tmp]->shortname = defconfig.shortname;
-      if (!myconfig[tmp]->rcfile) myconfig[tmp]->rcfile = defconfig.rcfile;
-      if (!myconfig[tmp]->spool) myconfig[tmp]->spool = defconfig.spool;
-      /*if (!myconfig[tmp]->savefilefmt) myconfig[tmp]->savefilefmt = defconfig.savefilefmt;*/
-      if (!myconfig[tmp]->inprogressdir) myconfig[tmp]->inprogressdir = defconfig.inprogressdir;
-
+      fprintf(stderr, "ERROR: configuration parsing failed\n");
+      graceful_exit(113);
   }
 
   if (!globalconfig.chroot) globalconfig.chroot = "/var/lib/dgamelaunch/";
@@ -616,9 +598,5 @@ create_config ()
 	      else
 		  globalconfig.shed_gid = 60; /* games gid in debian */
 	  }
-
-  for (tmp = 0; tmp < NUM_DGLTIMES; tmp++) {
-	  globalconfig.cmdqueue[0] = NULL;
-  }
 
 }

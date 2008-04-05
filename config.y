@@ -414,19 +414,25 @@ game_definitions : game_definition
 
 definegame : TYPE_DEFINE_GAME '{'
 	{
-	    if ((ncnf < 0) || (ncnf >= DIFF_GAMES)) {
-		fprintf(stderr, "%s:%d: too many games defined, bailing out\n",
+	    struct dg_config **tmpconfig = NULL;
+
+	    tmpconfig = calloc(ncnf + 1, sizeof(myconfig[0]));
+	    if (!tmpconfig) {
+		fprintf(stderr, "%s:%d: could not allocate memory for config, bailing out\n",
 			config, line);
 		exit(1);
 	    }
 
-	    if (!myconfig) {
+	    if (myconfig) {
 		int tmp;
-		myconfig = calloc(DIFF_GAMES, sizeof(myconfig[0]));
-		for (tmp = 0; tmp < DIFF_GAMES; tmp++) {
-		    myconfig[tmp] = calloc(1, sizeof(struct dg_config));
+		for (tmp = 0; tmp < ncnf; tmp++) {
+		    tmpconfig[tmp] = myconfig[tmp];
 		}
+		free(myconfig);
 	    }
+
+	    tmpconfig[ncnf] = calloc(1, sizeof(struct dg_config));
+	    myconfig = tmpconfig;
 	}
 	game_definitions '}'
 	{
