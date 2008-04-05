@@ -52,6 +52,28 @@ struct dg_banner
   unsigned int len;
 };
 
+struct dg_menuoption
+{
+    char *keys;
+    struct dg_cmdpart *cmdqueue;
+    struct dg_menuoption *next;
+};
+
+struct dg_menu
+{
+    char *banner_fn;
+    struct dg_banner banner;
+    int cursor_x, cursor_y;
+    struct dg_menuoption *options;
+};
+
+struct dg_menulist
+{
+    char *menuname;
+    struct dg_menu *menu;
+    struct dg_menulist *next;
+};
+
 struct dg_game
 {
   char *ttyrec_fn;
@@ -93,6 +115,8 @@ struct dg_globalconfig
     int allow_registration; /* allow registering new nicks */
 
     struct dg_cmdpart *cmdqueue[NUM_DGLTIMES];
+
+    struct dg_menulist *menulist;
 };
 
 typedef enum
@@ -110,7 +134,11 @@ typedef enum
     DGLCMD_REGISTER,	/* ask_register */
     DGLCMD_QUIT,	/* quit */
     DGLCMD_CHMAIL,	/* chmail */
-    DGLCMD_CHPASSWD	/* chpasswd */
+    DGLCMD_CHPASSWD,	/* chpasswd */
+    DGLCMD_EDITOPTIONS,	/* edit_options "foo" */
+    DGLCMD_PLAYGAME,	/* play_game "foo" */
+    DGLCMD_SUBMENU,	/* submenu "foo" */
+    DGLCMD_RETURN	/* return */
 } dglcmd_actions;
 
 typedef enum
@@ -137,6 +165,9 @@ extern int loggedin;
 extern int silent;
 extern int set_max;
 
+extern int selected_game;
+extern int return_from_submenu;
+
 extern struct dg_globalconfig globalconfig;
 
 extern int num_games;
@@ -149,16 +180,20 @@ extern void ttyrec_getmaster(void);
 extern char *gen_ttyrec_filename(void);
 extern char *gen_inprogress_lock(int game, pid_t pid, char *ttyrec_filename);
 extern void catch_sighup(int signum);
-extern void loadbanner(int game, struct dg_banner *ban);
-extern void drawbanner(unsigned int start_line, unsigned int howmany);
+extern void loadbanner(char *fname, struct dg_banner *ban);
+extern void drawbanner(struct dg_banner *ban, unsigned int start_line, unsigned int howmany);
 extern int check_retard(int reset);
 extern char *dgl_format_str(int game, struct dg_user *me, char *str);
+
+extern struct dg_menu *dgl_find_menu(char *menuname);
 
 extern int dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me);
 
 extern struct dg_game **populate_games(int game, int *l);
 
 extern struct dg_game **sort_games(struct dg_game **games, int len, dg_sortmode sortmode);
+
+void runmenuloop(struct dg_menu *menu);
 
 extern void inprogressmenu(int gameid);
 extern void change_email(void);
@@ -178,7 +213,7 @@ extern void editoptions(int game);
 extern void writefile(int requirenew);
 extern void graceful_exit(int status);
 extern int purge_stale_locks(int game);
-extern int menuloop(void);
+/*extern int menuloop(void);*/
 extern void ttyrec_getpty(void);
 #if !defined(BSD) && !defined(__linux__)
 extern int mysetenv (const char* name, const char* value, int overwrite);

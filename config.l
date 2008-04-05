@@ -56,6 +56,8 @@ WHITE		[\t ]*
 "]"		{ return ']'; }
 "{"		{ return '{'; }
 "}"		{ return '}'; }
+"("		{ return '('; }
+")"		{ return ')'; }
 "shed_user"	{ return TYPE_SUSER; }
 "shed_group"	{ return TYPE_SGROUP; }
 "shed_uid"	{ return TYPE_SUID; }
@@ -65,6 +67,9 @@ WHITE		[\t ]*
 "allow_new_nicks"	{ return TYPE_ALLOW_REGISTRATION; }
 
 
+menu		{ return TYPE_DEFINE_MENU; }
+bannerfile	{ return TYPE_BANNER_FILE; }
+cursor		{ return TYPE_CURSOR; }
 "chroot_path"	{ return TYPE_PATH_CHROOT; }
 "game_name"     { return TYPE_NAME_GAME; }
 "short_name"	{ return TYPE_GAME_SHORT_NAME; }
@@ -98,6 +103,10 @@ watch_menu	{ yylval.i = DGLCMD_WATCH_MENU; return TYPE_DGLCMD0; }
 ask_login	{ yylval.i = DGLCMD_LOGIN;      return TYPE_DGLCMD0; }
 ask_register	{ yylval.i = DGLCMD_REGISTER;   return TYPE_DGLCMD0; }
 quit		{ yylval.i = DGLCMD_QUIT;       return TYPE_DGLCMD0; }
+edit_options	{ yylval.i = DGLCMD_EDITOPTIONS; return TYPE_DGLCMD1; }
+play_game	{ yylval.i = DGLCMD_PLAYGAME;    return TYPE_DGLCMD1; }
+submenu		{ yylval.i = DGLCMD_SUBMENU;     return TYPE_DGLCMD1; }
+return		{ yylval.i = DGLCMD_RETURN;      return TYPE_DGLCMD0; }
 DEFINE		{ return TYPE_DEFINE_GAME; }
 
 

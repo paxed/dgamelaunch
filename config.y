@@ -19,7 +19,8 @@ extern unsigned int line, col;
 
 extern int num_games;
 int ncnf = 0;
-struct dg_cmdpart *curr_cmdqueue;
+struct dg_cmdpart *curr_cmdqueue = NULL;
+struct dg_menu *curr_menu = NULL;
 int cmdqueue_num = -1;
 
 static const char* lookup_token (int t);
@@ -39,7 +40,7 @@ static const char* lookup_token (int t);
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
 %token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE
 %token TYPE_MALSTRING TYPE_PATH_INPROGRESS TYPE_GAME_ARGS TYPE_RC_FMT
-%token TYPE_CMDQUEUE
+%token TYPE_CMDQUEUE TYPE_DEFINE_MENU TYPE_BANNER_FILE TYPE_CURSOR
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER TYPE_CMDQUEUENAME
 %type  <kt> KeyType
@@ -79,6 +80,10 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
 	    */
 	    globalconfig.cmdqueue[cmdqueue_num] = curr_cmdqueue;
 	    curr_cmdqueue = NULL;
+	}
+	| definemenu
+	{
+	    /* nothing */
 	}
 	| definegame
 	{
@@ -237,6 +242,86 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
       exit(1);
   }
 };
+
+
+
+
+menu_definition : TYPE_BANNER_FILE '=' TYPE_VALUE
+         {
+           if (curr_menu->banner_fn) {
+               fprintf(stderr, "%s:%d: banner file already defined.\n", config, line);
+               exit(1);
+           }
+           curr_menu->banner_fn = strdup( $3 );
+         }
+       | TYPE_CURSOR '=' '(' TYPE_NUMBER ',' TYPE_NUMBER ')'
+         {
+           if (curr_menu->cursor_x != -1) {
+               fprintf(stderr, "%s:%d: cursor position already defined.\n", config, line);
+               exit(1);
+           }
+           curr_menu->cursor_x = $4;
+           curr_menu->cursor_y = $6;
+         }
+       | TYPE_CMDQUEUE '[' TYPE_VALUE ']'
+         {
+             struct dg_menuoption *tmp;
+             struct dg_menuoption *tmpmenuopt;
+             if (curr_cmdqueue) {
+                 fprintf(stderr, "%s:%d: command queue already in use?\n", config, line);
+                 exit(1);
+             }
+             tmp = malloc(sizeof(struct dg_menuoption));
+             tmp->keys = strdup( $3 );
+             tmp->cmdqueue = NULL;
+             tmp->next = curr_menu->options;
+	     curr_menu->options = tmp;
+         }
+       '=' cmdlist
+         {
+	     curr_menu->options->cmdqueue = curr_cmdqueue;
+             curr_cmdqueue = NULL;
+         }
+       ;
+
+
+menu_definitions : menu_definition
+	| menu_definition menu_definitions
+	;
+
+
+definemenu : TYPE_DEFINE_MENU '[' TYPE_VALUE ']'
+	{
+	   struct dg_menulist *tmp_menulist = globalconfig.menulist;
+
+	   while (tmp_menulist) {
+	       if (!strcmp(tmp_menulist->menuname, $<s>3 )) {
+                   fprintf(stderr, "%s:%d: menu \"%s\" already defined.\n", config, line, $<s>3 );
+                   exit(1);
+	       }
+	       tmp_menulist = tmp_menulist->next;
+	   }
+
+           tmp_menulist = malloc(sizeof(struct dg_menulist));
+           tmp_menulist->menuname = strdup( $<s>3 );
+           tmp_menulist->next = globalconfig.menulist;
+
+	   globalconfig.menulist = tmp_menulist;
+
+           tmp_menulist->menu = malloc(sizeof(struct dg_menu));
+	   curr_menu = tmp_menulist->menu;
+
+	   curr_menu->options = NULL;
+	   curr_menu->cursor_x = curr_menu->cursor_y = -1;
+	   curr_menu->banner_fn = NULL;
+	}
+	'{' menu_definitions '}'
+	{
+	    curr_menu = NULL;
+	}
+	;
+
+
 
 game_definition : TYPE_CMDQUEUE
 	{

@@ -250,15 +250,49 @@ catch_sighup (int signum)
 
 /* ************************************************************* */
 
+char *
+bannerstrmangle(char *buf, char *fromstr, char *tostr)
+{
+    static char bufnew[81];
+    char *loc;
+    char *b = buf;
+
+    memset (bufnew, 0, 80);
+
+    if (strstr(b, fromstr)) {
+	int i = 0;
+	while ((loc = strstr (b, fromstr)) != NULL) {
+	    for (; i < 80; i++) {
+		if (loc != b)
+		    bufnew[i] = *(b++);
+		else {
+		    strlcat (bufnew, tostr, 80);
+		    b += strlen(fromstr);
+		    i += strlen(tostr);
+		    break;
+                }
+
+		if (strlen (b) == 0)
+		    break;
+	    }
+	}
+
+	if (*b)
+	    strlcat(bufnew, b, 80);
+    } else strncpy(bufnew, buf, 80);
+
+    return bufnew;
+}
+
 void
-loadbanner (int game, struct dg_banner *ban)
+loadbanner (char *fname, struct dg_banner *ban)
 {
   FILE *bannerfile;
   char buf[80];
 
   memset (buf, 0, 80);
 
-  bannerfile = fopen (globalconfig.banner, "r");
+  bannerfile = fopen (fname, "r");
 
   if (!bannerfile)
     {
@@ -268,9 +302,9 @@ loadbanner (int game, struct dg_banner *ban)
       ban->lines[0] =
         strdup ("### dgamelaunch " PACKAGE_VERSION
                 " - network console game launcher");
-      len = strlen(globalconfig.banner) + ARRAY_SIZE("### NOTE: administrator has not installed a  file");
+      len = strlen(fname) + ARRAY_SIZE("### NOTE: administrator has not installed a  file");
       ban->lines[1] = malloc(len);
-      snprintf(ban->lines[1], len, "### NOTE: administrator has not installed a %s file", globalconfig.banner);
+      snprintf(ban->lines[1], len, "### NOTE: administrator has not installed a %s file", fname);
       return;
     }
 
@@ -278,70 +312,41 @@ loadbanner (int game, struct dg_banner *ban)
 
   while (fgets (buf, 80, bannerfile) != NULL)
     {
-      char *loc, *b = buf;
       char bufnew[80];
-      
+
       memset (bufnew, 0, 80);
 
       ban->len++;
       ban->lines = realloc (ban->lines, sizeof (char *) * ban->len);
 
-      if (strstr(b, "$VERSION"))
-      {
-	int i = 0; 
-	while ((loc = strstr (b, "$VERSION")) != NULL)
-	{
-          for (; i < 80; i++)
-            {
-              if (loc != b)
-                bufnew[i] = *(b++);
-              else
-                {
-                  strlcat (bufnew, PACKAGE_VERSION, 80);
-                  b += 8;       /* skip the whole $PACKAGE_VERSION string */
-                  i += ARRAY_SIZE (PACKAGE_VERSION) - 1;
-		  break;
-                }
-
-              if (strlen (b) == 0)
-                break;
-	    }
-	}
-        
-	if (*b)
-	  strlcat(bufnew, b, 80);
-	
-	ban->lines[ban->len - 1] = strdup (bufnew);
+      strncpy(bufnew, buf, 80);
+      strncpy(bufnew, bannerstrmangle(bufnew, "$VERSION", PACKAGE_STRING), 80);
+      if (me && loggedin) {
+	  strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", me->username), 80);
       }
-      else
-        ban->lines[ban->len - 1] = strdup (buf);
+      ban->lines[ban->len - 1] = strdup(bufnew);
 
       memset (buf, 0, 80);
 
-      if (ban->len == 11)       /* menu itself needs 13 lines, 24 - 11 */
-         break;
+      if (ban->len == 24)
+	  break;
   }
 
   fclose (bannerfile);
 }
 
 void
-drawbanner (unsigned int start_line, unsigned int howmany)
+drawbanner (struct dg_banner *ban, unsigned int start_line, unsigned int howmany)
 {
-  static short loaded_banner = 0;
   unsigned int i;
 
-  if (!loaded_banner)
-    {
-	loadbanner (0, &banner);
-      loaded_banner = 1;
-    }
+  if (!ban) return;
 
-  if (howmany > banner.len || howmany == 0)
-    howmany = banner.len;
+  if (howmany > ban->len || howmany == 0)
+    howmany = ban->len;
 
   for (i = 0; i < howmany; i++)
-    mvaddstr (start_line + i, 1, banner.lines[i]);
+    mvaddstr (start_line + i, 1, ban->lines[i]);
 }
 
 void
@@ -369,7 +374,7 @@ inprogressmenu (int gameid)
 	}
 
       erase ();
-      drawbanner (1, 1);
+      drawbanner (&banner, 1, 1);
       mvprintw (3, 1,
                 "During playback, hit 'q' to return here, 'm' to send mail (requires login),");
       mvaddstr (4, 1,
@@ -552,7 +557,7 @@ change_email ()
 
   for (;;)
   {
-    drawbanner(1,1);
+      drawbanner(&banner, 1,1);
 
     mvprintw(3, 1, "Your current email is: %s", me->email);
     mvaddstr(4, 1, "Please enter a new one (max 80 chars; blank line aborts)");
@@ -610,7 +615,7 @@ changepw (int dowrite)
       char repeatbuf[21];
       clear ();
 
-      drawbanner (1, 1);
+      drawbanner (&banner, 1, 1);
 
       mvprintw (5, 1,
                 "Please enter a%s password. Remember that this is sent over the net",
@@ -691,7 +696,7 @@ domailuser (char *username)
 
   /* print the enter your message line */
   clear ();
-  drawbanner (1, 1);
+  drawbanner (&banner, 1, 1);
   mvaddstr (5, 1,
             "Enter your message here. It is to be one line only and 80 characters or less.");
   mvaddstr (7, 1, "=> ");
@@ -760,6 +765,7 @@ domailuser (char *username)
   return;
 }
 
+/*
 void
 drawgamemenu(int game)
 {
@@ -767,7 +773,7 @@ drawgamemenu(int game)
 
       clear();
 
-      drawbanner(1,0);
+      drawbanner(&banner, 1,0);
 
       mvprintw(banner.len + 2, 1, "Logged in as: %s", me->username);
 
@@ -789,6 +795,7 @@ drawgamemenu(int game)
   }
 
 }
+*/
 
 void
 drawmenu ()
@@ -797,7 +804,7 @@ drawmenu ()
 
   clear ();
 
-  drawbanner (1, 0);
+  drawbanner (&banner, 1, 0);
 
   if (loggedin)
     {
@@ -908,7 +915,7 @@ loginprompt (int from_ttyplay)
     {
       clear ();
 
-      drawbanner (1, 1);
+      drawbanner (&banner, 1, 1);
 
       if (from_ttyplay == 1)
 	mvaddstr (4, 1, "This operation requires you to be logged in.");
@@ -945,7 +952,7 @@ loginprompt (int from_ttyplay)
 
   clear ();
 
-  drawbanner (1, 1);
+  drawbanner (&banner, 1, 1);
 
   mvaddstr (5, 1, "Please enter your password.");
   mvaddstr (7, 1, "=> ");
@@ -992,7 +999,7 @@ newuser ()
   {
       clear ();
 
-      drawbanner (1, 1);
+      drawbanner (&banner, 1, 1);
 
       mvaddstr (5, 1, "Sorry, too many users have registered now.");
       mvaddstr (6, 1, "You might email the server administrator.");
@@ -1014,7 +1021,7 @@ newuser ()
 
       sprintf(buf, "%i character max.", globalconfig.max_newnick_len);
 
-      drawbanner (1, 1);
+      drawbanner (&banner, 1, 1);
 
       mvaddstr (5, 1, "Welcome new user. Please enter a username.");
       mvaddstr (6, 1,
@@ -1082,7 +1089,7 @@ newuser ()
     {
       clear ();
 
-      drawbanner (1, 1);
+      drawbanner (&banner, 1, 1);
 
       mvaddstr (5, 1, "Please enter your email address.");
       mvaddstr (6, 1, "This is sent _nowhere_ but will be used if you ask"
@@ -1655,7 +1662,7 @@ purge_stale_locks (int game)
       if (firsttime)
       {
 	clear ();
-	drawbanner (1, 1);
+	drawbanner (&banner, 1, 1);
 
 #define HUP_WAIT 10 /* seconds before HUPPING */
 	mvprintw (3, 1,
@@ -1728,6 +1735,7 @@ purge_stale_locks (int game)
   return 1;
 }
 
+/*
 int
 gamemenuloop(int game)
 {
@@ -1767,66 +1775,49 @@ gamemenuloop(int game)
             newuser ();
           break;
         case 'l':
-          if (!loggedin)        /* not visible to loggedin */
+          if (!loggedin)
             loginprompt (0);
         }
     }
   return 0;
 }
+*/
 
-int
-menuloop (void)
+void
+runmenuloop(struct dg_menu *menu)
 {
-  int userchoice = 0;
-  while (1)
-    {
-      drawmenu ();
-      userchoice = getch ();
+    struct dg_banner ban;
+    struct dg_menuoption *tmpopt;
+    int userchoice = 0;
 
-      if ((num_games >= 1) && loggedin && (userchoice >= '1') && (userchoice <= ('1'+num_games))) {
-	  int game = userchoice - '1';
-	  if (myconfig[game] && myconfig[game]->game_name) {
-	      if (gamemenuloop(game)) return game;
-	  }
-      } else {
-	  switch (tolower (userchoice))
-	      {
-	      default:
-		  break;
-	      case 'c':
-		  if (loggedin)
-		      changepw (1);
-		  break;
-	      case 'e':
-		  if (loggedin)
-		      change_email();
-		  break;
-	      case 'w':
-		  inprogressmenu (-1);
-		  break;
-	      case 'o':
-		  if (loggedin && (num_games == 0) && myconfig[0]->rcfile)
-		      editoptions(0);
-		  break;
-	      case 'p':
-		  if (loggedin && (num_games == 0))
-		      return 0;
-		  break;
-	      case ERR:
-	      case 'q':
-		  graceful_exit(0);
-		  /* break; */
-	      case 'r':
-		  if (!loggedin && globalconfig.allow_registration)
-		      newuser ();
-		  break;
-	      case 'l':
-		  if (!loggedin)        /* not visible to loggedin */
-		      loginprompt (0);
-	      }
-      }
+    if (!menu) return;
+
+    ban.lines = NULL;
+    ban.len = 0;
+
+    loadbanner(menu->banner_fn, &ban);
+    while (1) {
+	clear();
+	drawbanner(&ban, 1, 0);
+	mvprintw(menu->cursor_y, menu->cursor_x, "");
+	refresh();
+	userchoice = getch();
+	if (userchoice == ERR) return;
+	tmpopt = menu->options;
+	while (tmpopt) {
+	    if (strchr(tmpopt->keys, userchoice)) {
+		dgl_exec_cmdqueue(tmpopt->cmdqueue, selected_game, me);
+		break;
+	    } else {
+		tmpopt = tmpopt->next;
+	    }
+	}
+
+	if (return_from_submenu) {
+	    return_from_submenu = 0;
+	    return;
+	}
     }
-  return -1;
 }
 
 
@@ -1890,7 +1881,7 @@ int
 main (int argc, char** argv)
 {
   /* for chroot and program execution */
-    char atrcfilename[81], /**spool,*/ *p, *auth = NULL;
+    char atrcfilename[81], *p, *auth = NULL;
   unsigned int len;
   int c, i;
   int nhext = 0, nhauth = 0;
@@ -2011,6 +2002,8 @@ main (int argc, char** argv)
 	}
     }
 
+  loadbanner(globalconfig.banner, &banner);
+
   dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_DGLSTART], 0, NULL);
 
   if (nhext)
@@ -2052,50 +2045,10 @@ main (int argc, char** argv)
     }
   }
 
+  initcurses ();
+
   while (1) {
-      initcurses ();
-
-      userchoice = menuloop();
-
-      assert (loggedin);
-
-      if ((userchoice >= 0) && (userchoice <= num_games)) {
-	  while (!purge_stale_locks(userchoice)) {
-	      userchoice = gamemenuloop(userchoice);
-	  }
-	  if (!((userchoice >= 0) && (userchoice <= num_games)))
-	      graceful_exit (1);
-      } else {
-	  graceful_exit (1);
-      }
-
-      if (myconfig[userchoice]->rcfile) {
-	  if (access (dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt), R_OK) == -1)
-	      write_canned_rcfile (userchoice, dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt));
-      }
-
-      setproctitle("%s [playing %s]", me->username, myconfig[userchoice]->shortname);
-
-      endwin ();
-      signal(SIGWINCH, SIG_DFL);
-
-      /* first run the generic "do these when a game is started" commands */
-      dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMESTART], userchoice, me);
-      /* then run the game-specific commands */
-      dgl_exec_cmdqueue(myconfig[userchoice]->cmdqueue, userchoice, me);
-
-      /* fix the variables in the arguments */
-      for (i = 0; i < myconfig[userchoice]->num_args; i++) {
-	  tmp = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i]));
-	  free(myconfig[userchoice]->bin_args[i]);
-	  myconfig[userchoice]->bin_args[i] = tmp;
-      }
-
-      /* launch program */
-      ttyrec_main (userchoice, me->username, gen_ttyrec_filename());
-      check_retard(1); /* reset retard counter */
-
-      setproctitle ("%s", me->username);
+      runmenuloop(dgl_find_menu(loggedin ? "mainmenu_user" : "mainmenu_anon"));
   }
 
   /* NOW we can safely kill this */

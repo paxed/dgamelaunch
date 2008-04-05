@@ -1,6 +1,7 @@
 /* Functions common to both dgamelaunch itself and dgl-wall. */
 
 #include "dgamelaunch.h"
+#include "ttyrec.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -52,6 +53,9 @@ int loggedin = 0;
 char *chosen_name;
 int num_games = 0;
 
+int selected_game = 0;
+int return_from_submenu = 0;
+
 mode_t default_fmode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 
 struct dg_globalconfig globalconfig;
@@ -64,6 +68,19 @@ check_retard(int reset)
     if (reset) retardation = 0;
     else retardation++;
     return ((retardation > 20) ? 1 : 0);
+}
+
+
+struct dg_menu *
+dgl_find_menu(char *menuname)
+{
+    struct dg_menulist *tmp = globalconfig.menulist;
+
+    while (tmp) {
+	if (!strcmp(tmp->menuname, menuname)) return tmp->menu;
+	tmp = tmp->next;
+    }
+    return NULL;
 }
 
 /*
@@ -136,14 +153,21 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 {
     int i;
     struct dg_cmdpart *tmp = queue;
+    char *p1;
+    char *p2;
 
     if (!queue) return 1;
 
-    while (tmp) {
-	char *p1 = NULL; /* FIXME: should probably use fixed-size buffers instead of doing strdup() every time */
-	char *p2 = NULL;
-	if (tmp->param1) p1 = strdup(dgl_format_str(game, me, tmp->param1));
-	if (tmp->param2) p2 = strdup(dgl_format_str(game, me, tmp->param2));
+    p1 = (char *)malloc(1024);
+    p2 = (char *)malloc(1024);
+
+    if (!p1 || !p2) return 1;
+
+    return_from_submenu = 0;
+
+    while (tmp && !return_from_submenu) {
+	if (tmp->param1) strcpy(p1, dgl_format_str(game, me, tmp->param1));
+	if (tmp->param2) strcpy(p2, dgl_format_str(game, me, tmp->param2));
 
 	switch (tmp->cmd) {
 	default: break;
@@ -221,6 +245,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    break;
 	case DGLCMD_LOGIN:
 	    if (!loggedin) loginprompt(0);
+	    if (loggedin) runmenuloop(dgl_find_menu("mainmenu_user"));
 	    break;
 	case DGLCMD_REGISTER:
 	    if (!loggedin && globalconfig.allow_registration) newuser();
@@ -228,12 +253,73 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_QUIT:
 	    graceful_exit(0);
 	    /* break; */
-	}
-	free(p1);
-	free(p2);
+	case DGLCMD_SUBMENU:
+	    if (p1)
+		runmenuloop(dgl_find_menu(p1));
+	    break;
+	case DGLCMD_RETURN:
+	    return_from_submenu = 1;
+	    break;
+	case DGLCMD_EDITOPTIONS:
+	    if (loggedin && p1) {
+		int i;
+		for (i = 0; i < num_games; i++) {
+		    if ((!strcmp(myconfig[i]->game_name, p1) || !strcmp(myconfig[i]->shortname, p1)) && myconfig[i]->rcfile) {
+			editoptions(i);
+			break;
+		    }
+		}
+	    }
+	    break;
+	case DGLCMD_PLAYGAME:
+	    if (loggedin && me && p1) {
+		int userchoice, i;
+		char *tmpstr;
+		for (userchoice = 0; userchoice < num_games; userchoice++) {
+		    if (!strcmp(myconfig[userchoice]->game_name, p1) || !strcmp(myconfig[userchoice]->shortname, p1)) {
+			if (purge_stale_locks(userchoice)) {
+			    if (myconfig[userchoice]->rcfile) {
+				if (access (dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt), R_OK) == -1)
+				    write_canned_rcfile (userchoice, dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt));
+			    }
 
+			    setproctitle("%s [playing %s]", me->username, myconfig[userchoice]->shortname);
+
+			    endwin ();
+			    signal(SIGWINCH, SIG_DFL);
+
+			    /* first run the generic "do these when a game is started" commands */
+			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMESTART], userchoice, me);
+			    /* then run the game-specific commands */
+			    dgl_exec_cmdqueue(myconfig[userchoice]->cmdqueue, userchoice, me);
+
+			    /* fix the variables in the arguments */
+			    for (i = 0; i < myconfig[userchoice]->num_args; i++) {
+				tmpstr = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i]));
+				free(myconfig[userchoice]->bin_args[i]);
+				myconfig[userchoice]->bin_args[i] = tmpstr;
+			    }
+
+			    /* launch program */
+			    ttyrec_main (userchoice, me->username, gen_ttyrec_filename());
+			    check_retard(1); /* reset retard counter */
+
+			    setproctitle ("%s", me->username);
+
+			    initcurses ();
+			}
+			break;
+		    }
+		}
+	    }
+	    break;
+	}
 	tmp = tmp->next;
     }
+
+    free(p1);
+    free(p2);
+
     return 0;
 }
 
@@ -436,6 +522,7 @@ create_config ()
   int tmp;
 
   if (!globalconfig.allow_registration) globalconfig.allow_registration = 1;
+  globalconfig.menulist = NULL;
 
   if (config)
   {
