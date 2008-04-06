@@ -110,6 +110,7 @@ struct dg_globalconfig
     char* passwd;
     char* lockfile;
     int allow_registration; /* allow registering new nicks */
+    int sortmode; /* default watching-screen sortmode */
 
     struct dg_cmdpart *cmdqueue[NUM_DGLTIMES];
 
@@ -146,11 +147,10 @@ typedef enum
     NUM_SORTMODES
 } dg_sortmode;
 
-static const char *SORTMODE_NAME[] = {
+static const char *SORTMODE_NAME[NUM_SORTMODES] = {
     "Unsorted",
     "Username",
-    "Idletime",
-    "",
+    "Idletime"
 };
 
 

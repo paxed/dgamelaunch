@@ -355,12 +355,15 @@ void
 inprogressmenu (int gameid)
 {
   int i, menuchoice, len = 20, offset = 0, doresizewin = 0;
-  static dg_sortmode sortmode = SORTMODE_NONE;
+  static dg_sortmode sortmode = NUM_SORTMODES;
   time_t ctime;
   struct dg_game **games;
   char ttyrecname[130], *replacestr = NULL, gametype[10];
   int is_nhext[14];
   sigset_t oldmask, toblock;
+
+  if (sortmode == NUM_SORTMODES)
+      sortmode = globalconfig.sortmode;
 
   games = populate_games (gameid, &len);
   games = sort_games (games, len, sortmode);

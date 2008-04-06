@@ -528,6 +528,8 @@ create_config ()
   if (!globalconfig.allow_registration) globalconfig.allow_registration = 1;
   globalconfig.menulist = NULL;
 
+  globalconfig.sortmode = SORTMODE_NONE;
+
   if (config)
   {
     if ((config_file = fopen(config, "r")) != NULL)

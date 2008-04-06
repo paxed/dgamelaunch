@@ -83,6 +83,7 @@ cursor		{ return TYPE_CURSOR; }
 "inprogressdir" { return TYPE_PATH_INPROGRESS; }
 "game_args"	{ return TYPE_GAME_ARGS; }
 "rc_fmt"	{ return TYPE_RC_FMT; }
+sortmode	{ return TYPE_WATCH_SORTMODE; }
 commands	{ return TYPE_CMDQUEUE; }
 yes		{ yylval.i = 1; return TYPE_BOOL; }
 no		{ yylval.i = 0; return TYPE_BOOL; }

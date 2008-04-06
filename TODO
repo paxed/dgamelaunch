@@ -1,5 +1,3 @@
--Update dgl-wall.c or fold the functionality into dgl itself.
- (see below)
 -BUG: cannot quit watching until caught up with the stream.
 -make default_fmode configurable, and add config
  file command "chmod file mode"
@@ -8,9 +6,6 @@
 -maybe allow changing the watching-screen &c layouts too?
 -add commandline parameters to dgamelaunch:
    dgamelaunch --chpasswd "nick" "newpass"
-   dgamelaunch --wall "message to mail everyone"
- these are obviously only for the server admin...
--allow setting the default watch-screen sortmode in config file.
 -some games (robotfindskitten?) are not worth saving into ttyrecs, make it configurable.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
