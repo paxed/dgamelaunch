@@ -1,0 +1,18 @@
+ ## $SERVERID
+ ##
+ ## $VERSION - network console game launcher
+ ## Copyright (c) 2000-2008 The Dgamelaunch Team
+ ## See http://nethack.wikia.com/wiki/dgamelaunch for more info
+ ##
+ ## Games on this server are recorded for in-progress viewing and playback!
+
+ Logged in as: $USERNAME
+
+ c) Change password
+ e) Change email address
+ w) Watch games in progress
+ o) Edit options
+ p) Play NetHack 3.4.3
+ q) Quit
+
+ =>
