@@ -1,4 +1,7 @@
 1.4.8 (2008/??/??)
+	* Merge the dgl-wall functionality into dgamelaunch itself.
+	* Allow any number of games per dgl installation without recompile.
+	* Allow admin to define the menu structure in config file.
 	* Return to dgamelaunch when the game ends.
 	* Better handling of tty loss.
 	* Allow admin to define different actions taken when something happens.
