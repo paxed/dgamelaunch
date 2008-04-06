@@ -670,6 +670,57 @@ changepw (int dowrite)
 /* ************************************************************* */
 
 void
+wall_email(char *from, char *msg)
+{
+    int len, i;
+    struct dg_game **games;
+    char spool_fn[1024+1];
+    FILE *user_spool = NULL;
+    struct flock fl = { 0 };
+
+    fl.l_type = F_WRLCK;
+    fl.l_whence = SEEK_SET;
+    fl.l_start = 0;
+    fl.l_len = 0;
+
+    if (!from || !msg) return;
+
+    if (strlen(from) < 1) {
+	fprintf(stderr, "Error: wall: 'from' username is too short!\n");
+	graceful_exit(121);
+    }
+
+    if (strlen(msg) >= 80) {
+	fprintf(stderr, "Error: wall: message too long!\n");
+	graceful_exit(120);
+    }
+
+    games = populate_games(-1, &len);
+
+    if (len == 0) {
+	fprintf(stderr, "Error: wall: no one's logged in!\n");
+	graceful_exit(118);
+    }
+
+    for (i = 0; i < len; i++) {
+	int game = games[i]->gamenum;
+	int fnamelen;
+	if (strlen(myconfig[game]->spool) < 1) continue;
+
+	snprintf (spool_fn, 1024, "%s/%s", myconfig[game]->spool, games[i]->name);
+
+	if ((user_spool = fopen (spool_fn, "a")) == NULL) continue;
+
+	while (fcntl(fileno(user_spool), F_SETLK, &fl) == -1) {
+	    if (errno != EAGAIN) continue;
+	    sleep (1);
+	}
+	fprintf(user_spool, "%s:%s\n", from, msg);
+	fclose(user_spool);
+    }
+}
+
+void
 domailuser (char *username)
 {
   unsigned int len, i;
@@ -1768,6 +1819,7 @@ main (int argc, char** argv)
   int nhext = 0, nhauth = 0;
   int userchoice;
   char *tmp;
+  char *wall_email_str = NULL;
 
 #ifndef HAVE_SETPROCTITLE
   /* save argc, argv */
@@ -1793,7 +1845,7 @@ main (int argc, char** argv)
 
   __progname = basename(strdup(argv[0]));
 
-  while ((c = getopt(argc, argv, "qh:pf:ae")) != -1)
+  while ((c = getopt(argc, argv, "qh:pf:aeW:")) != -1)
   {
     switch (c)
     {
@@ -1815,6 +1867,10 @@ main (int argc, char** argv)
 	}
 
 	config = strdup(optarg);
+	break;
+
+    case 'W':
+	wall_email_str = strdup(optarg);
 	break;
 
       default:
@@ -1882,6 +1938,19 @@ main (int argc, char** argv)
 	  graceful_exit (1);
 	}
     }
+
+  if (wall_email_str) {
+      char *emailfrom = wall_email_str;
+      char *emailmsg = strchr(wall_email_str, ':');
+      if (!emailmsg)
+	  graceful_exit(117);
+      *emailmsg = '\0';
+      emailmsg++;
+      if (emailmsg)
+	  wall_email(emailfrom, emailmsg);
+      graceful_exit(0);
+  }
+
 
   loadbanner(globalconfig.banner, &banner);
 
