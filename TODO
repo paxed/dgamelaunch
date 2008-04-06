@@ -13,8 +13,6 @@
  include unicode stripping from crawl dgl, etc)
 -public (no-password) accounts? (a per-user flag) what happens when someone
  is playing on the account and someone else logins and we start playing?
--change the watching screen not to show the 'press 'm' to mail user'
- part, if spool isn't enabled.
 -info screen (more than just the banner), for info about the game(s)
  and the server, etc.
 -allow more than one editor per dgl

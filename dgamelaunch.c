@@ -381,7 +381,8 @@ inprogressmenu (int gameid)
       erase ();
       drawbanner (&banner, 1, 1);
       mvprintw (3, 1,
-                "During playback, hit 'q' to return here, 'm' to send mail (requires login),");
+		"During playback, hit 'q' to return here,%s",
+		(((gameid == -1) || (myconfig[gameid]->spool)) ? " 'm' to send mail (requires login)," : ""));
       mvaddstr (4, 1,
                 "'s' to toggle graphic-set stripping for DEC, IBM, and none (default).");
       mvaddstr (5, 1, "The following games are in progress: (use uppercase to try to change size)");
