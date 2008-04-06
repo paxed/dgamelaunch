@@ -34,7 +34,7 @@ static const char* lookup_token (int t);
 }
 
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX TYPE_MAXNICKLEN
-%token TYPE_GAME_SHORT_NAME TYPE_WATCH_SORTMODE
+%token TYPE_GAME_SHORT_NAME TYPE_WATCH_SORTMODE TYPE_SERVER_ID
 %token TYPE_ALLOW_REGISTRATION
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
@@ -168,6 +168,11 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
 	  if (!okay)
 	      fprintf(stderr, "%s:%d: unknown sortmode '%s'\n", config, line, $3);
       }
+      break;
+
+  case TYPE_SERVER_ID:
+      if (globalconfig.server_id) free(globalconfig.server_id);
+      globalconfig.server_id = strdup($3);
       break;
 
     case TYPE_PATH_DGLDIR:
@@ -526,6 +531,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_INPROGRESS	{ $$ = TYPE_PATH_INPROGRESS; }
 	| TYPE_RC_FMT		{ $$ = TYPE_RC_FMT; }
 	| TYPE_WATCH_SORTMODE	{ $$ = TYPE_WATCH_SORTMODE; }
+	| TYPE_SERVER_ID	{ $$ = TYPE_SERVER_ID; }
 	;
 
 %%
@@ -553,6 +559,7 @@ const char* lookup_token (int t)
     case TYPE_GAME_ARGS: return "game_args";
     case TYPE_RC_FMT: return "rc_fmt";
     case TYPE_WATCH_SORTMODE: return "sortmode";
+    case TYPE_SERVER_ID: return "server_id";
     default: abort();
   }
 }

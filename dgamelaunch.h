@@ -111,6 +111,7 @@ struct dg_globalconfig
     char* lockfile;
     int allow_registration; /* allow registering new nicks */
     int sortmode; /* default watching-screen sortmode */
+    char *server_id; /* string for the server name or whatever */
 
     struct dg_cmdpart *cmdqueue[NUM_DGLTIMES];
 

@@ -527,6 +527,7 @@ create_config ()
 
   if (!globalconfig.allow_registration) globalconfig.allow_registration = 1;
   globalconfig.menulist = NULL;
+  globalconfig.server_id = NULL;
 
   globalconfig.sortmode = SORTMODE_NONE;
 

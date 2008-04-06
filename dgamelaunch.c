@@ -323,8 +323,11 @@ loadbanner (char *fname, struct dg_banner *ban)
 
       strncpy(bufnew, buf, 80);
       strncpy(bufnew, bannerstrmangle(bufnew, "$VERSION", PACKAGE_STRING), 80);
+      strncpy(bufnew, bannerstrmangle(bufnew, "$SERVERID", globalconfig.server_id ? globalconfig.server_id : ""), 80);
       if (me && loggedin) {
 	  strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", me->username), 80);
+      } else {
+	  strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", "[Anonymous]"), 80);
       }
       ban->lines[ban->len - 1] = strdup(bufnew);
 
