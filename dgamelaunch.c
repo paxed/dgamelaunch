@@ -315,8 +315,12 @@ loadbanner (char *fname, struct dg_banner *ban)
   while (fgets (buf, 80, bannerfile) != NULL)
     {
       char bufnew[80];
+      int slen;
 
       memset (bufnew, 0, 80);
+
+      slen = strlen(buf);
+      if ((slen > 0) && (buf[slen-1] == '\n')) buf[slen-1] = '\0';
 
       ban->len++;
       ban->lines = realloc (ban->lines, sizeof (char *) * ban->len);
