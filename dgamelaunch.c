@@ -292,6 +292,8 @@ loadbanner (char *fname, struct dg_banner *ban)
 
   memset (buf, 0, 80);
 
+  if (ban->lines) return;
+
   bannerfile = fopen (fname, "r");
 
   if (!bannerfile)
