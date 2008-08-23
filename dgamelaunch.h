@@ -191,7 +191,7 @@ extern struct dg_game **populate_games(int game, int *l);
 
 extern struct dg_game **sort_games(struct dg_game **games, int len, dg_sortmode sortmode);
 
-void runmenuloop(struct dg_menu *menu);
+int runmenuloop(struct dg_menu *menu);
 
 extern void inprogressmenu(int gameid);
 extern void change_email(void);

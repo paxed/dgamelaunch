@@ -1717,14 +1717,14 @@ purge_stale_locks (int game)
 }
 
 
-void
+int
 runmenuloop(struct dg_menu *menu)
 {
     struct dg_banner ban;
     struct dg_menuoption *tmpopt;
     int userchoice = 0;
 
-    if (!menu) return;
+    if (!menu) return 1;
 
     ban.lines = NULL;
     ban.len = 0;
@@ -1736,7 +1736,7 @@ runmenuloop(struct dg_menu *menu)
 	mvprintw(menu->cursor_y, menu->cursor_x, "");
 	refresh();
 	userchoice = getch();
-	if (userchoice == ERR) return;
+	if (userchoice == ERR) return 1;
 	tmpopt = menu->options;
 	while (tmpopt) {
 	    if (strchr(tmpopt->keys, userchoice)) {
@@ -1749,7 +1749,7 @@ runmenuloop(struct dg_menu *menu)
 
 	if (return_from_submenu) {
 	    return_from_submenu = 0;
-	    return;
+	    return 0;
 	}
 
 	if (check_retard(0)) {
@@ -2004,7 +2004,8 @@ main (int argc, char** argv)
   initcurses ();
 
   while (1) {
-      runmenuloop(dgl_find_menu(loggedin ? "mainmenu_user" : "mainmenu_anon"));
+      if (runmenuloop(dgl_find_menu(loggedin ? "mainmenu_user" : "mainmenu_anon")))
+	  break;
   }
 
   /* NOW we can safely kill this */
