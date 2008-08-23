@@ -117,7 +117,7 @@ dgl_format_str(int game, struct dg_user *me, char *str)
 		    p++;
 		break;
   	    case 'g':
-		if (game >= 0 && game <=num_games && myconfig[game]) snprintf (p, end + 1 - p, "%s", myconfig[game]->game_name);
+		if (game >= 0 && game < num_games && myconfig[game]) snprintf (p, end + 1 - p, "%s", myconfig[game]->game_name);
 		while (*p != '\0')
 		    p++;
 		break;
@@ -381,7 +381,7 @@ populate_games (int xgame, int *l)
 
   len = 0;
 
-  for (game = ((xgame < 0) ? 0 : xgame); game <= ((xgame < 0) ? num_games : xgame); game++) {
+  for (game = ((xgame < 0) ? 0 : xgame); game < ((xgame <= 0) ? num_games : (xgame+1)); game++) {
 
    slen = strlen(globalconfig.dglroot) + strlen(myconfig[game]->inprogressdir) + 1;
    dir = malloc(slen);

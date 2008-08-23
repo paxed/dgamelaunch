@@ -454,8 +454,8 @@ definegame : TYPE_DEFINE_GAME '{'
 	}
 	game_definitions '}'
 	{
-	    num_games = ncnf;
 	    ncnf++;
+	    num_games = ncnf;
 	}
 	;
 
