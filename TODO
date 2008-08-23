@@ -1,4 +1,6 @@
 -BUG: cannot quit watching until caught up with the stream.
+-allow configuring the watching, new user registration,
+ email/passwd change, etc. screens.
 -make default_fmode configurable, and add config
  file command "chmod file mode"
 -allow setting the new rcfile access rights.
@@ -7,6 +9,7 @@
 -add commandline parameters to dgamelaunch:
    dgamelaunch --chpasswd "nick" "newpass"
 -some games (robotfindskitten?) are not worth saving into ttyrecs, make it configurable.
+-save the game name into ttyrec filename, so we can find what game it was.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
 -allow configuring the gfx stripping. (number of chars, types of stripping,
