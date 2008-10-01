@@ -67,7 +67,7 @@ AC_SEARCH_LIBS(initscr, [curses ncurses])
 
 AC_ARG_ENABLE(enable-virus,
 [AC_HELP_STRING([--enable-virus], [Use the 'virus' vi clone instead of the friendly ee editor.])],
-[EDITOR=virus.c], [EDITOR=virus.c])
+[EDITOR=virus.c], [EDITOR=ee.c])
 
 AC_SUBST(EDITOR)
 
