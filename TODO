@@ -1,3 +1,7 @@
+-Allow using a ttyrec (or similar screen capture) as the menu
+ text, instead of a text file.
+ maybe adding a bannertype={auto,txt,ttyrec,screendump}
+ into a menu def. auto=try to detect it from file extension.
 -BUG: cannot quit watching until caught up with the stream.
 -allow configuring the watching, new user registration,
  email/passwd change, etc. screens.
