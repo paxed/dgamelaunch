@@ -304,13 +304,12 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 
 			    /* launch program */
 			    ttyrec_main (userchoice, me->username, gen_ttyrec_filename());
-			    check_retard(1); /* reset retard counter */
 
 			    setproctitle ("%s", me->username);
 
 			    initcurses ();
 
-			    check_retard(1);
+			    check_retard(1); /* reset retard counter */
 			}
 			break;
 		    }
