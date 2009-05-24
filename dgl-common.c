@@ -528,6 +528,9 @@ create_config ()
   globalconfig.menulist = NULL;
   globalconfig.server_id = NULL;
 
+  globalconfig.shed_uid = (uid_t)-1;
+  globalconfig.shed_gid = (gid_t)-1;
+
   globalconfig.sortmode = SORTMODE_NONE;
 
   if (config)

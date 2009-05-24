@@ -93,10 +93,6 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
   struct group* gr;
   struct passwd* usr;
 
-
-  globalconfig.shed_uid = (uid_t)-1;
-  globalconfig.shed_gid = (gid_t)-1;
-
   switch ($1)
   {
     case TYPE_SGROUP:
