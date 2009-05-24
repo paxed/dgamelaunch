@@ -214,9 +214,6 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
   	}
 	| KeyType '=' TYPE_NUMBER {
 
-    globalconfig.shed_uid = (uid_t)-1;
-    globalconfig.shed_gid = (gid_t)-1;
-
   switch ($1)
   {
     case TYPE_SUID:
