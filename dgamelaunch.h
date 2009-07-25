@@ -213,7 +213,7 @@ extern void graceful_exit(int status);
 extern int purge_stale_locks(int game);
 /*extern int menuloop(void);*/
 extern void ttyrec_getpty(void);
-#if !defined(BSD) && !defined(__linux__)
+#ifndef HAVE_SETENV
 extern int mysetenv (const char* name, const char* value, int overwrite);
 #else
 # define mysetenv setenv
