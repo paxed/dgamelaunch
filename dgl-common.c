@@ -552,18 +552,18 @@ create_config ()
   else
   {
 #ifdef DEFCONFIG
-      /*      fprintf(stderr, "DEFCONFIG: %s\n", DEFCONFIG);*/
     config = DEFCONFIG;
     if ((config_file = fopen(DEFCONFIG, "r")) != NULL)
     {
       yyin = config_file;
-      /*      fprintf(stderr, "PARSING\n");*/
       yyparse();
-      /*      fprintf(stderr, "PARSED\n");*/
       fclose(config_file);
+    } else {
+	fprintf(stderr, "ERROR: can't find or open %s for reading\n", config);
+	graceful_exit(104);
+	return;
     }
 #else
-    /*      fprintf(stderr, "NO DEFCONFIG\n");*/
     num_games = 0;
     myconfig = calloc(1, sizeof(myconfig[0]));
     myconfig[0] = &defconfig;
