@@ -1847,6 +1847,14 @@ main (int argc, char** argv)
 
   p = getenv("USER");
 
+  /* Linux telnetd allows importing the USER envvar via telnet,
+   * while FreeBSD does not.  FreeBSD, on the other hand, does allow
+   * the LOGNAME envvar.  Check USER first, then LOGNAME.
+   */
+  if (p == NULL) {
+      p = getenv("LOGNAME");
+  }
+
   if (p && *p != '\0')
     auth = strdup(p);
   /* else auth is still NULL */
