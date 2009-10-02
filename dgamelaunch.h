@@ -20,6 +20,7 @@ typedef enum
     DGLTIME_LOGIN,		/* right after user login */
     DGLTIME_REGISTER,		/* right after new nick is registered */
     DGLTIME_GAMESTART,		/* right before a game is started */
+    DGLTIME_GAMEEND,		/* right after a game is ended */
     NUM_DGLTIMES
 } dglcmd_times;
 

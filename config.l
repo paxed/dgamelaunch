@@ -92,6 +92,7 @@ dglstart	{ yylval.i = DGLTIME_DGLSTART; return TYPE_CMDQUEUENAME; }
 login		{ yylval.i = DGLTIME_LOGIN;    return TYPE_CMDQUEUENAME; }
 register	{ yylval.i = DGLTIME_REGISTER; return TYPE_CMDQUEUENAME; }
 gamestart	{ yylval.i = DGLTIME_GAMESTART; return TYPE_CMDQUEUENAME; }
+gameend		{ yylval.i = DGLTIME_GAMEEND; return TYPE_CMDQUEUENAME; }
 mkdir		{ yylval.i = DGLCMD_MKDIR;  return TYPE_DGLCMD1; }
 chdir		{ yylval.i = DGLCMD_CHDIR;  return TYPE_DGLCMD1; }
 cp		{ yylval.i = DGLCMD_CP;     return TYPE_DGLCMD2; }

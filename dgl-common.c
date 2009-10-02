@@ -305,10 +305,11 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 			    /* launch program */
 			    ttyrec_main (userchoice, me->username, gen_ttyrec_filename());
 
+			    /* lastly, run the generic "do these when a game is left" commands */
+			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMEEND], userchoice, me);
+
 			    setproctitle ("%s", me->username);
-
 			    initcurses ();
-
 			    check_retard(1); /* reset retard counter */
 			}
 			break;
