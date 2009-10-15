@@ -1,3 +1,4 @@
+-update virus to the newest version.
 -inprogress-dir config option prepends the dgl-root dir, other
  config dirs do not. unify.
 -allow changing the name where the ttyrecs are saved, like

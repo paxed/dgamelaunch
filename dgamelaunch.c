@@ -475,7 +475,7 @@ inprogressmenu (int gameid)
                         games[menuchoice - 97 + offset]->ttyrec_fn);
               chosen_name = strdup (games[menuchoice - 97 + offset]->name);
 
-              /* reuse thie char* */
+              /* reuse the char* */
               replacestr = strchr (ttyrecname, ':');
 
               if (!replacestr)
