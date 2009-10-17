@@ -85,14 +85,16 @@ struct winsize win;
 int uflg;
 
 int
-ttyrec_main (int game, char *username, char* ttyrec_filename)
+ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
 {
   char dirname[100];
 
   child = subchild = input_child = 0;
 
-  snprintf (dirname, 100, "%sttyrec/%s/%s", globalconfig.dglroot, username,
-            ttyrec_filename);
+  if (ttyrec_path[strlen(ttyrec_path)-1] == '/')
+      snprintf (dirname, 100, "%s%s", ttyrec_path, ttyrec_filename);
+  else
+      snprintf (dirname, 100, "%s/%s", ttyrec_path, ttyrec_filename);
 
   atexit(&remove_ipfile);
   if ((fscript = fopen (dirname, "w")) == NULL)

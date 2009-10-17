@@ -188,7 +188,7 @@ extern struct dg_menu *dgl_find_menu(char *menuname);
 
 extern int dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me);
 
-extern struct dg_game **populate_games(int game, int *l);
+extern struct dg_game **populate_games(int game, int *l, struct dg_user *me);
 
 extern struct dg_game **sort_games(struct dg_game **games, int len, dg_sortmode sortmode);
 

@@ -1,151 +1,209 @@
 #!/bin/sh
 
-# Original by joshk@triplehelix.org, modifications by jilles@stack.nl
+# Ideas and some parts from the original dgl-create-chroot (by joshk@triplehelix.org, modifications by jilles@stack.nl)
+# This one by paxed@alt.org
 
-# Settings
-# Don't customize here, create a dgl-create-chroot.conf file instead.
-# The defaults should work fine for Debian.
-# path for chroot
-chroot_path="/var/lib/dgamelaunch"
-# uid/gid (numeric), must agree with dgamelaunch.h
-shed_uid=5
-shed_gid=60
-# extra libraries to copy (that ldd doesn't find, such as ld-elf.so.1 on
-# FreeBSD)
-libs=""
-# compression binary to copy (found in $PATH if unqualified)
-# (leave blank to skip)
-compress_bin="gzip"
-# nethack binary to copy (leave blank to skip)
-nethack_bin="/usr/lib/games/nethack/nethack-console"
+
+#
+# configure dgl with --with-config-file=/path_to_chroot/etc/dgamelaunch.conf, if you want the conf file inside the chroot.
+#
+
+
+# Same as chroot_path in dgl config file
+CHROOT="/opt/nethack/nethack.alt.org/"
+# the user & group from dgamelaunch config file.
+USRGRP="games:games"
+# COMPRESS from include/config.h; the compression binary to copy. leave blank to skip.
+COMPRESSBIN="/bin/gzip"
+# nethack binary to copy into chroot
+NETHACKBIN="/home/paxed/hacking/coding/nethacksource/nethack-3.4.3-nao/nh343/nethack.343-nao"
 # fixed data to copy (leave blank to skip)
-playground_fixed="/usr/lib/games/nethack"
-# variable data to create (leave blank to skip) (may be equal to previous)
-playground_var="/var/games/nethack"
-# termcap/terminfo (copied recursively) (leave blank to skip)
-[ -f dgl-create-chroot.conf ] && . ./dgl-create-chroot.conf
+NH_PLAYGROUND_FIXED="/home/paxed/hacking/coding/nethacksource/nethack-3.4.3-nao/nh343/"
+# HACKDIR from include/config.h; aka nethack subdir inside chroot
+NHSUBDIR="/nh343/"
+# VAR_PLAYGROUND from include/unixconf.h
+NH_VAR_PLAYGROUND="/nh343/var/"
 
-if [ -z "$termdata" ]; then
-	for dir in /etc/terminfo /usr/share/lib/terminfo /usr/share/terminfo; do
-		if [ -e "$dir/x/xterm" ]; then
-			termdata=$dir
-			break
-		fi
-	done
-	if [ -z "$termdata" ]; then
-		echo "Error: couldn't find terminfo definitions. Please specify in 'termdata' variable." >&2
-		exit 1
-	fi
-fi
+# only define this if dgl was configured with --enable-sqlite
+SQLITE_DBFILE="/dgldir/dgamelaunch.db"
+
+# END OF CONFIG
+##############################################################################
+
+errorexit()
+{
+    echo "Error: $@" >&2
+    exit 1
+}
 
 findlibs()
 {
-	for i in "$@"; do
-		# () to ignore errors
-		( ldd "$i" 2>/dev/null | awk '{ if ($2=="=>" && $1!="linux-gate.so.1") print $3; }' )
-	done
+  for i in "$@"; do
+      echo $(ldd "$i" | awk '{ print $3 }' | egrep -v ^'\(')
+      echo $(ldd "$i" | grep 'ld-linux' | awk '{ print $1 }')
+  done
 }
-findinpath()
-{
-	local IFS
-	IFS=:
-	for dir in $PATH; do
-		if [ -f "$dir/$1" ]; then
-			echo "$dir/$1"
-			return 0
-		fi
-	done
-	return 1
-}
+
+##############################################################################
+
+if [ -z "$TERMDATA" ]; then
+    SEARCHTERMDATA="/etc/terminfo /usr/share/lib/terminfo /usr/share/terminfo /lib/terminfo"
+    for dir in $SEARCHTERMDATA; do
+	if [ -e "$dir/x/xterm" ]; then
+	    TERMDATA="$TERMDATA $dir"
+	fi
+    done
+    if [ -z "$TERMDATA" ]; then
+	errorexit "Couldn't find terminfo definitions. Please specify in 'TERMDATA' variable."
+    fi
+fi
+
+
+
+# remove trailing slash, if any
+CHROOT="`echo ${CHROOT%/}`"
 
 set -e
 umask 022
 
-echo "Setting up the chroot in: $chroot_path"
-
-mkdir -p $chroot_path/bin $chroot_path/etc $chroot_path/var/mail
-
-# Passwd file
-echo "games:*:$shed_uid:$shed_gid:games:/nonexistent:" >$chroot_path/etc/passwd
-echo "games:*:$shed_gid:" >$chroot_path/etc/group
-
-# Time zone information, NetHack uses this
-[ -f /etc/localtime ] && cp /etc/localtime $chroot_path/etc
-
-# Dungeon directory setup
-mkdir -p $chroot_path/dgldir/inprogress
-mkdir -p $chroot_path/dgldir/rcfiles
-mkdir -p $chroot_path/dgldir/ttyrec
-chown -R $shed_uid:$shed_gid $chroot_path/dgldir
-chown -R $shed_uid:$shed_gid $chroot_path/var/mail
-touch $chroot_path/dgl-login
-touch $chroot_path/dgl-lock
-
-# Might want to remove these two for packaging?
-cp dgl-default-rcfile $chroot_path
-cp dgl-banner $chroot_path
-
-chown $shed_uid:$shed_gid $chroot_path/dgl-*
-
-# Needs gzip to compress
-if [ -n "$compress_bin" ]; then
-	case "$compress_bin" in
-	/*)	: ;;
-	*)	compress_bin=`findinpath $compress_bin`	;;
-	esac
-	# NetHack wants the compression binary in the exact directory
-	mkdir -p $chroot_path`dirname $compress_bin`
-	cp $compress_bin $chroot_path$compress_bin
-	libs="$libs `findlibs $compress_bin`"
+if [ -e "$CHROOT" ]; then
+   errorexit "Chroot $CHROOT already exists."
 fi
 
-# Copy the nethack binary over
-if [ -n "$nethack_bin" ]; then
-	cp $nethack_bin $chroot_path/bin/nethack
-	libs="$libs `findlibs $nethack_bin`"
+CURDIR="`pwd`"
+
+if [ ! -e "$CURDIR/dgamelaunch" ]; then
+   errorexit "Cannot find dgamelaunch in $CURDIR"
 fi
 
-# ...and all the data it needs
-if [ -n "$playground_var" ]; then
-	mkdir -p $chroot_path$playground_var/save $chroot_path$playground_var/dumps
-	touch $chroot_path$playground_var/record
-	touch $chroot_path$playground_var/perm
-	touch $chroot_path$playground_var/logfile
-	chown -R $shed_uid:$shed_gid $chroot_path$playground_var
+DGLFILE="dgamelaunch.`date +%Y%m%d`"
+
+echo "Setting up chroot in $CHROOT"
+
+LIBS="`findlibs dgamelaunch`"
+
+sudo mkdir -p "$CHROOT"
+cd "$CHROOT"
+sudo mkdir dgldir etc lib mail usr
+sudo chown "$USRGRP" dgldir mail
+sudo cp "$CURDIR/dgamelaunch" "$DGLFILE"
+sudo ln -s "$DGLFILE" dgamelaunch
+
+sudo mkdir -p "$CHROOT/dgldir/inprogress-nh343"
+sudo mkdir -p "$CHROOT/dgldir/userdata"
+sudo chown "$USRGRP" "$CHROOT/dgldir/inprogress-nh343"
+sudo chown "$USRGRP" "$CHROOT/dgldir/userdata"
+
+
+if [ -n "$SQLITE_DBFILE" ]; then
+  echo "Creating SQLite database at $SQLITE_DBFILE"
+  SQLITE_DBFILE="`echo ${SQLITE_DBFILE%/}`"
+  SQLITE_DBFILE="`echo ${SQLITE_DBFILE#/}`"
+  sudo sqlite3 "$CHROOT/$SQLITE_DBFILE" "create table dglusers (id integer primary key, username text, email text, env text, password text, flags integer);"
+  sudo chown "$USRGRP" "$CHROOT/$SQLITE_DBFILE"
 fi
 
-if [ -n "$playground_fixed" ]; then
-	mkdir -p $chroot_path$playground_fixed
-	cp $playground_fixed/license $chroot_path$playground_fixed
-	if [ -e $playground_fixed/nhdat ]; then
-		cp $playground_fixed/nhdat $chroot_path$playground_fixed
-	else
-		(
-			cd $playground_fixed
-			cp *.dat cmdhelp data dungeon help hh history \
-				opthelp options perm recover rumors wizhelp \
-				$chroot_path$playground_fixed
-		)
-	fi
+
+if [ -n "$COMPRESSBIN" -a -e "`which $COMPRESSBIN`" ]; then
+  COMPRESSDIR="`dirname $COMPRESSBIN`"
+  COMPRESSDIR="`echo ${COMPRESSDIR%/}`"
+  COMPRESSDIR="`echo ${COMPRESSDIR#/}`"
+  echo "Copying $COMPRESSBIN to $COMPRESSDIR"
+  sudo mkdir -p "$COMPRESSDIR"
+  sudo cp "`which $COMPRESSBIN`" "$COMPRESSDIR/"
+  LIBS="$LIBS `findlibs $COMPRESSBIN`"
 fi
+
+
+sudo mkdir -p dev
+cd dev
+sudo mknod urandom c 1 9
+cd ..
+
+
+cd etc
+sudo cp "$CURDIR/examples/dgamelaunch.conf" .
+echo "Edit $CHROOT/etc/dgamelaunch.conf to suit your needs."
+[ -f /etc/localtime ] && sudo cp /etc/localtime .
+cd ..
+
+
+
+sudo cp "$CURDIR/examples/dgl_menu_main_anon.txt" .
+sudo cp "$CURDIR/examples/dgl_menu_main_user.txt" .
+sudo cp "$CURDIR/examples/dgl-banner" .
+sudo cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile.nh343"
+sudo chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile.nh343
+
+NHSUBDIR="`echo ${NHSUBDIR%/}`"
+NHSUBDIR="`echo ${NHSUBDIR#/}`"
+
+sudo mkdir "$CHROOT/$NHSUBDIR"
+
+if [ ! -e "$NETHACKBIN" ]; then
+  errorexit "Cannot find NetHack binary $NETHACKBIN"
+fi
+
+if [ -n "$NETHACKBIN" -a -e "$NETHACKBIN" ]; then
+  echo "Copying $NETHACKBIN"
+  sudo cp "$NETHACKBIN" "$NHSUBDIR/"
+  LIBS="$LIBS `findlibs $NETHACKBIN`"
+fi
+
+
+NH_PLAYGROUND_FIXED="`echo ${NH_PLAYGROUND_FIXED%/}`"
+
+if [ -n "$NH_PLAYGROUND_FIXED" -a -d "$NH_PLAYGROUND_FIXED" ]; then
+  echo "Copying NetHack playground stuff."
+  NHFILES="*.lev *.dat cmdhelp data dungeon help hh history license opthelp options oracles recover rumors wizhelp"
+  for fil in $NHFILES; do
+    sudo cp $NH_PLAYGROUND_FIXED/$fil "$CHROOT/$NHSUBDIR/"
+  done
+fi
+
+
+NH_VAR_PLAYGROUND="`echo ${NH_VAR_PLAYGROUND%/}`"
+NH_VAR_PLAYGROUND="`echo ${NH_VAR_PLAYGROUND#/}`"
+
+echo "Creating NetHack variable dir stuff."
+if [ -n "$NH_VAR_PLAYGROUND" ]; then
+  sudo mkdir -p "$CHROOT/$NH_VAR_PLAYGROUND"
+  sudo chown -R "$USRGRP" "$CHROOT/$NH_VAR_PLAYGROUND"
+fi
+sudo mkdir -p "$CHROOT/$NH_VAR_PLAYGROUND/save"
+sudo chown -R "$USRGRP" "$CHROOT/$NH_VAR_PLAYGROUND/save"
+sudo touch "$CHROOT/$NH_VAR_PLAYGROUND/logfile"
+sudo touch "$CHROOT/$NH_VAR_PLAYGROUND/perm"
+sudo touch "$CHROOT/$NH_VAR_PLAYGROUND/record"
+sudo touch "$CHROOT/$NH_VAR_PLAYGROUND/xlogfile"
+
+sudo chown -R "$USRGRP" "$CHROOT/$NHSUBDIR"
+sudo chown -R "$USRGRP" "$CHROOT/$NH_VAR_PLAYGROUND"
+
+
 
 # Curses junk
-if [ -n "$termdata" ]; then
-	mkdir -p $chroot_path`dirname $termdata`
-	if [ -d $termdata/. ]; then
-		cp -LR $termdata/. $chroot_path$termdata
+if [ -n "$TERMDATA" ]; then
+    echo "Copying termdata files from $TERMDATA"
+    for termdat in $TERMDATA; do
+	sudo mkdir -p "$CHROOT`dirname $termdat`"
+	if [ -d $termdat/. ]; then
+		sudo cp -LR $termdat/. $CHROOT$termdat
 	else
-		cp $termdata $chroot_path`dirname $termdata`
+		sudo cp $termdat $CHROOT`dirname $termdat`
 	fi
+    done
 fi
 
-# Necessary libraries
-# previously libs="/lib/libc.so.6 /lib/libncurses.so.5 /lib/ld-linux.so.2"
-libs=`for lib in $libs; do echo $lib; done | sort | uniq`
-echo "Copying libraries:" $libs
-for lib in $libs; do
-	mkdir -p $chroot_path`dirname $lib`
-	cp $lib $chroot_path$lib
+
+LIBS=`for lib in $LIBS; do echo $lib; done | sort | uniq`
+echo "Copying libraries:" $LIBS
+for lib in $LIBS; do
+        sudo mkdir -p "$CHROOT`dirname $lib`"
+        sudo cp $lib "$CHROOT$lib"
 done
 
+
 echo "Finished."
+
+

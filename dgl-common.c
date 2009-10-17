@@ -40,7 +40,7 @@ struct dg_config defconfig = {
   /* shed_gid = */ /*60,*/ /* games:games in Debian */
   /* max = */ /*64000,*/
   /* savefilefmt = */ /*"",*/ /* don't do this by default */
-  /* inprogressdir = */ "inprogress/",
+  /* inprogressdir = */ "%rinprogress/",
   /* num_args = */ 0,
   /* bin_args = */ NULL,
   /* rc_fmt = */ "%rrcfiles/%n.nethackrc", /* [dglroot]rcfiles/[username].nethackrc */
@@ -303,7 +303,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 			    }
 
 			    /* launch program */
-			    ttyrec_main (userchoice, me->username, gen_ttyrec_filename());
+			    ttyrec_main (userchoice, me->username, dgl_format_str(userchoice, me, "%ruserdata/%n/ttyrec"), gen_ttyrec_filename());
 
 			    /* lastly, run the generic "do these when a game is left" commands */
 			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMEEND], userchoice, me);
@@ -360,17 +360,16 @@ sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
 }
 
 struct dg_game **
-populate_games (int xgame, int *l)
+populate_games (int xgame, int *l, struct dg_user *me)
 {
   int fd, len, n, is_nhext, pid;
   DIR *pdir;
   struct dirent *pdirent;
   struct stat pstat;
-  char fullname[130], ttyrecname[130], pidws[80];
+  char fullname[130], ttyrecname[130], pidws[80], playername[30];
   char *replacestr, *dir, *p;
   struct dg_game **games = NULL;
   struct flock fl = { 0 };
-  size_t slen;
 
   int game;
 
@@ -383,9 +382,7 @@ populate_games (int xgame, int *l)
 
   for (game = ((xgame < 0) ? 0 : xgame); game < ((xgame <= 0) ? num_games : (xgame+1)); game++) {
 
-   slen = strlen(globalconfig.dglroot) + strlen(myconfig[game]->inprogressdir) + 1;
-   dir = malloc(slen);
-   snprintf(dir, slen, "%s%s", globalconfig.dglroot, myconfig[game]->inprogressdir);
+   dir = strdup(dgl_format_str(game, me, myconfig[game]->inprogressdir));
 
    if (!(pdir = opendir (dir)))
     graceful_exit (140);
@@ -397,7 +394,7 @@ populate_games (int xgame, int *l)
 
       is_nhext = !strcmp (pdirent->d_name + strlen (pdirent->d_name) - 6, ".nhext");
 
-      snprintf (fullname, 130, "%s%s%s", globalconfig.dglroot, myconfig[game]->inprogressdir, pdirent->d_name);
+      snprintf (fullname, 130, "%s%s", dgl_format_str(game, me, myconfig[game]->inprogressdir), pdirent->d_name);
 
       fd = 0;
       /* O_RDWR here should be O_RDONLY, but we need to test for
@@ -409,18 +406,22 @@ populate_games (int xgame, int *l)
           /* stat to check idle status */
 	  if (!is_nhext)
 	    {
-	      snprintf (ttyrecname, 130, "%sttyrec/%s", globalconfig.dglroot, pdirent->d_name);
-	      replacestr = strchr (ttyrecname, ':');
-	      if (!replacestr)
-		graceful_exit (145);
-	      replacestr[0] = '/';
+		strncpy(playername, pdirent->d_name, 29);
+		playername[29] = '\0';
+		if ((replacestr = strchr(playername, ':')))
+		    *replacestr = '\0';
+
+              replacestr = strchr(pdirent->d_name, ':');
+              if (!replacestr) graceful_exit(145);
+              replacestr++;
+              snprintf (ttyrecname, 130, "%suserdata/%s/ttyrec/%s", globalconfig.dglroot, playername, replacestr);
 	    }
           if (is_nhext || !stat (ttyrecname, &pstat))
             {
               /* now it's a valid game for sure */
               games = realloc (games, sizeof (struct dg_game) * (len + 1));
               games[len] = malloc (sizeof (struct dg_game));
-              games[len]->ttyrec_fn = strdup (pdirent->d_name);
+              games[len]->ttyrec_fn = strdup (ttyrecname);
 
               if (!(replacestr = strchr (pdirent->d_name, ':')))
                 graceful_exit (146);

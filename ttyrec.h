@@ -21,7 +21,7 @@ extern void doshell (int, char *);
 extern void finish (int);
 extern void remove_ipfile (void);
 
-extern int ttyrec_main(int, char *username, char *ttyrec_filename);
+extern int ttyrec_main (int, char *username, char *ttyrec_path, char* ttyrec_filename);
 
 extern pid_t child; /* nethack process */
 extern int master, slave;

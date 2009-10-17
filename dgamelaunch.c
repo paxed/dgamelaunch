@@ -219,10 +219,10 @@ gen_inprogress_lock (int game, pid_t pid, char* ttyrec_filename)
   fl.l_start = 0;
   fl.l_len = 0;
 
-  len = strlen(globalconfig.dglroot) + strlen(myconfig[game]->inprogressdir) + strlen(me->username) + strlen(ttyrec_filename) + 13;
+  len = strlen(dgl_format_str(game, me, myconfig[game]->inprogressdir)) + strlen(me->username) + strlen(ttyrec_filename) + 13;
   lockfile = calloc(len, sizeof(char));
-  
-  snprintf (lockfile, len, "%s%s%s:%s", globalconfig.dglroot, myconfig[game]->inprogressdir,
+
+  snprintf (lockfile, len, "%s%s:%s", dgl_format_str(game, me, myconfig[game]->inprogressdir),
             me->username, ttyrec_filename);
 
   fd = open (lockfile, O_WRONLY | O_CREAT, 0644);
@@ -374,7 +374,7 @@ inprogressmenu (int gameid)
   if (sortmode == NUM_SORTMODES)
       sortmode = globalconfig.sortmode;
 
-  games = populate_games (gameid, &len);
+  games = populate_games (gameid, &len, me);
   games = sort_games (games, len, sortmode);
 
   while (1)
@@ -471,9 +471,9 @@ inprogressmenu (int gameid)
 		break;
 
               /* valid choice has been made */
-              snprintf (ttyrecname, 130, "%sttyrec/%s", globalconfig.dglroot,
-                        games[menuchoice - 97 + offset]->ttyrec_fn);
               chosen_name = strdup (games[menuchoice - 97 + offset]->name);
+              snprintf (ttyrecname, 130, "%s",
+                        games[menuchoice - 97 + offset]->ttyrec_fn);
 
               /* reuse the char* */
               replacestr = strchr (ttyrecname, ':');
@@ -481,7 +481,7 @@ inprogressmenu (int gameid)
               if (!replacestr)
                 graceful_exit (145);
 
-              replacestr[0] = '/';
+              /*replacestr[0] = '/';*/
 
               clear ();
               refresh ();
@@ -515,7 +515,7 @@ inprogressmenu (int gameid)
             }
         }
 
-      games = populate_games (gameid, &len);
+      games = populate_games (gameid, &len, me);
       games = sort_games (games, len, sortmode);
     }
 }
@@ -708,7 +708,7 @@ wall_email(char *from, char *msg)
 	graceful_exit(120);
     }
 
-    games = populate_games(-1, &len);
+    games = populate_games(-1, &len, me);
 
     if (len == 0) {
 	fprintf(stderr, "Error: wall: no one's logged in!\n");
@@ -1596,9 +1596,7 @@ purge_stale_locks (int game)
   size_t len;
   short firsttime = 1;
 
-  len = strlen(globalconfig.dglroot) + strlen(myconfig[game]->inprogressdir) + 1;
-  dir = malloc(len);
-  snprintf(dir, len, "%s%s", globalconfig.dglroot, myconfig[game]->inprogressdir);
+  dir = strdup(dgl_format_str(game, me, myconfig[game]->inprogressdir));
 
   if (!(pdir = opendir (dir)))
     graceful_exit (200);
@@ -1627,12 +1625,10 @@ purge_stale_locks (int game)
       if (strncmp (dent->d_name, me->username, colon - dent->d_name))
         continue;
 
-      len = strlen (dent->d_name) + strlen(globalconfig.dglroot) + strlen(myconfig[game]->inprogressdir) + 1;
+      len = strlen (dent->d_name) + strlen(dgl_format_str(game, me, myconfig[game]->inprogressdir)) + 1;
       fn = malloc (len);
 
-      snprintf (fn, len, "%s%s%s", globalconfig.dglroot, myconfig[game]->inprogressdir, dent->d_name);
-
-      fprintf (stderr, "ERR:'%s'\n", fn);
+      snprintf (fn, len, "%s%s", dgl_format_str(game, me, myconfig[game]->inprogressdir), dent->d_name);
 
       if (!(ipfile = fopen (fn, "r")))
         graceful_exit (202);
@@ -1798,7 +1794,7 @@ authenticate ()
 	  me = cpy_me(tmpme);
       if (passwordgood (pw_buf))
         {
-	    games = populate_games (-1, &len);
+	    games = populate_games (-1, &len, me);
 	  for (i = 0; i < len; i++)
 	    if (!strcmp (games[i]->name, user_buf))
 	      {
