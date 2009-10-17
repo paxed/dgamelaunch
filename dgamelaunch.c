@@ -378,6 +378,7 @@ inprogressmenu (int gameid)
   char ttyrecname[130], *replacestr = NULL, gametype[10];
   int is_nhext[14];
   sigset_t oldmask, toblock;
+  int idx = -1;
 
   if (sortmode == NUM_SORTMODES)
       sortmode = globalconfig.sortmode;
@@ -437,6 +438,25 @@ inprogressmenu (int gameid)
 
       switch ((menuchoice = getch ()))
         {
+       case '/':
+           {
+               int match = -1;
+               char findname[21];
+               findname[0] = '\0';
+               if ((mygetnstr(findname, 20, 0) == OK) && (strlen(findname) > 1)) {
+                   for (i = 0; i < len; i++)
+                       if (!strcmp(games[i]->name, findname)) {
+                           match = i;
+                           break;
+                       }
+                   if (match > -1) {
+		       if (!strcmp(games[match]->ttyrec_fn + strlen (games[match]->ttyrec_fn) - 6, ".nhext")) break;
+		       idx = match;
+		       goto watchgame;
+                   }
+               }
+           }
+           break;
         case '>':
           if ((offset + 14) >= len)
             break;
@@ -478,10 +498,14 @@ inprogressmenu (int gameid)
 	      if (is_nhext[menuchoice - 97]) /* Cannot watch NhExt game */
 		break;
 
+	      idx = menuchoice - 97 + offset;
+
+watchgame:
+
               /* valid choice has been made */
-              chosen_name = strdup (games[menuchoice - 97 + offset]->name);
+              chosen_name = strdup (games[idx]->name);
               snprintf (ttyrecname, 130, "%s",
-                        games[menuchoice - 97 + offset]->ttyrec_fn);
+                        games[idx]->ttyrec_fn);
 
               /* reuse the char* */
               replacestr = strchr (ttyrecname, ':');
@@ -506,8 +530,8 @@ inprogressmenu (int gameid)
 		  sigaddset (&toblock, SIGWINCH);
 		  sigprocmask (SIG_BLOCK, &toblock, &oldmask);
 		  printf ("\033[8;%d;%dt",
-		    games[menuchoice - 97 + offset]->ws_row,
-		    games[menuchoice - 97 + offset]->ws_col);
+		    games[idx]->ws_row,
+		    games[idx]->ws_col);
 		  fflush (stdout);
 		}
 	      if (loggedin)
