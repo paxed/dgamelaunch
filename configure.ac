@@ -65,14 +65,14 @@ AC_SUBST(MKDEP_DIRECT)
 AC_PROG_INSTALL
 AC_SEARCH_LIBS(initscr, [curses ncurses])
 
-AC_ARG_ENABLE(enable-virus,
+AC_ARG_ENABLE(virus,
 [AC_HELP_STRING([--enable-virus], [Use the 'virus' vi clone instead of the friendly ee editor.])],
 [EDITOR=virus.c], [EDITOR=ee.c])
 
 AC_SUBST(EDITOR)
 
 
-AC_ARG_ENABLE(enable-debugfile,
+AC_ARG_ENABLE(debugfile,
 [AC_HELP_STRING([--enable-debugfile], [Enable debugging output to a file.])],
 [], [])
 
@@ -82,7 +82,7 @@ if test "$enable_debugfile" = yes; then
 fi
 
 
-AC_ARG_ENABLE(enable-sqlite,
+AC_ARG_ENABLE(sqlite,
 [AC_HELP_STRING([--enable-sqlite], [Use SQLite for the database instead of flat text file.])],
 [], [])
 
