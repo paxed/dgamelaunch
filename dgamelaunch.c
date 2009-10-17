@@ -1122,14 +1122,6 @@ newuser ()
 
   dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_REGISTER], 0, me);
 
-  /* create their ttyrec dir */
-  /*
-  snprintf (dirname, 100, "%sttyrec/%s", globalconfig.dglroot, me->username);
-
-  if (access (dirname, F_OK) != 0)
-    mkdir (dirname, 0755);
-  */
-
   writefile (1);
 }
 
