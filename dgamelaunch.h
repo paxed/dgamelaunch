@@ -89,6 +89,7 @@ struct dg_config
   char* game_name;
   char* shortname;
   char* rcfile;
+  char* ttyrecdir;
   char* spool;
   char* inprogressdir;
     int num_args; /* # of bin_args */
@@ -182,13 +183,19 @@ extern void catch_sighup(int signum);
 extern void loadbanner(char *fname, struct dg_banner *ban);
 extern void drawbanner(struct dg_banner *ban, unsigned int start_line, unsigned int howmany);
 extern int check_retard(int reset);
-extern char *dgl_format_str(int game, struct dg_user *me, char *str);
+extern char *dgl_format_str(int game, struct dg_user *me, char *str, char *plrname);
 
 extern struct dg_menu *dgl_find_menu(char *menuname);
 
 extern int dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me);
 
 extern struct dg_game **populate_games(int game, int *l, struct dg_user *me);
+
+#ifdef USE_DEBUGFILE
+extern void debug_write(char *str);
+#else
+#define debug_write(str)
+#endif
 
 extern struct dg_game **sort_games(struct dg_game **games, int len, dg_sortmode sortmode);
 

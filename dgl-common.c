@@ -41,6 +41,7 @@ struct dg_config defconfig = {
   /* max = */ /*64000,*/
   /* savefilefmt = */ /*"",*/ /* don't do this by default */
   /* inprogressdir = */ "%rinprogress/",
+  NULL,
   /* num_args = */ 0,
   /* bin_args = */ NULL,
   /* rc_fmt = */ "%rrcfiles/%n.nethackrc", /* [dglroot]rcfiles/[username].nethackrc */
@@ -86,12 +87,12 @@ dgl_find_menu(char *menuname)
 /*
  * replace following codes with variables:
  * %u == shed_uid (number)
- * %n == user name (string)
+ * %n == user name (string; gotten from 'me', or from 'plrname' if 'me' is null)
  * %r == chroot (string)  (aka "dglroot" config var)
  * %g == game name
  */
 char *
-dgl_format_str(int game, struct dg_user *me, char *str)
+dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
 {
     static char buf[1024];
     char *f, *p, *end;
@@ -113,11 +114,14 @@ dgl_format_str(int game, struct dg_user *me, char *str)
 		break;
   	    case 'n':
 		if (me) snprintf (p, end + 1 - p, "%s", me->username);
+		else if (plrname) snprintf(p, end + 1 - p, "%s", plrname);
+		else return NULL;
 		while (*p != '\0')
 		    p++;
 		break;
   	    case 'g':
 		if (game >= 0 && game < num_games && myconfig[game]) snprintf (p, end + 1 - p, "%s", myconfig[game]->game_name);
+		else return NULL;
 		while (*p != '\0')
 		    p++;
 		break;
@@ -166,8 +170,8 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
     return_from_submenu = 0;
 
     while (tmp && !return_from_submenu) {
-	if (tmp->param1) strcpy(p1, dgl_format_str(game, me, tmp->param1));
-	if (tmp->param2) strcpy(p2, dgl_format_str(game, me, tmp->param2));
+	if (tmp->param1) strcpy(p1, dgl_format_str(game, me, tmp->param1, NULL));
+	if (tmp->param2) strcpy(p2, dgl_format_str(game, me, tmp->param2, NULL));
 
 	switch (tmp->cmd) {
 	default: break;
@@ -222,6 +226,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		child = fork();
 		if (child == -1) {
 		    perror("fork");
+		    debug_write("exec-command fork failed");
 		    graceful_exit(114);
 		} else if (child == 0) {
 		    execvp(p1, myargv);
@@ -252,6 +257,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    if (!loggedin && globalconfig.allow_registration) newuser();
 	    break;
 	case DGLCMD_QUIT:
+	    debug_write("command: quit");
 	    graceful_exit(0);
 	    /* break; */
 	case DGLCMD_SUBMENU:
@@ -281,8 +287,8 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		    if (!strcmp(myconfig[userchoice]->game_name, p1) || !strcmp(myconfig[userchoice]->shortname, p1)) {
 			if (purge_stale_locks(userchoice)) {
 			    if (myconfig[userchoice]->rcfile) {
-				if (access (dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt), R_OK) == -1)
-				    write_canned_rcfile (userchoice, dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt));
+				if (access (dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt, NULL), R_OK) == -1)
+				    write_canned_rcfile (userchoice, dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt, NULL));
 			    }
 
 			    setproctitle("%s [playing %s]", me->username, myconfig[userchoice]->shortname);
@@ -297,13 +303,15 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 
 			    /* fix the variables in the arguments */
 			    for (i = 0; i < myconfig[userchoice]->num_args; i++) {
-				tmpstr = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i]));
+				tmpstr = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i], NULL));
 				free(myconfig[userchoice]->bin_args[i]);
 				myconfig[userchoice]->bin_args[i] = tmpstr;
 			    }
 
 			    /* launch program */
-			    ttyrec_main (userchoice, me->username, dgl_format_str(userchoice, me, "%ruserdata/%n/ttyrec"), gen_ttyrec_filename());
+			    ttyrec_main (userchoice, me->username,
+					 dgl_format_str(userchoice, me, myconfig[userchoice]->ttyrecdir, NULL),
+					 gen_ttyrec_filename());
 
 			    /* lastly, run the generic "do these when a game is left" commands */
 			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMEEND], userchoice, me);
@@ -359,6 +367,19 @@ sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
     return games;
 }
 
+#ifdef USE_DEBUGFILE
+void
+debug_write(char *str)
+{
+    FILE *fp;
+    fp = fopen("/dgldebug.log", "a");
+    if (!fp) return;
+    fprintf(fp, "%s\n", str);
+    fclose(fp);
+
+}
+#endif /* USE_DEBUGFILE */
+
 struct dg_game **
 populate_games (int xgame, int *l, struct dg_user *me)
 {
@@ -382,19 +403,27 @@ populate_games (int xgame, int *l, struct dg_user *me)
 
   for (game = ((xgame < 0) ? 0 : xgame); game < ((xgame <= 0) ? num_games : (xgame+1)); game++) {
 
-   dir = strdup(dgl_format_str(game, me, myconfig[game]->inprogressdir));
+      dir = strdup(dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL));
+      if (!dir) continue;
 
-   if (!(pdir = opendir (dir)))
-    graceful_exit (140);
+      if (!(pdir = opendir (dir))) {
+	  debug_write("cannot open inprogress-dir");
+	  graceful_exit (140);
+      }
 
    while ((pdirent = readdir (pdir)))
     {
+	char *inprog = NULL;
       if (!strcmp (pdirent->d_name, ".") || !strcmp (pdirent->d_name, ".."))
         continue;
 
       is_nhext = !strcmp (pdirent->d_name + strlen (pdirent->d_name) - 6, ".nhext");
 
-      snprintf (fullname, 130, "%s%s", dgl_format_str(game, me, myconfig[game]->inprogressdir), pdirent->d_name);
+      inprog = dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL);
+
+      if (!inprog) continue;
+
+      snprintf (fullname, 130, "%s%s", inprog, pdirent->d_name);
 
       fd = 0;
       /* O_RDWR here should be O_RDONLY, but we need to test for
@@ -406,15 +435,22 @@ populate_games (int xgame, int *l, struct dg_user *me)
           /* stat to check idle status */
 	  if (!is_nhext)
 	    {
+		char *ttrecdir = NULL;
 		strncpy(playername, pdirent->d_name, 29);
 		playername[29] = '\0';
 		if ((replacestr = strchr(playername, ':')))
 		    *replacestr = '\0';
 
               replacestr = strchr(pdirent->d_name, ':');
-              if (!replacestr) graceful_exit(145);
+              if (!replacestr) {
+		  debug_write("inprogress-filename does not have ':'");
+		  graceful_exit(145);
+	      }
               replacestr++;
-              snprintf (ttyrecname, 130, "%suserdata/%s/ttyrec/%s", globalconfig.dglroot, playername, replacestr);
+
+	      ttrecdir = dgl_format_str(game, me, myconfig[game]->ttyrecdir, playername);
+	      if (!ttrecdir) continue;
+              snprintf (ttyrecname, 130, "%s%s", ttrecdir, replacestr);
 	    }
           if (is_nhext || !stat (ttyrecname, &pstat))
             {
@@ -423,9 +459,10 @@ populate_games (int xgame, int *l, struct dg_user *me)
               games[len] = malloc (sizeof (struct dg_game));
               games[len]->ttyrec_fn = strdup (ttyrecname);
 
-              if (!(replacestr = strchr (pdirent->d_name, ':')))
-                graceful_exit (146);
-              else
+              if (!(replacestr = strchr (pdirent->d_name, ':'))) {
+		  debug_write("inprogress-filename does not have ':', pt. 2");
+		  graceful_exit (146);
+              } else
                 *replacestr = '\0';
 
               games[len]->name = malloc (strlen (pdirent->d_name) + 1);
@@ -547,6 +584,7 @@ create_config ()
     else
     {
       fprintf(stderr, "ERROR: can't find or open %s for reading\n", config);
+      debug_write("cannot read config file");
       graceful_exit(104);
       return;
     }
@@ -562,7 +600,8 @@ create_config ()
       fclose(config_file);
     } else {
 	fprintf(stderr, "ERROR: can't find or open %s for reading\n", config);
-	graceful_exit(104);
+	debug_write("cannot read default config file");
+	graceful_exit(105);
 	return;
     }
 #else
@@ -576,6 +615,7 @@ create_config ()
   if (!myconfig) /* a parse error occurred */
   {
       fprintf(stderr, "ERROR: configuration parsing failed\n");
+      debug_write("config file parsing failed");
       graceful_exit(113);
   }
 

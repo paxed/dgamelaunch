@@ -149,15 +149,20 @@ void
 ttyrec_getpty ()
 {
 #ifdef HAVE_OPENPTY
-  if (openpty (&master, &slave, NULL, NULL, NULL) == -1)
-    graceful_exit (62);
+    if (openpty (&master, &slave, NULL, NULL, NULL) == -1) {
+	debug_write("cannot openpty");
+	graceful_exit (62);
+    }
 #else
-  if ((master = open ("/dev/ptmx", O_RDWR)) < 0)
-    graceful_exit (62);
+    if ((master = open ("/dev/ptmx", O_RDWR)) < 0) {
+	debug_write("cannot open /dev/ptmx");
+	graceful_exit (62);
+    }
   grantpt (master);
   unlockpt (master);
   if ((slave = open ((const char *) ptsname (master), O_RDWR)) < 0)
     {
+	debug_write("cannot open master ptsname");
       graceful_exit (65);
     }
 #endif
@@ -219,15 +224,17 @@ gen_inprogress_lock (int game, pid_t pid, char* ttyrec_filename)
   fl.l_start = 0;
   fl.l_len = 0;
 
-  len = strlen(dgl_format_str(game, me, myconfig[game]->inprogressdir)) + strlen(me->username) + strlen(ttyrec_filename) + 13;
+  len = strlen(dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL)) + strlen(me->username) + strlen(ttyrec_filename) + 13;
   lockfile = calloc(len, sizeof(char));
 
-  snprintf (lockfile, len, "%s%s:%s", dgl_format_str(game, me, myconfig[game]->inprogressdir),
+  snprintf (lockfile, len, "%s%s:%s", dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL),
             me->username, ttyrec_filename);
 
   fd = open (lockfile, O_WRONLY | O_CREAT, 0644);
-  if (fcntl (fd, F_SETLKW, &fl) == -1)
+  if (fcntl (fd, F_SETLKW, &fl) == -1) {
+      debug_write("cannot fnctl inprogress-lock");
     graceful_exit (68);
+  }
 
   write (fd, filebuf, strlen (filebuf));
 
@@ -245,6 +252,7 @@ catch_sighup (int signum)
       kill (child, SIGHUP);
       sleep (5);
     }
+  debug_write("catchup sighup");
   graceful_exit (2);
 }
 
@@ -478,8 +486,10 @@ inprogressmenu (int gameid)
               /* reuse the char* */
               replacestr = strchr (ttyrecname, ':');
 
-              if (!replacestr)
+              if (!replacestr) {
+		  debug_write("inprogressmenu replacestr");
                 graceful_exit (145);
+	      }
 
               /*replacestr[0] = '/';*/
 
@@ -622,8 +632,10 @@ changepw (int dowrite)
   int error = 2;
 
   /* A precondition is that struct `me' exists because we can be not-yet-logged-in. */
-  if (!me)
+  if (!me) {
+      debug_write("no 'me' in changepw");
     graceful_exit (122);        /* Die. */
+  }
 
   while (error)
     {
@@ -656,8 +668,10 @@ changepw (int dowrite)
       if (*buf == '\0')
         return 0;
 
-      if (strchr (buf, ':') != NULL)
+      if (strchr (buf, ':') != NULL) {
+	  debug_write("cannot have ':' in passwd");
         graceful_exit (112);
+      }
 
       mvaddstr (12, 1, "And again:");
       mvaddstr (13, 1, "=> ");
@@ -700,11 +714,13 @@ wall_email(char *from, char *msg)
 
     if (strlen(from) < 1) {
 	fprintf(stderr, "Error: wall: 'from' username is too short!\n");
+	debug_write("wall: 'from' username too short");
 	graceful_exit(121);
     }
 
     if (strlen(msg) >= 80) {
 	fprintf(stderr, "Error: wall: message too long!\n");
+	debug_write("wall: message too long");
 	graceful_exit(120);
     }
 
@@ -712,6 +728,7 @@ wall_email(char *from, char *msg)
 
     if (len == 0) {
 	fprintf(stderr, "Error: wall: no one's logged in!\n");
+	debug_write("wall: no people playing");
 	graceful_exit(118);
     }
 
@@ -1162,15 +1179,21 @@ readfile (int nolock)
   if (!nolock)
     {
       fpl = fopen (globalconfig.lockfile, "r");
-      if (!fpl)
+      if (!fpl) {
+	  debug_write("cannot fopen lockfile");
         graceful_exit (106);
-      if (fcntl (fileno (fpl), F_SETLKW, &fl) == -1)
+      }
+      if (fcntl (fileno (fpl), F_SETLKW, &fl) == -1) {
+	  debug_write("cannot fcntl lockfile");
         graceful_exit (114);
+      }
     }
 
   fp = fopen (globalconfig.passwd, "r");
-  if (!fp)
+  if (!fp) {
+      debug_write("cannot fopen passwd file");
     graceful_exit (106);
+  }
 
   /* once per name in the file */
   while (fgets (buf, 1200, fp))
@@ -1191,8 +1214,10 @@ readfile (int nolock)
             return 1;
           users[f_num]->username[(b - n)] = *b;
           b++;
-          if ((b - n) >= 21)
+          if ((b - n) >= 21) {
+	      debug_write("name field too long");
             graceful_exit (100);
+	  }
         }
 
       /* advance to next field */
@@ -1204,8 +1229,10 @@ readfile (int nolock)
         {
           users[f_num]->email[(b - n)] = *b;
           b++;
-          if ((b - n) > 80)
+          if ((b - n) > 80) {
+	      debug_write("email field too long");
             graceful_exit (101);
+	  }
         }
 
       /* advance to next field */
@@ -1217,8 +1244,10 @@ readfile (int nolock)
         {
           users[f_num]->password[(b - n)] = *b;
           b++;
-          if ((b - n) >= 20)
+          if ((b - n) >= 20) {
+	      debug_write("passwd field too long");
             graceful_exit (102);
+	  }
         }
 
       /* advance to next field */
@@ -1230,8 +1259,10 @@ readfile (int nolock)
         {
           users[f_num]->env[(b - n)] = *b;
           b++;
-          if ((b - n) >= 1024)
+          if ((b - n) >= 1024) {
+	      debug_write("env field too long");
             graceful_exit (102);
+	  }
         }
 
       f_num++;
@@ -1239,6 +1270,7 @@ readfile (int nolock)
       if (f_num > globalconfig.max)
       {
 	fprintf(stderr,"ERROR: number of users in database exceeds maximum. Exiting.\n");
+	debug_write("too many users in database");
         graceful_exit (109);
       }
     }
@@ -1329,6 +1361,7 @@ userexist (char *cname, int isnew)
     ret = sqlite3_open(USE_SQLITE_DB, &db); /* FIXME: use globalconfig->passwd? */
     if (ret) {
 	sqlite3_close(db);
+	debug_write("sqlite3_open failed");
 	graceful_exit(109);
     }
 
@@ -1348,6 +1381,7 @@ userexist (char *cname, int isnew)
 
     if (ret != SQLITE_OK) {
 	sqlite3_close(db);
+	debug_write("sqlite3_exec failed");
 	graceful_exit(108);
     }
     sqlite3_close(db);
@@ -1413,14 +1447,14 @@ editoptions (int game)
   char *myargv[3];
   pid_t editor;
 
-  rcfile = fopen (dgl_format_str(game, me, myconfig[game]->rc_fmt), "r");
+  rcfile = fopen (dgl_format_str(game, me, myconfig[game]->rc_fmt, NULL), "r");
   if (!rcfile)
-      write_canned_rcfile (game, dgl_format_str(game, me, myconfig[game]->rc_fmt));
+      write_canned_rcfile (game, dgl_format_str(game, me, myconfig[game]->rc_fmt, NULL));
 
   /* use whatever editor_main to edit */
 
   myargv[0] = "";
-  myargv[1] = dgl_format_str(game, me, myconfig[game]->rc_fmt);
+  myargv[1] = dgl_format_str(game, me, myconfig[game]->rc_fmt, NULL);
   myargv[2] = 0;
 
   endwin ();
@@ -1430,6 +1464,7 @@ editoptions (int game)
   if (editor == -1)
   {
     perror("fork");
+    debug_write("edit fork failed");
     graceful_exit(114);
   }
   else if (editor == 0)
@@ -1472,11 +1507,13 @@ writefile (int requirenew)
   if (!fpl)
     {
       sigprocmask(SIG_SETMASK, &oldmask, NULL);
+      debug_write("writefile locking failed");
       graceful_exit (115);
     }
   if (fcntl (fileno (fpl), F_SETLK, &fl))
     {
       sigprocmask(SIG_SETMASK, &oldmask, NULL);
+      debug_write("writefile fcntl failed");
       graceful_exit (107);
     }
 
@@ -1489,6 +1526,7 @@ writefile (int requirenew)
   if (!fp)
     {
       sigprocmask(SIG_SETMASK, &oldmask, NULL);
+      debug_write("passwd file fopen failed");
       graceful_exit (104);
     }
 
@@ -1503,6 +1541,7 @@ writefile (int requirenew)
 	      fclose(fp);
 	      fclose(fpl);
               sigprocmask(SIG_SETMASK, &oldmask, NULL);
+	      debug_write("two users registering at the same time");
               graceful_exit (111);
             }
           fprintf (fp, "%s:%s:%s:%s\n", me->username, me->email, me->password,
@@ -1525,6 +1564,7 @@ writefile (int requirenew)
           fclose(fp);
 	  fclose(fpl);
           sigprocmask(SIG_SETMASK, &oldmask, NULL);
+	  debug_write("too many users in passwd db already");
           graceful_exit (116);
 	}
     }
@@ -1554,6 +1594,7 @@ writefile (int requirenew)
     ret = sqlite3_open(USE_SQLITE_DB, &db); /* FIXME: use globalconfig->passwd? */
     if (ret) {
 	sqlite3_close(db);
+	debug_write("writefile sqlite3_open failed");
 	graceful_exit(107);
     }
 
@@ -1564,6 +1605,7 @@ writefile (int requirenew)
 
     if (ret != SQLITE_OK) {
 	sqlite3_close(db);
+	debug_write("writefile sqlite3_exec failed");
 	graceful_exit(106);
     }
     sqlite3_close(db);
@@ -1588,10 +1630,12 @@ purge_stale_locks (int game)
   size_t len;
   short firsttime = 1;
 
-  dir = strdup(dgl_format_str(game, me, myconfig[game]->inprogressdir));
+  dir = strdup(dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL));
 
-  if (!(pdir = opendir (dir)))
+  if (!(pdir = opendir (dir))) {
+      debug_write("purge_stale_locks dir open failed");
     graceful_exit (200);
+  }
 
   free(dir);
 
@@ -1609,24 +1653,29 @@ purge_stale_locks (int game)
 
       colon = strchr (dent->d_name, ':');
       /* should never happen */
-      if (!colon)
+      if (!colon) {
+	  debug_write("purge_stale_locks !colon");
         graceful_exit (201);
-
+      }
       if (colon - dent->d_name != strlen(me->username))
         continue;
       if (strncmp (dent->d_name, me->username, colon - dent->d_name))
         continue;
 
-      len = strlen (dent->d_name) + strlen(dgl_format_str(game, me, myconfig[game]->inprogressdir)) + 1;
+      len = strlen (dent->d_name) + strlen(dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL)) + 1;
       fn = malloc (len);
 
-      snprintf (fn, len, "%s%s", dgl_format_str(game, me, myconfig[game]->inprogressdir), dent->d_name);
+      snprintf (fn, len, "%s%s", dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL), dent->d_name);
 
-      if (!(ipfile = fopen (fn, "r")))
+      if (!(ipfile = fopen (fn, "r"))) {
+	  debug_write("purge_stale_locks fopen inprogressdir fail");
         graceful_exit (202);
+      }
 
-      if (fgets (buf, 16, ipfile) == NULL)
+      if (fgets (buf, 16, ipfile) == NULL) {
+	  debug_write("purge_stale_locks fgets ipfile fail");
         graceful_exit (203);
+      }
 
       fclose (ipfile);
 
@@ -1692,6 +1741,7 @@ purge_stale_locks (int game)
                   endwin ();
                   fprintf (stderr, "Sorry, no %s for you now, please "
                            "contact the admin.\n", myconfig[game]->game_name);
+		  debug_write("could not terminate stale processes");
                   graceful_exit (1);
                 }
             }
@@ -1743,6 +1793,7 @@ runmenuloop(struct dg_menu *menu)
 	}
 
 	if (check_retard(0)) {
+	    debug_write("retard");
 	    graceful_exit(119);
 	}
     }
@@ -1946,8 +1997,10 @@ main (int argc, char** argv)
   if (wall_email_str) {
       char *emailfrom = wall_email_str;
       char *emailmsg = strchr(wall_email_str, ':');
-      if (!emailmsg)
+      if (!emailmsg) {
+	  debug_write("wall: no mail msg");
 	  graceful_exit(117);
+      }
       *emailmsg = '\0';
       emailmsg++;
       if (emailmsg)
@@ -1974,11 +2027,15 @@ main (int argc, char** argv)
     }
 
   /* simple login routine, uses ncurses */
-  if (readfile (0))
+  if (readfile (0)) {
+      debug_write("log in fail");
     graceful_exit (110);
+  }
 
-  if (nhauth)
+  if (nhauth) {
+      debug_write("nhauth");
     graceful_exit (authenticate ());
+  }
 
   if (auth)
   {

@@ -72,6 +72,16 @@ AC_ARG_ENABLE(enable-virus,
 AC_SUBST(EDITOR)
 
 
+AC_ARG_ENABLE(enable-debugfile,
+[AC_HELP_STRING([--enable-debugfile], [Enable debugging output to a file.])],
+[], [])
+
+if test "$enable_debugfile" = yes; then
+   AC_MSG_RESULT([Enabling debugging output to a file.])
+   AC_DEFINE(USE_DEBUGFILE,1,[Output debugging into to a file in chroot.])
+fi
+
+
 AC_ARG_ENABLE(enable-sqlite,
 [AC_HELP_STRING([--enable-sqlite], [Use SQLite for the database instead of flat text file.])],
 [], [])
