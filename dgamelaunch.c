@@ -386,7 +386,7 @@ inprogressmenu (int gameid)
 
   for (i = 'a'; i <= 'z'; i++) {
       selectorchars[i-'a'] = i;
-      selectorchars[(i-'a'+1)+'z'] = (i - 'a' + 'A');
+      selectorchars[(i-'a')+('z'-'a')+1] = (i - 'a' + 'A');
   }
 
   if (sortmode == NUM_SORTMODES)
