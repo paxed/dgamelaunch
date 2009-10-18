@@ -270,7 +270,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    if (loggedin) change_email();
 	    break;
 	case DGLCMD_WATCH_MENU:
-	    inprogressmenu(game);
+	    inprogressmenu(-1);
 	    break;
 	case DGLCMD_LOGIN:
 	    if (!loggedin) loginprompt(0);

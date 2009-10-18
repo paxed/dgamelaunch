@@ -409,7 +409,7 @@ inprogressmenu (int gameid)
       graceful_exit(70);
   }
 
-  games = populate_games (gameid, &len, me);
+  games = populate_games (gameid, &len, NULL); /* FIXME: should be 'me' instead of 'NULL' */
   games = sort_games (games, len, sortmode);
 
   while (1)
@@ -625,7 +625,7 @@ watchgame:
 
       if (selected >= 0 && selected < len)
 	  selectedgame = strdup(games[selected]->name);
-      games = populate_games (gameid, &len, me);
+      games = populate_games (gameid, &len, NULL); /* FIXME: should be 'me' instead of 'NULL' */
       games = sort_games (games, len, sortmode);
       if (selectedgame) {
 	  selected = -1;
