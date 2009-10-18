@@ -384,6 +384,8 @@ inprogressmenu (int gameid)
   int selected = -1;
 
   int abs_max_height;
+  int top_banner_hei = 6;
+  int btm;
 
   if (sortmode == NUM_SORTMODES)
       sortmode = globalconfig.sortmode;
@@ -459,12 +461,16 @@ inprogressmenu (int gameid)
 
         }
 
-      i = local_LINES-3;
-      if ((i+3 > ((max_height > len) ? max_height : len)) && (len > 0)) i = max_height+1;
-      if (len > 0)
-	  mvprintw ((i), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
-      mvprintw ((i+1), 1, "'.' changes sort mode (current: %s)", SORTMODE_NAME[sortmode]);
-      mvaddstr ((i+2), 1, "Watch which game? (letter + enter, 'q' quits, '>'/'<' for more/less) => ");
+      btm = local_LINES-3-top_banner_hei;
+      if (btm > i) btm = i+1;
+      if (len > 0) {
+	  if (max_height+offset < len)
+	      mvprintw ((btm+top_banner_hei), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
+	  else
+	      mvprintw ((btm+top_banner_hei), 1, "(end)");
+      }
+      mvprintw ((btm+1+top_banner_hei), 1, "'.' changes sort mode (current: %s)", SORTMODE_NAME[sortmode]);
+      mvaddstr ((btm+2+top_banner_hei), 1, "Watch which game? (letter + enter, 'q' quits, '>'/'<' for more/less) => ");
 
       refresh ();
 
