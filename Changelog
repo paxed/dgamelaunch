@@ -1,4 +1,4 @@
-1.4.8 (2008/??/??)
+1.5.0 (2009/??/??)
 	* Merge the dgl-wall functionality into dgamelaunch itself.
 	* Allow any number of games per dgl installation without recompile.
 	* Allow admin to define the menu structure in config file.
@@ -7,6 +7,7 @@
 	* Allow admin to define different actions taken when something happens.
 	* Allow using SQLite3 for the user login database instead of flat text.
 	* Allow sorting the watchlist, by username or idletime.
+	* Handle terminal size changes without quitting dgl.
 
 1.4.7 (2007/12/22)
 	* Allow more than one game per dgl installation. (by default, up to 3)
