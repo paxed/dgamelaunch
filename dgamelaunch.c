@@ -506,7 +506,9 @@ inprogressmenu (int gameid)
                int match = -1;
                char findname[21];
                findname[0] = '\0';
-               if ((mygetnstr(findname, 20, 0) == OK) && (strlen(findname) > 1)) {
+	       mvprintw ((btm+2+top_banner_hei), 1, "Watch which player? =>                 "); /* stupid... */
+	       mvaddstr ((btm+2+top_banner_hei), 1, "Watch which player? => ");
+               if ((mygetnstr(findname, 20, 1) == OK) && (strlen(findname) > 1)) {
                    for (i = 0; i < len; i++)
                        if (!strcmp(games[i]->name, findname)) {
                            match = i;
