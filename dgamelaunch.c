@@ -371,15 +371,23 @@ drawbanner (struct dg_banner *ban, unsigned int start_line, unsigned int howmany
 void
 inprogressmenu (int gameid)
 {
+    char selectorchars[('z'-'a') + ('Z'-'A')+2];
   int i, menuchoice, len = 20, offset = 0, doresizewin = 0;
   static dg_sortmode sortmode = NUM_SORTMODES;
   time_t ctime;
   struct dg_game **games;
   char ttyrecname[130], *replacestr = NULL, gametype[10];
-  int is_nhext[14];
+  int is_nhext[('z'-'a') + ('Z'-'A')+2];
   sigset_t oldmask, toblock;
   int idx = -1;
   int max_height = -1;
+  int selected = -1;
+
+
+  for (i = 'a'; i <= 'z'; i++) {
+      selectorchars[i-'a'] = i;
+      selectorchars[(i-'a'+1)+'z'] = (i - 'a' + 'A');
+  }
 
   if (sortmode == NUM_SORTMODES)
       sortmode = globalconfig.sortmode;
@@ -392,6 +400,7 @@ inprogressmenu (int gameid)
 	term_resize_check();
 	max_height = local_LINES - 10;
 	if (max_height < 2) return;
+	if (max_height > ('z'-'a') + ('Z'-'A')) max_height = ('z'-'a') + ('Z'-'A');
 
       if (len == 0)
         offset = 0;
@@ -408,7 +417,8 @@ inprogressmenu (int gameid)
 		(((gameid == -1) || (myconfig[gameid]->spool)) ? " 'm' to send mail (requires login)," : ""));
       mvaddstr (4, 1,
                 "'s' to toggle graphic-set stripping for DEC, IBM, and none (default).");
-      mvaddstr (5, 1, "The following games are in progress: (use uppercase to try to change size)");
+      mvaddstr (5, 1, "The following games are in progress:");
+      /*mvaddstr (5, 1, "The following games are in progress: (use uppercase to try to change size)");*/
 
       /* clean old games and list good ones */
       i = 0;
@@ -417,6 +427,8 @@ inprogressmenu (int gameid)
         {
           if (i + offset >= len)
             break;
+
+	  if (i + offset == selected) attron(A_BOLD);
 
 	  is_nhext[i] = !strcmp (games[i + offset]->ttyrec_fn + strlen (games[i + offset]->ttyrec_fn) - 6, ".nhext");
 
@@ -427,18 +439,21 @@ inprogressmenu (int gameid)
 		games[i + offset]->ws_col, games[i + offset]->ws_row);
 
           mvprintw (7 + i, 1, "%c) %-15s  %-5s  (%s) %s %s (%ldm %lds idle)",
-                    i + 97, games[i + offset]->name, myconfig[games[i + offset]->gamenum]->shortname, gametype,
+                    selectorchars[i], games[i + offset]->name, myconfig[games[i + offset]->gamenum]->shortname, gametype,
                     games[i + offset]->date, games[i + offset]->time,
                     (time (&ctime) - games[i + offset]->idle_time) / 60,
                     (time (&ctime) - games[i + offset]->idle_time) % 60);
+
+	  if (i + offset == selected) attroff(A_BOLD);
+
         }
 
-      mvprintw ((local_LINES-2), 1, "'s' and 'S' change sort mode (current: %s)", SORTMODE_NAME[sortmode]);
+      mvprintw ((local_LINES-2), 1, "'.' changes sort mode (current: %s)", SORTMODE_NAME[sortmode]);
 
       if (len > 0)
 	  mvprintw ((local_LINES-3), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
       mvaddstr ((local_LINES-1), 1,
-                "Watch which game? (any key refreshes, 'q' quits, '>'/'<' for more/less) => ");
+                "Watch which game? (letter + enter, 'q' quits, '>'/'<' for more/less) => ");
 
       refresh ();
 
@@ -481,31 +496,37 @@ inprogressmenu (int gameid)
 	case 'q': case 'Q':
           return;
 
-	case 's':
+	case '.':
 	    if (sortmode < (NUM_SORTMODES-1)) sortmode++; else sortmode = SORTMODE_NONE;
-	    break;
-	case 'S':
-	    if (sortmode > SORTMODE_NONE) sortmode--; else sortmode = (NUM_SORTMODES-1);
 	    break;
 
 	case 12: case 18: /* ^L, ^R */
 	  clear ();
 	  break;
 
-        default:
-	  doresizewin = 0;
-	  if (isupper (menuchoice))
-	    {
-	      doresizewin = 1;
-	      menuchoice = tolower (menuchoice);
+	case '1':
+	    doresizewin = (doresizewin ? 1 : 0);
+	    break;
+
+	case 13:
+	case 10:
+	case KEY_ENTER:
+	    if (selected >= 0 && selected < len) {
+		idx = selected;
+		goto watchgame;
 	    }
-          if ((menuchoice - 'a') >= 0 && (menuchoice - 'a') < i)
-            {
-	      if (is_nhext[menuchoice - 97]) /* Cannot watch NhExt game */
-		break;
+	    break;
 
-	      idx = menuchoice - 97 + offset;
+        default:
+	    if (strchr(selectorchars, menuchoice)) {
+		int sidx = strchr(selectorchars, menuchoice) - selectorchars;
+		if (is_nhext[sidx]) /* Cannot watch NhExt game */
+		    break;
 
+	      idx = sidx + offset;
+	      if (selected == idx) selected = -1;
+	      else selected = idx;
+	      break;
 watchgame:
 
               /* valid choice has been made */
