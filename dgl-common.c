@@ -403,6 +403,22 @@ debug_write(char *str)
 }
 #endif /* USE_DEBUGFILE */
 
+void
+free_populated_games(struct dg_game **games, int len)
+{
+    int i;
+    if (!games || (len < 1)) return;
+
+    for (i = 0; i < len; i++) {
+	if (games[i]->ttyrec_fn) free(games[i]->ttyrec_fn);
+	if (games[i]->name) free(games[i]->name);
+	if (games[i]->date) free(games[i]->date);
+	if (games[i]->time) free(games[i]->time);
+	free(games[i]);
+    }
+    free(games);
+}
+
 struct dg_game **
 populate_games (int xgame, int *l, struct dg_user *me)
 {

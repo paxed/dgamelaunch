@@ -195,6 +195,7 @@ extern struct dg_menu *dgl_find_menu(char *menuname);
 
 extern int dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me);
 
+extern void free_populated_games(struct dg_game **games, int len);
 extern struct dg_game **populate_games(int game, int *l, struct dg_user *me);
 
 #ifdef USE_DEBUGFILE

@@ -375,7 +375,7 @@ inprogressmenu (int gameid)
   int i, menuchoice, len = 20, offset = 0, doresizewin = 0;
   static dg_sortmode sortmode = NUM_SORTMODES;
   time_t ctime;
-  struct dg_game **games;
+  struct dg_game **games = NULL;
   char ttyrecname[130], *replacestr = NULL, gametype[10];
   int *is_nhext;
   sigset_t oldmask, toblock;
@@ -405,7 +405,7 @@ inprogressmenu (int gameid)
 	max_height = local_LINES - 10;
 	if (max_height < 2) {
 	    free(is_nhext);
-	    /* TODO: free games[] */
+	    free_populated_games(games, len);
 	    return;
 	}
 	if (max_height > abs_max_height) max_height = abs_max_height;
@@ -507,6 +507,7 @@ inprogressmenu (int gameid)
 	case ERR:
 	case 'q': case 'Q':
 	    if (is_nhext) free(is_nhext);
+	    free_populated_games(games, len);
           return;
 
 	case '.':
@@ -597,6 +598,7 @@ watchgame:
       games = sort_games (games, len, sortmode);
     }
   if (is_nhext) free(is_nhext);
+  free_populated_games(games, len);
 }
 
 /* ************************************************************* */
@@ -769,7 +771,7 @@ void
 wall_email(char *from, char *msg)
 {
     int len, i;
-    struct dg_game **games;
+    struct dg_game **games = NULL;
     char spool_fn[1024+1];
     FILE *user_spool = NULL;
     struct flock fl = { 0 };
@@ -817,6 +819,7 @@ wall_email(char *from, char *msg)
 	fprintf(user_spool, "%s:%s\n", from, msg);
 	fclose(user_spool);
     }
+    free_populated_games(games, len);
 }
 
 void
@@ -1874,7 +1877,7 @@ authenticate ()
 {
   int i, len, me_index;
   char user_buf[22], pw_buf[22];
-  struct dg_game **games;
+  struct dg_game **games = NULL;
 
   /* We use simple password authentication, rather than challenge/response. */
   printf ("\n");
@@ -1911,10 +1914,12 @@ authenticate ()
 	    if (!strcmp (games[i]->name, user_buf))
 	      {
 		fprintf (stderr, "Game already in progress.\n");
+		free_populated_games(games, len);
 		return 1;
 	      }
 	  win.ws_row = win.ws_col = 0;
 	  gen_inprogress_lock (0, getppid (), gen_nhext_filename ());
+	  free_populated_games(games, len);
 	  return 0;
 	}
       }
@@ -1922,6 +1927,7 @@ authenticate ()
 
   sleep (2);
   fprintf (stderr, "Login failed.\n");
+  free_populated_games(games, len);
   return 1;
 }
 
