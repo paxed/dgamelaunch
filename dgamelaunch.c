@@ -371,26 +371,30 @@ drawbanner (struct dg_banner *ban, unsigned int start_line, unsigned int howmany
 void
 inprogressmenu (int gameid)
 {
-    char selectorchars[('z'-'a') + ('Z'-'A')+2];
+    const char *selectorchars = "abcdefghijklmnoprstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ";
   int i, menuchoice, len = 20, offset = 0, doresizewin = 0;
   static dg_sortmode sortmode = NUM_SORTMODES;
   time_t ctime;
   struct dg_game **games;
   char ttyrecname[130], *replacestr = NULL, gametype[10];
-  int is_nhext[('z'-'a') + ('Z'-'A')+2];
+  int *is_nhext;
   sigset_t oldmask, toblock;
   int idx = -1;
   int max_height = -1;
   int selected = -1;
 
-
-  for (i = 'a'; i <= 'z'; i++) {
-      selectorchars[i-'a'] = i;
-      selectorchars[(i-'a')+('z'-'a')+1] = (i - 'a' + 'A');
-  }
+  int abs_max_height;
 
   if (sortmode == NUM_SORTMODES)
       sortmode = globalconfig.sortmode;
+
+  abs_max_height = strlen(selectorchars);
+  is_nhext = (int *)calloc(abs_max_height+1, sizeof(int));
+
+  if (!is_nhext) {
+      debug_write("could not calloc is_nhext");
+      graceful_exit(70);
+  }
 
   games = populate_games (gameid, &len, me);
   games = sort_games (games, len, sortmode);
@@ -399,8 +403,12 @@ inprogressmenu (int gameid)
     {
 	term_resize_check();
 	max_height = local_LINES - 10;
-	if (max_height < 2) return;
-	if (max_height > ('z'-'a') + ('Z'-'A')) max_height = ('z'-'a') + ('Z'-'A');
+	if (max_height < 2) {
+	    free(is_nhext);
+	    /* TODO: free games[] */
+	    return;
+	}
+	if (max_height > abs_max_height) max_height = abs_max_height;
 
       if (len == 0)
         offset = 0;
@@ -498,6 +506,7 @@ inprogressmenu (int gameid)
 
 	case ERR:
 	case 'q': case 'Q':
+	    if (is_nhext) free(is_nhext);
           return;
 
 	case '.':
@@ -552,8 +561,6 @@ watchgame:
                 graceful_exit (145);
 	      }
 
-              /*replacestr[0] = '/';*/
-
               clear ();
               refresh ();
               endwin ();
@@ -589,6 +596,7 @@ watchgame:
       games = populate_games (gameid, &len, me);
       games = sort_games (games, len, sortmode);
     }
+  if (is_nhext) free(is_nhext);
 }
 
 /* ************************************************************* */
