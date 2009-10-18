@@ -54,7 +54,7 @@ int loggedin = 0;
 char *chosen_name;
 int num_games = 0;
 
-int local_COLS = -1, local_LINES = -1;
+int dgl_local_COLS = -1, dgl_local_LINES = -1;
 int curses_resize = 0;
 
 int selected_game = 0;
@@ -75,13 +75,13 @@ sigwinch_func(int sig)
 void
 term_resize_check()
 {
-    if ((COLS == local_COLS) && (LINES == local_LINES) && !curses_resize) return;
+    if ((COLS == dgl_local_COLS) && (LINES == dgl_local_LINES) && !curses_resize) return;
 
     endwin();
     initcurses();
     refresh();
-    local_COLS = COLS;
-    local_LINES = LINES;
+    dgl_local_COLS = COLS;
+    dgl_local_LINES = LINES;
     curses_resize = 0;
 }
 

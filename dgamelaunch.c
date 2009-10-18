@@ -408,7 +408,7 @@ inprogressmenu (int gameid)
   while (1)
     {
 	term_resize_check();
-	max_height = local_LINES - (top_banner_hei + btm_banner_hei) - 1;
+	max_height = dgl_local_LINES - (top_banner_hei + btm_banner_hei) - 1;
 	if (max_height < 2) {
 	    free(is_nhext);
 	    free_populated_games(games, len);
@@ -470,7 +470,7 @@ inprogressmenu (int gameid)
 
         }
 
-      btm = local_LINES-btm_banner_hei-top_banner_hei;
+      btm = dgl_local_LINES-btm_banner_hei-top_banner_hei;
       if (btm > i) btm = i+1;
       if (len > 0) {
 	  if (max_height+offset < len)

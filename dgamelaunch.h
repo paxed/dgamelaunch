@@ -174,8 +174,8 @@ extern int num_games;
 
 extern mode_t default_fmode;
 
-extern int local_COLS;
-extern int local_LINES;
+extern int dgl_local_COLS;
+extern int dgl_local_LINES;
 
 /* dgamelaunch.c */
 extern void create_config(void);
