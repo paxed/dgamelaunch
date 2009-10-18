@@ -408,6 +408,9 @@ inprogressmenu (int gameid)
         {
 	  while (offset >= len && offset >= max_height)
 	    offset -= max_height;
+
+	  while ((offset > 0) && (offset + max_height > len))
+	      offset--;
 	}
 
       erase ();
@@ -479,15 +482,16 @@ inprogressmenu (int gameid)
            }
            break;
         case '>':
-          if ((offset + max_height) >= len)
-            break;
-          else
+	    if ((offset + max_height) >= len) {
+		if (max_height < len) offset = (len - max_height);
+		else offset = 0;
+	    } else
             offset += max_height;
           break;
 
         case '<':
           if ((offset - max_height) < 0)
-            break;
+	      offset = 0;
           else
             offset -= max_height;
           break;
@@ -520,6 +524,12 @@ inprogressmenu (int gameid)
         default:
 	    if (strchr(selectorchars, menuchoice)) {
 		int sidx = strchr(selectorchars, menuchoice) - selectorchars;
+
+		if (sidx > max_height) {
+		    selected = -1;
+		    break;
+		}
+
 		if (is_nhext[sidx]) /* Cannot watch NhExt game */
 		    break;
 
