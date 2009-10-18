@@ -379,6 +379,7 @@ inprogressmenu (int gameid)
   int is_nhext[14];
   sigset_t oldmask, toblock;
   int idx = -1;
+  int max_height = -1;
 
   if (sortmode == NUM_SORTMODES)
       sortmode = globalconfig.sortmode;
@@ -388,12 +389,16 @@ inprogressmenu (int gameid)
 
   while (1)
     {
+	term_resize_check();
+	max_height = local_LINES - 10;
+	if (max_height < 2) return;
+
       if (len == 0)
         offset = 0;
       else
         {
-	  while (offset >= len && offset >= 14)
-	    offset -= 14;
+	  while (offset >= len && offset >= max_height)
+	    offset -= max_height;
 	}
 
       erase ();
@@ -408,7 +413,7 @@ inprogressmenu (int gameid)
       /* clean old games and list good ones */
       i = 0;
 
-      for (i = 0; i < 14; i++)
+      for (i = 0; i < max_height; i++)
         {
           if (i + offset >= len)
             break;
@@ -428,12 +433,13 @@ inprogressmenu (int gameid)
                     (time (&ctime) - games[i + offset]->idle_time) % 60);
         }
 
-      mvprintw (22, 1, "'s' and 'S' change sort mode (current: %s)", SORTMODE_NAME[sortmode]);
+      mvprintw ((local_LINES-2), 1, "'s' and 'S' change sort mode (current: %s)", SORTMODE_NAME[sortmode]);
 
       if (len > 0)
-        mvprintw (21, 1, "(%d-%d of %d)", offset + 1, offset + i, len);
-      mvaddstr (23, 1,
+	  mvprintw ((local_LINES-3), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
+      mvaddstr ((local_LINES-1), 1,
                 "Watch which game? (any key refreshes, 'q' quits, '>'/'<' for more/less) => ");
+
       refresh ();
 
       switch ((menuchoice = getch ()))
@@ -458,17 +464,17 @@ inprogressmenu (int gameid)
            }
            break;
         case '>':
-          if ((offset + 14) >= len)
+          if ((offset + max_height) >= len)
             break;
           else
-            offset += 14;
+            offset += max_height;
           break;
 
         case '<':
-          if ((offset - 14) < 0)
+          if ((offset - max_height) < 0)
             break;
           else
-            offset -= 14;
+            offset -= max_height;
           break;
 
 	case ERR:
@@ -1968,6 +1974,7 @@ main (int argc, char** argv)
 
   /* signal handlers */
   signal (SIGHUP, catch_sighup);
+  signal(SIGWINCH, sigwinch_func);
 
   (void) tcgetattr (0, &tt);
   if (-1 == ioctl (0, TIOCGWINSZ, (char *) &win) || win.ws_row < 4 ||
@@ -2081,6 +2088,7 @@ main (int argc, char** argv)
   }
 
   initcurses ();
+  term_resize_check();
 
   while (1) {
       if (runmenuloop(dgl_find_menu(loggedin ? "mainmenu_user" : "mainmenu_anon")))

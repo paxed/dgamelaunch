@@ -93,7 +93,7 @@ mygetnstr(char *buf, int maxlen, int doecho)
 	    else
 		beep();
 	}
-	else if (c == 10 || c == 13 || c == KEY_ENTER)
+	else if (c == 10 || c == 13 || c == KEY_ENTER || c == KEY_RESIZE)
 	    break;
 	else if (c == ERR)
 	{

@@ -174,6 +174,9 @@ extern int num_games;
 
 extern mode_t default_fmode;
 
+extern int local_COLS;
+extern int local_LINES;
+
 /* dgamelaunch.c */
 extern void create_config(void);
 extern void ttyrec_getmaster(void);
@@ -184,6 +187,9 @@ extern void loadbanner(char *fname, struct dg_banner *ban);
 extern void drawbanner(struct dg_banner *ban, unsigned int start_line, unsigned int howmany);
 extern int check_retard(int reset);
 extern char *dgl_format_str(int game, struct dg_user *me, char *str, char *plrname);
+
+extern void term_resize_check();
+extern void sigwinch_func(int sig);
 
 extern struct dg_menu *dgl_find_menu(char *menuname);
 

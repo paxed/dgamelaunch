@@ -54,6 +54,9 @@ int loggedin = 0;
 char *chosen_name;
 int num_games = 0;
 
+int local_COLS = -1, local_LINES = -1;
+int curses_resize = 0;
+
 int selected_game = 0;
 int return_from_submenu = 0;
 
@@ -61,6 +64,26 @@ mode_t default_fmode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH
 
 struct dg_globalconfig globalconfig;
 
+void
+sigwinch_func(int sig)
+{
+    signal(SIGWINCH, sigwinch_func);
+    curses_resize = 1;
+    term_resize_check();
+}
+
+void
+term_resize_check()
+{
+    if ((COLS == local_COLS) && (LINES == local_LINES) && !curses_resize) return;
+
+    endwin();
+    initcurses();
+    refresh();
+    local_COLS = COLS;
+    local_LINES = LINES;
+    curses_resize = 0;
+}
 
 int
 check_retard(int reset)
