@@ -476,7 +476,7 @@ inprogressmenu (int gameid)
 	  if (max_height+offset < len)
 	      mvprintw ((btm+top_banner_hei), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
 	  else
-	      mvprintw ((btm+top_banner_hei), 1, "(end)");
+	      mvprintw ((btm+top_banner_hei), 4, "(end)");
 	  mvaddstr ((btm+2+top_banner_hei), 1, "Watch which game? ('?' for help) => ");
       } else {
 	  mvprintw(top_banner_hei,4,"Sorry, no games available for viewing.");
@@ -490,6 +490,7 @@ inprogressmenu (int gameid)
 	case '*':
 	    if (len > 0) {
 		idx = random() % len;
+		selected = idx;
 		goto watchgame;
 	    }
 	    break;
@@ -510,6 +511,7 @@ inprogressmenu (int gameid)
                    if (match > -1) {
 		       if (!strcmp(games[match]->ttyrec_fn + strlen (games[match]->ttyrec_fn) - 6, ".nhext")) break;
 		       idx = match;
+		       selected = idx;
 		       goto watchgame;
                    }
                }
