@@ -384,8 +384,12 @@ inprogressmenu (int gameid)
   int selected = -1;
 
   int abs_max_height;
-  int top_banner_hei = 4;
+  int top_banner_hei = 5;
+  int btm_banner_hei = 3;
   int btm;
+
+  int title_attr = A_STANDOUT;
+  int selected_attr = A_BOLD;
 
   if (sortmode == NUM_SORTMODES)
       sortmode = globalconfig.sortmode;
@@ -404,7 +408,7 @@ inprogressmenu (int gameid)
   while (1)
     {
 	term_resize_check();
-	max_height = local_LINES - 8;
+	max_height = local_LINES - (top_banner_hei + btm_banner_hei) - 1;
 	if (max_height < 2) {
 	    free(is_nhext);
 	    free_populated_games(games, len);
@@ -425,25 +429,31 @@ inprogressmenu (int gameid)
 
       erase ();
       drawbanner (&banner, 1, 1);
-      /*
-      mvprintw (3, 1,
-		"During playback, hit 'q' to return here,%s",
-		(((gameid == -1) || (myconfig[gameid]->spool)) ? " 'm' to send mail (requires login)," : ""));
-      mvaddstr (4, 1,
-                "'s' to toggle graphic-set stripping for DEC, IBM, and none (default).");
-      */
+
       mvaddstr (3, 1, "The following games are in progress:");
-      /*mvaddstr (5, 1, "The following games are in progress: (use uppercase to try to change size)");*/
 
       /* clean old games and list good ones */
       i = 0;
+
+      mvprintw(top_banner_hei,1 ," ");
+      if (sortmode == SORTMODE_USERNAME) attron(title_attr);
+      mvprintw(top_banner_hei,4 ,   "Username");
+      if (sortmode == SORTMODE_USERNAME) attroff(title_attr);
+      mvprintw(top_banner_hei,21,                    "Game");
+      mvprintw(top_banner_hei,29,                            "Size");
+      mvprintw(top_banner_hei,37,                                    "Start date & time");
+      if (sortmode == SORTMODE_IDLETIME) attron(title_attr);
+      mvprintw(top_banner_hei,58,                                                         "Idle time");
+      if (sortmode == SORTMODE_IDLETIME) attroff(title_attr);
+
+      /*      mvprintw(top_banner_hei,1,"   Username         Game    Size    Start date & time    Idle time");*/
 
       for (i = 0; i < max_height; i++)
         {
           if (i + offset >= len)
             break;
 
-	  if (i + offset == selected) attron(A_BOLD);
+	  if (i + offset == selected) attron(selected_attr);
 
 	  is_nhext[i] = !strcmp (games[i + offset]->ttyrec_fn + strlen (games[i + offset]->ttyrec_fn) - 6, ".nhext");
 
@@ -453,17 +463,17 @@ inprogressmenu (int gameid)
 	    snprintf (gametype, sizeof gametype, "%3dx%3d",
 		games[i + offset]->ws_col, games[i + offset]->ws_row);
 
-          mvprintw (top_banner_hei + 1 + i, 1, "%c) %-15s  %-5s  (%s) %s %s (%ldm %lds idle)",
+          mvprintw (top_banner_hei + 1 + i, 1, "%c) %-15s  %-5s  %s  %s %s  %ldm %lds",
                     selectorchars[i], games[i + offset]->name, myconfig[games[i + offset]->gamenum]->shortname, gametype,
                     games[i + offset]->date, games[i + offset]->time,
                     (time (&ctime) - games[i + offset]->idle_time) / 60,
                     (time (&ctime) - games[i + offset]->idle_time) % 60);
 
-	  if (i + offset == selected) attroff(A_BOLD);
+	  if (i + offset == selected) attroff(selected_attr);
 
         }
 
-      btm = local_LINES-3-top_banner_hei;
+      btm = local_LINES-btm_banner_hei-top_banner_hei;
       if (btm > i) btm = i+1;
       if (len > 0) {
 	  if (max_height+offset < len)

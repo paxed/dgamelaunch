@@ -1,11 +1,6 @@
 -update virus to the newest version.
--inprogress-dir config option prepends the dgl-root dir, other
- config dirs do not. unify.
 -allow changing the name where the ttyrecs are saved, like
   ttyrec_fn = "%rttyrec/%n/%g/%p.ttyrec"
--allow typing / in watching screen to search for a user
- ("/foo<enter>" would start watching user foo's game, or
- report that that player is not playing.
 -maybe save more stuff in the db, if we're using the sqlite
  (last login timestamp, watch-menu sort-type, etc)
 -Allow using a ttyrec (or similar screen capture) as the menu
