@@ -393,6 +393,8 @@ inprogressmenu (int gameid)
   int title_attr = A_STANDOUT;
   int selected_attr = A_BOLD;
 
+  int require_enter = 0; /* TODO: make configurable */
+
   if (sortmode == NUM_SORTMODES)
       sortmode = globalconfig.sortmode;
 
@@ -574,9 +576,11 @@ inprogressmenu (int gameid)
 		    break;
 
 	      idx = sidx + offset;
-	      if (selected == idx) selected = -1;
-	      else selected = idx;
-	      break;
+	      if (require_enter) {
+		  if (selected == idx) selected = -1;
+		  else selected = idx;
+		  break;
+	      } else selected = idx;
 watchgame:
 
               /* valid choice has been made */
