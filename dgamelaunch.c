@@ -560,7 +560,7 @@ inprogressmenu (int gameid)
 	  break;
 
 	case '1':
-	    doresizewin = (doresizewin ? 1 : 0);
+	    doresizewin = (doresizewin ? 0 : 1);
 	    break;
 
 	case 13:
