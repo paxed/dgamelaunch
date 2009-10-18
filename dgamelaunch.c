@@ -459,12 +459,12 @@ inprogressmenu (int gameid)
 
         }
 
-      mvprintw ((local_LINES-2), 1, "'.' changes sort mode (current: %s)", SORTMODE_NAME[sortmode]);
-
+      i = local_LINES-3;
+      if ((i+3 > max_height) && len) i = max_height+1;
       if (len > 0)
-	  mvprintw ((local_LINES-3), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
-      mvaddstr ((local_LINES-1), 1,
-                "Watch which game? (letter + enter, 'q' quits, '>'/'<' for more/less) => ");
+	  mvprintw ((i), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
+      mvprintw ((i+1), 1, "'.' changes sort mode (current: %s)", SORTMODE_NAME[sortmode]);
+      mvaddstr ((i+2), 1, "Watch which game? (letter + enter, 'q' quits, '>'/'<' for more/less) => ");
 
       refresh ();
 
