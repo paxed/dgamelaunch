@@ -504,17 +504,23 @@ inprogressmenu (int gameid)
        case '/':
            {
                int match = -1;
+	       int firstmatch = -1;
+	       int nmatches = 0;
                char findname[21];
 	       if (len <= 0) break;
                findname[0] = '\0';
 	       mvprintw ((btm+2+top_banner_hei), 1, "Watch which player? =>                 "); /* stupid... */
 	       mvaddstr ((btm+2+top_banner_hei), 1, "Watch which player? => ");
                if ((mygetnstr(findname, 20, 1) == OK) && (strlen(findname) > 1)) {
+		   int mlen = strlen(findname);
                    for (i = 0; i < len; i++)
-                       if (!strcmp(games[i]->name, findname)) {
+                       if (!strncasecmp(games[i]->name, findname, mlen)) {
+			   if (firstmatch == -1) firstmatch = i;
                            match = i;
-                           break;
+			   nmatches++;
                        }
+		   if (nmatches > 1)
+		       match = firstmatch;
                    if (match > -1) {
 		       if (!strcmp(games[match]->ttyrec_fn + strlen (games[match]->ttyrec_fn) - 6, ".nhext")) break;
 		       idx = match;
