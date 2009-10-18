@@ -384,7 +384,7 @@ inprogressmenu (int gameid)
   int selected = -1;
 
   int abs_max_height;
-  int top_banner_hei = 6;
+  int top_banner_hei = 4;
   int btm;
 
   if (sortmode == NUM_SORTMODES)
@@ -404,7 +404,7 @@ inprogressmenu (int gameid)
   while (1)
     {
 	term_resize_check();
-	max_height = local_LINES - 10;
+	max_height = local_LINES - 8;
 	if (max_height < 2) {
 	    free(is_nhext);
 	    free_populated_games(games, len);
@@ -425,12 +425,14 @@ inprogressmenu (int gameid)
 
       erase ();
       drawbanner (&banner, 1, 1);
+      /*
       mvprintw (3, 1,
 		"During playback, hit 'q' to return here,%s",
 		(((gameid == -1) || (myconfig[gameid]->spool)) ? " 'm' to send mail (requires login)," : ""));
       mvaddstr (4, 1,
                 "'s' to toggle graphic-set stripping for DEC, IBM, and none (default).");
-      mvaddstr (5, 1, "The following games are in progress:");
+      */
+      mvaddstr (3, 1, "The following games are in progress:");
       /*mvaddstr (5, 1, "The following games are in progress: (use uppercase to try to change size)");*/
 
       /* clean old games and list good ones */
@@ -451,7 +453,7 @@ inprogressmenu (int gameid)
 	    snprintf (gametype, sizeof gametype, "%3dx%3d",
 		games[i + offset]->ws_col, games[i + offset]->ws_row);
 
-          mvprintw (7 + i, 1, "%c) %-15s  %-5s  (%s) %s %s (%ldm %lds idle)",
+          mvprintw (top_banner_hei + 1 + i, 1, "%c) %-15s  %-5s  (%s) %s %s (%ldm %lds idle)",
                     selectorchars[i], games[i + offset]->name, myconfig[games[i + offset]->gamenum]->shortname, gametype,
                     games[i + offset]->date, games[i + offset]->time,
                     (time (&ctime) - games[i + offset]->idle_time) / 60,
@@ -469,13 +471,16 @@ inprogressmenu (int gameid)
 	  else
 	      mvprintw ((btm+top_banner_hei), 1, "(end)");
       }
-      mvprintw ((btm+1+top_banner_hei), 1, "'.' changes sort mode (current: %s)", SORTMODE_NAME[sortmode]);
-      mvaddstr ((btm+2+top_banner_hei), 1, "Watch which game? (letter + enter, 'q' quits, '>'/'<' for more/less) => ");
+      /*mvprintw ((btm+1+top_banner_hei), 1, "'.' changes sort mode (current: %s)", SORTMODE_NAME[sortmode]);*/
+      mvaddstr ((btm+2+top_banner_hei), 1, "Watch which game? ('?' for help) => ");
 
       refresh ();
 
       switch ((menuchoice = getch ()))
         {
+	case '?':
+	    (void) runmenuloop(dgl_find_menu("watchmenu_help"));
+	    break;
        case '/':
            {
                int match = -1;
