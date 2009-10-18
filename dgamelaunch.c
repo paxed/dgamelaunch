@@ -505,6 +505,7 @@ inprogressmenu (int gameid)
            {
                int match = -1;
                char findname[21];
+	       if (len <= 0) break;
                findname[0] = '\0';
 	       mvprintw ((btm+2+top_banner_hei), 1, "Watch which player? =>                 "); /* stupid... */
 	       mvaddstr ((btm+2+top_banner_hei), 1, "Watch which player? => ");
@@ -566,7 +567,7 @@ inprogressmenu (int gameid)
 	    break;
 
         default:
-	    if (strchr(selectorchars, menuchoice)) {
+	    if (strchr(selectorchars, menuchoice) && (len > 0)) {
 		int sidx = strchr(selectorchars, menuchoice) - selectorchars;
 
 		if (sidx > max_height) {
