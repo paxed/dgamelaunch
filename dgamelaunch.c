@@ -460,7 +460,7 @@ inprogressmenu (int gameid)
         }
 
       i = local_LINES-3;
-      if ((i+3 > max_height) && len) i = max_height+1;
+      if ((i+3 > ((max_height > len) ? max_height : len)) && (len > 0)) i = max_height+1;
       if (len > 0)
 	  mvprintw ((i), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
       mvprintw ((i+1), 1, "'.' changes sort mode (current: %s)", SORTMODE_NAME[sortmode]);
