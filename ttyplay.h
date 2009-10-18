@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "ttyrec.h"
 
-int ttyplay_main (char *ttyfile, int mode);
+int ttyplay_main (char *ttyfile, int mode, int resizex, int resizey);
 
 typedef double (*WaitFunc) (struct timeval prev,
                             struct timeval cur, double speed);

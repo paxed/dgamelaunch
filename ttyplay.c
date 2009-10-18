@@ -61,6 +61,9 @@
 int stripped = NO_GRAPHICS;
 static int got_sigwinch = 0;
 
+static int term_resizex = -1;
+static int term_resizey = -1;
+
 void
 ttyplay_sigwinch_func(int sig)
 {
@@ -247,6 +250,10 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
             case 'q':
               return READ_EOF;
               break;
+	    case 'r':
+		if (term_resizex > 0 && term_resizey > 0)
+		    printf ("\033[8;%d;%dt", term_resizey, term_resizex);
+		break;
 	    case 's':
 	      switch (stripped)
 	      {
@@ -445,7 +452,7 @@ ttypeek (FILE * fp, double speed)
 
 
 int
-ttyplay_main (char *ttyfile, int mode)
+ttyplay_main (char *ttyfile, int mode, int resizex, int resizey)
 {
   double speed = 1.0;
   ReadFunc read_func = ttyread;
@@ -465,6 +472,12 @@ ttyplay_main (char *ttyfile, int mode)
   new.c_cc[VTIME] = 0;
   tcsetattr (0, TCSANOW, &new); /* Make it current */
 
+
+  if (resizex > 0 && resizey > 0) {
+      term_resizex = resizex;
+      term_resizey = resizey;
+  }
+
   got_sigwinch = 0;
   old_sigwinch = signal(SIGWINCH, ttyplay_sigwinch_func);
 
@@ -478,6 +491,8 @@ ttyplay_main (char *ttyfile, int mode)
 
   if (old_sigwinch != SIG_ERR)
       signal(SIGWINCH, old_sigwinch);
+
+  term_resizex = term_resizey = -1;
 
   return 0;
 }

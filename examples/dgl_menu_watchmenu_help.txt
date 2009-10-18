@@ -13,10 +13,10 @@
 
  While watching a game
  ---------------------
- q        returns back to the watching menu.
+ q        return back to the watching menu.
  m        send mail to the player (requires login).
  s        toggle charset stripping between DEC/IBM/none.
-
+ r        resize your terminal to match the player's terminal.
 
 
  Press 'q' or space to return to the watching menu.

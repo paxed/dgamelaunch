@@ -372,7 +372,7 @@ void
 inprogressmenu (int gameid)
 {
     const char *selectorchars = "abcdefghijklmnoprstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ";
-  int i, menuchoice, len = 20, offset = 0, doresizewin = 0;
+  int i, menuchoice, len = 20, offset = 0;
   static dg_sortmode sortmode = NUM_SORTMODES;
   time_t ctime;
   struct dg_game **games = NULL;
@@ -382,6 +382,9 @@ inprogressmenu (int gameid)
   int idx = -1;
   int max_height = -1;
   int selected = -1;
+
+  int resizex = -1;
+  int resizey = -1;
 
   char *selectedgame = NULL;
 
@@ -559,10 +562,6 @@ inprogressmenu (int gameid)
 	  clear ();
 	  break;
 
-	case '1':
-	    doresizewin = (doresizewin ? 0 : 1);
-	    break;
-
 	case 13:
 	case 10:
 	case KEY_ENTER:
@@ -608,32 +607,19 @@ watchgame:
               clear ();
               refresh ();
               endwin ();
-	      if (doresizewin)
-	        {
-		  /*
-		   * Let curses deal with the resize later. Perhaps this is
-		   * not the best way.
-		   */
-		  sigemptyset (&toblock);
-		  sigaddset (&toblock, SIGWINCH);
-		  sigprocmask (SIG_BLOCK, &toblock, &oldmask);
-		  printf ("\033[8;%d;%dt",
-		    games[idx]->ws_row,
-		    games[idx]->ws_col);
-		  fflush (stdout);
-		}
+
+	      resizey = games[idx]->ws_row;
+	      resizex = games[idx]->ws_col;
 	      if (loggedin)
 		  setproctitle("%s [watching %s]", me->username, chosen_name);
 	      else
 		  setproctitle("<Anonymous> [watching %s]", chosen_name);
-              ttyplay_main (ttyrecname, 1);
+              ttyplay_main (ttyrecname, 1, resizex, resizey);
 	      if (loggedin)
 		  setproctitle("%s", me->username);
 	      else
 		  setproctitle("<Anonymous>");
               initcurses ();
-	      if (doresizewin)
-	        sigprocmask (SIG_SETMASK, &oldmask, NULL);
             }
         }
 
