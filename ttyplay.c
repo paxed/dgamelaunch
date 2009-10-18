@@ -33,6 +33,8 @@
 
 #include "config.h"
 
+#define _GNU_SOURCE /* need sighandler_t */
+
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -47,6 +49,8 @@
 #include <termios.h>
 #include <string.h>
 #include <curses.h>
+#include <signal.h>
+#include <errno.h>
 
 #include "dgamelaunch.h"
 #include "ttyplay.h"
@@ -55,6 +59,14 @@
 #include "stripgfx.h"
 
 int stripped = NO_GRAPHICS;
+static int got_sigwinch = 0;
+
+void
+ttyplay_sigwinch_func(int sig)
+{
+    signal(SIGWINCH, ttyplay_sigwinch_func);
+    got_sigwinch = 1;
+}
 
 struct timeval
 timeval_diff (struct timeval tv1, struct timeval tv2)
@@ -153,6 +165,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
   fd_set readfs;
   struct termios t;
   int doread = 0;
+  static int tried_resize = 0;
 
 #ifdef HAVE_KQUEUE
   if (kq == -1)
@@ -215,8 +228,13 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
       }
       if (n == -1)
 	{
-	  printf("select()/kevent() failed.\n");
-	  exit (1);
+	    if ((errno == EINTR) && got_sigwinch) {
+		got_sigwinch = 0;
+		return READ_RESTART;
+	    } else {
+		printf("select()/kevent() failed.\n");
+		exit (1);
+	    }
 	}
       if (doread)
         {                       /* user hits a character? */
@@ -433,6 +451,7 @@ ttyplay_main (char *ttyfile, int mode)
   WaitFunc wait_func = ttywait;
   FILE *input = stdin;
   struct termios old, new;
+  sighandler_t old_sigwinch;
 
   populate_gfx_array (stripped);
 
@@ -445,6 +464,9 @@ ttyplay_main (char *ttyfile, int mode)
   new.c_cc[VTIME] = 0;
   tcsetattr (0, TCSANOW, &new); /* Make it current */
 
+  got_sigwinch = 0;
+  old_sigwinch = signal(SIGWINCH, ttyplay_sigwinch_func);
+
   if (mode == 1)
     ttypeek (input, speed);
   else
@@ -452,6 +474,9 @@ ttyplay_main (char *ttyfile, int mode)
 
   tcsetattr (0, TCSANOW, &old); /* Return terminal state */
   fclose (input);
+
+  if (old_sigwinch != SIG_ERR)
+      signal(SIGWINCH, old_sigwinch);
 
   return 0;
 }
