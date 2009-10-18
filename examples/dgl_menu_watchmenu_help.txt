@@ -6,16 +6,16 @@
  > <      next/previous page.
  .        change sorting method.
  q Q      return to main menu.
- a-zA-Z   select a game entry.
- enter    start showing the selected game.
+ a-zA-Z   select a game to watch.
  *        start showing a randomly selected game.
+ enter	  start watching already selected game.
 
 
  While watching a game
  ---------------------
  q        returns back to the watching menu.
  m        send mail to the player (requires login).
- s        toggle charset stripping between DEC/IBM/none. 
+ s        toggle charset stripping between DEC/IBM/none.
 
 
 
