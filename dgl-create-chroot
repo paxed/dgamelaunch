@@ -147,8 +147,12 @@ fi
 
 if [ -n "$NETHACKBIN" -a -e "$NETHACKBIN" ]; then
   echo "Copying $NETHACKBIN"
-  sudo cp "$NETHACKBIN" "$NHSUBDIR/"
+  cd "$NHSUBDIR"
+  NHBINFILE="`basename $NETHACKBIN`.`date +%Y%m%d`"
+  sudo cp "$NETHACKBIN" "$NHBINFILE"
+  sudo ln -s "$NHBINFILE" nethack
   LIBS="$LIBS `findlibs $NETHACKBIN`"
+  cd "$CHROOT"
 fi
 
 
