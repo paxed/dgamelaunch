@@ -430,23 +430,20 @@ inprogressmenu (int gameid)
       erase ();
       drawbanner (&banner, 1, 1);
 
-      mvaddstr (3, 1, "The following games are in progress:");
+      if (len > 0) {
+	  mvaddstr (3, 1, "The following games are in progress:");
 
-      /* clean old games and list good ones */
-      i = 0;
-
-      mvprintw(top_banner_hei,1 ," ");
-      if (sortmode == SORTMODE_USERNAME) attron(title_attr);
-      mvprintw(top_banner_hei,4 ,   "Username");
-      if (sortmode == SORTMODE_USERNAME) attroff(title_attr);
-      mvprintw(top_banner_hei,21,                    "Game");
-      mvprintw(top_banner_hei,29,                            "Size");
-      mvprintw(top_banner_hei,37,                                    "Start date & time");
-      if (sortmode == SORTMODE_IDLETIME) attron(title_attr);
-      mvprintw(top_banner_hei,58,                                                         "Idle time");
-      if (sortmode == SORTMODE_IDLETIME) attroff(title_attr);
-
-      /*      mvprintw(top_banner_hei,1,"   Username         Game    Size    Start date & time    Idle time");*/
+	  mvprintw(top_banner_hei,1," ");
+	  if (sortmode == SORTMODE_USERNAME) attron(title_attr);
+	  mvprintw(top_banner_hei,4,"Username");
+	  if (sortmode == SORTMODE_USERNAME) attroff(title_attr);
+	  mvprintw(top_banner_hei,21,"Game");
+	  mvprintw(top_banner_hei,29,"Size");
+	  mvprintw(top_banner_hei,37,"Start date & time");
+	  if (sortmode == SORTMODE_IDLETIME) attron(title_attr);
+	  mvprintw(top_banner_hei,58,"Idle time");
+	  if (sortmode == SORTMODE_IDLETIME) attroff(title_attr);
+      }
 
       for (i = 0; i < max_height; i++)
         {
@@ -480,9 +477,11 @@ inprogressmenu (int gameid)
 	      mvprintw ((btm+top_banner_hei), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
 	  else
 	      mvprintw ((btm+top_banner_hei), 1, "(end)");
+	  mvaddstr ((btm+2+top_banner_hei), 1, "Watch which game? ('?' for help) => ");
+      } else {
+	  mvprintw(top_banner_hei,4,"Sorry, no games available for viewing.");
+	  mvaddstr((btm+2+top_banner_hei), 1, "Press 'q' to return, or '?' for help => ");
       }
-      /*mvprintw ((btm+1+top_banner_hei), 1, "'.' changes sort mode (current: %s)", SORTMODE_NAME[sortmode]);*/
-      mvaddstr ((btm+2+top_banner_hei), 1, "Watch which game? ('?' for help) => ");
 
       refresh ();
 
