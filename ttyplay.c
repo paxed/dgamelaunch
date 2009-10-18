@@ -136,7 +136,7 @@ ttyread (FILE * fp, Header * h, char **buf, int pread)
       exit (-21);
     }
 
-  *buf = malloc (h->len);
+  *buf = malloc (h->len + 1);
   if (*buf == NULL)
     {
       perror ("malloc");
@@ -148,6 +148,7 @@ ttyread (FILE * fp, Header * h, char **buf, int pread)
       fseek (fp, offset, SEEK_SET);
       return READ_EOF;
     }
+  (*buf)[h->len] = 0;
   return READ_DATA;
 }
 
