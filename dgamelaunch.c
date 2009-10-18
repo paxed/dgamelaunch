@@ -383,6 +383,8 @@ inprogressmenu (int gameid)
   int max_height = -1;
   int selected = -1;
 
+  char *selectedgame = NULL;
+
   int abs_max_height;
   int top_banner_hei = 5;
   int btm_banner_hei = 3;
@@ -622,8 +624,20 @@ watchgame:
             }
         }
 
+      if (selected >= 0 && selected < len)
+	  selectedgame = strdup(games[selected]->name);
       games = populate_games (gameid, &len, me);
       games = sort_games (games, len, sortmode);
+      if (selectedgame) {
+	  selected = -1;
+	  for (i = 0; i < len; i++)
+	      if (!strcmp(games[i]->name, selectedgame)) {
+		  selected = i;
+		  break;
+	      }
+	  free(selectedgame);
+	  selectedgame = NULL;
+      }
     }
   if (is_nhext) free(is_nhext);
   free_populated_games(games, len);
