@@ -131,6 +131,7 @@ cd ..
 
 sudo cp "$CURDIR/examples/dgl_menu_main_anon.txt" .
 sudo cp "$CURDIR/examples/dgl_menu_main_user.txt" .
+sudo cp "$CURDIR/examples/dgl_menu_watchmenu_help.txt" .
 sudo cp "$CURDIR/examples/dgl-banner" .
 sudo cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile.nh343"
 sudo chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile.nh343
