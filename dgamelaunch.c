@@ -487,6 +487,12 @@ inprogressmenu (int gameid)
 
       switch ((menuchoice = getch ()))
         {
+	case '*':
+	    if (len > 0) {
+		idx = random() % len;
+		goto watchgame;
+	    }
+	    break;
 	case '?':
 	    (void) runmenuloop(dgl_find_menu("watchmenu_help"));
 	    break;
@@ -2034,6 +2040,8 @@ main (int argc, char** argv)
     memset(argv[optind++], 0, len);
   }
   setproctitle("<Anonymous>");
+
+  srand(time(0));
 
   create_config();
 

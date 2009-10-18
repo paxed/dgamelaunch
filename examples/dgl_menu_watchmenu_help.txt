@@ -2,12 +2,13 @@
 
  Help for watching-menu
  ----------------------
- ?        shows this help.
+ ?        show this help.
  > <      next/previous page.
- .        changes sorting method.
+ .        change sorting method.
  q Q      return to main menu.
- a-zA-Z   selects the game entry.
- enter    starts showing the selected game.
+ a-zA-Z   select a game entry.
+ enter    start showing the selected game.
+ *        start showing a randomly selected game.
 
 
  While watching a game
