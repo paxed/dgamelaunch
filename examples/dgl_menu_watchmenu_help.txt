@@ -8,7 +8,7 @@
  q Q      return to main menu.
  a-zA-Z   select a game to watch.
  *        start showing a randomly selected game.
- enter	  start watching already selected game.
+ enter    start watching already selected game.
 
 
  While watching a game
