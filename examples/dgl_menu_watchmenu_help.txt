@@ -4,7 +4,7 @@
  ----------------------
  ?        show this help.
  > <      next/previous page.
- .        change sorting method.
+ . ,      change sorting method.
  q Q      return to main menu.
  a-zA-Z   select a game to watch.
  *        start showing a randomly selected game.

@@ -562,6 +562,10 @@ inprogressmenu (int gameid)
 	    if (sortmode < (NUM_SORTMODES-1)) sortmode++; else sortmode = SORTMODE_NONE;
 	    break;
 
+	case ',':
+	    if (sortmode > 0) sortmode--; else sortmode = (NUM_SORTMODES-1);
+	    break;
+
 	case 12: case 18: /* ^L, ^R */
 	  clear ();
 	  break;
