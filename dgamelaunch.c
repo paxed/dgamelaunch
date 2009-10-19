@@ -440,16 +440,20 @@ inprogressmenu (int gameid)
       if (len > 0) {
 	  mvaddstr (3, 1, "The following games are in progress:");
 
+#define dgl_sortprintw(mode, x, str)                 \
+	  if (sortmode == mode) attron(title_attr);  \
+	  mvprintw(top_banner_hei,x,str);            \
+	  if (sortmode == mode) attroff(title_attr);
+
 	  mvprintw(top_banner_hei,1," ");
-	  if (sortmode == SORTMODE_USERNAME) attron(title_attr);
-	  mvprintw(top_banner_hei,4,"Username");
-	  if (sortmode == SORTMODE_USERNAME) attroff(title_attr);
-	  mvprintw(top_banner_hei,21,"Game");
-	  mvprintw(top_banner_hei,29,"Size");
-	  mvprintw(top_banner_hei,37,"Start date & time");
-	  if (sortmode == SORTMODE_IDLETIME) attron(title_attr);
-	  mvprintw(top_banner_hei,58,"Idle time");
-	  if (sortmode == SORTMODE_IDLETIME) attroff(title_attr);
+
+	  dgl_sortprintw(SORTMODE_USERNAME,    4, "Username")
+	  dgl_sortprintw(SORTMODE_GAMENUM,    21, "Game")
+	  dgl_sortprintw(SORTMODE_WINDOWSIZE, 29, "Size")
+	  dgl_sortprintw(SORTMODE_STARTTIME,  37, "Start date & time")
+	  dgl_sortprintw(SORTMODE_IDLETIME,   58, "Idle time")
+
+#undef dgl_sortprintw
       }
 
       for (i = 0; i < max_height; i++)

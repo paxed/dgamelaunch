@@ -13,6 +13,7 @@
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
+#define dglsign(x) (x < 0 ? -1 : (x > 0 ? 1 : 0))
 
 typedef enum
 {
@@ -146,6 +147,9 @@ typedef enum
 {
     SORTMODE_NONE = 0,
     SORTMODE_USERNAME,
+    SORTMODE_GAMENUM,
+    SORTMODE_WINDOWSIZE,
+    SORTMODE_STARTTIME,
     SORTMODE_IDLETIME,
     NUM_SORTMODES
 } dg_sortmode;
@@ -153,6 +157,9 @@ typedef enum
 static const char *SORTMODE_NAME[NUM_SORTMODES] = {
     "Unsorted",
     "Username",
+    "Game",
+    "Windowsize",
+    "Starttime",
     "Idletime"
 };
 

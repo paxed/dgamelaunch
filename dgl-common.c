@@ -379,12 +379,51 @@ sort_game_idletime(const void *g1, const void *g2)
 	return strcasecmp(game1->name, game2->name);
 }
 
+static int
+sort_game_gamenum(const void *g1, const void *g2)
+{
+    const struct dg_game *game1 = *(const struct dg_game **)g1;
+    const struct dg_game *game2 = *(const struct dg_game **)g2;
+    if (game2->gamenum != game1->gamenum)
+	return dglsign(game2->gamenum - game1->gamenum);
+    else
+	return strcasecmp(game1->name, game2->name);
+}
+
+static int
+sort_game_windowsize(const void *g1, const void *g2)
+{
+    const struct dg_game *game1 = *(const struct dg_game **)g1;
+    const struct dg_game *game2 = *(const struct dg_game **)g2;
+    if (game2->ws_col != game1->ws_col)
+	return dglsign(game1->ws_col - game2->ws_col);
+    if (game2->ws_row != game1->ws_row)
+	return dglsign(game1->ws_row - game2->ws_row);
+    return strcasecmp(game1->name, game2->name);
+}
+
+static int
+sort_game_starttime(const void *g1, const void *g2)
+{
+    const struct dg_game *game1 = *(const struct dg_game **)g1;
+    const struct dg_game *game2 = *(const struct dg_game **)g2;
+    int i = strcmp(game1->date, game2->date);
+    if (!i)
+	i = strcmp(game1->time, game2->time);
+    if (!i)
+	return strcasecmp(game1->name, game2->name);
+    return i;
+}
+
 struct dg_game **
 sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
 {
     switch (sortmode) {
     case SORTMODE_USERNAME: qsort(games, len, sizeof(struct dg_game *), sort_game_username); break;
+    case SORTMODE_GAMENUM: qsort(games, len, sizeof(struct dg_game *), sort_game_gamenum); break;
+    case SORTMODE_WINDOWSIZE: qsort(games, len, sizeof(struct dg_game *), sort_game_windowsize); break;
     case SORTMODE_IDLETIME: qsort(games, len, sizeof(struct dg_game *), sort_game_idletime); break;
+    case SORTMODE_STARTTIME: qsort(games, len, sizeof(struct dg_game *), sort_game_starttime); break;
     default: ;
     }
     return games;
