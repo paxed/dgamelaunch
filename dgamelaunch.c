@@ -1876,6 +1876,7 @@ runmenuloop(struct dg_menu *menu)
     struct dg_banner ban;
     struct dg_menuoption *tmpopt;
     int userchoice = 0;
+    int doclear = 1;
 
     if (!menu) return 1;
 
@@ -1884,7 +1885,10 @@ runmenuloop(struct dg_menu *menu)
 
     loadbanner(menu->banner_fn, &ban);
     while (1) {
-	clear();
+	if (doclear) {
+	    doclear = 0;
+	    clear();
+	}
 	drawbanner(&ban, 1, 0);
 	mvprintw(menu->cursor_y, menu->cursor_x, "");
 	refresh();
@@ -1894,6 +1898,7 @@ runmenuloop(struct dg_menu *menu)
 	while (tmpopt) {
 	    if (strchr(tmpopt->keys, userchoice)) {
 		dgl_exec_cmdqueue(tmpopt->cmdqueue, selected_game, me);
+		doclear = 1;
 		break;
 	    } else {
 		tmpopt = tmpopt->next;
