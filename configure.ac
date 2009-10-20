@@ -2,7 +2,7 @@ dnl Use autoconf 2.53
 dnl (Things tend to break across versions, they're neither upwards nor
 dnl downward compatible. Blame GNU.)
 
-AC_INIT(dgamelaunch, [1.5.0])
+AC_INIT(dgamelaunch, [1.5.1])
 AC_PREREQ(2.53)
 
 AC_CONFIG_HEADER(config.h)

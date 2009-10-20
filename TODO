@@ -1,3 +1,21 @@
+-allow the admin to config the watching menu:
+  -top banner
+  -bottom banner
+  -remove and reorder the columns:
+     watch_title = "   Name      Game  Size   Start date & time  Idle"
+       this doesn't allow hiliting the sorted title, though...
+     watch_columns = "0) 1  2  3  4 5  6"
+       where the numbers correspond to the columns, everything else
+       is passed through. the columns have default widths.
+       col 0=selectletter, 1=playername, 2=gamenum, 3=termsize, 4=startdate,
+           5=starttime, 6=idletime
+  -set default sort method
+
+-allow admin to set per-game "extra info" file,
+   extrainfofile = "/nh343/var/extrainfo/%n.xtranfo"
+ contents of which are shown in the watching menu as info-column.
+ the game is responsible for updating the contents of that file.
+
 -update virus to the newest version.
 -allow changing the name where the ttyrecs are saved, like
   ttyrec_fn = "%rttyrec/%n/%g/%p.ttyrec"

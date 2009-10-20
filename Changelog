@@ -1,3 +1,6 @@
+1.5.1 (2010/??/??)
+	* Allow sorting the watching-menu by any column.
+
 1.5.0 (2009/10/18)
 	* Merge the dgl-wall functionality into dgamelaunch itself.
 	* Allow any number of games per dgl installation without recompile.
