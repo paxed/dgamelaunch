@@ -63,7 +63,10 @@ AC_SUBST(MKDEP)
 AC_SUBST(MKDEP_DIRECT)
 
 AC_PROG_INSTALL
-AC_SEARCH_LIBS(initscr, [curses ncurses])
+AC_SEARCH_LIBS(initscr, [curses ncurses], [], [
+   AC_MSG_ERROR([Cannot find curses or ncurses devel libs.])
+])
+
 
 AC_ARG_ENABLE(virus,
 [AC_HELP_STRING([--enable-virus], [Use the 'virus' vi clone instead of the friendly ee editor.])],

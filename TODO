@@ -1,3 +1,4 @@
+-in domailuser(), we need find_curr_player_game(username)
 -for menu definitions, allow "default" commands (when user presses a
  key not defined in other commands):
    commands[default] = ...
@@ -56,9 +57,6 @@
  include unicode stripping from crawl dgl, etc)
 -public (no-password) accounts? (a per-user flag) what happens when someone
  is playing on the account and someone else logins and we start playing?
--info screen (more than just the banner), for info about the game(s)
- and the server, etc.
--allow more than one editor per dgl
 -allow users to run recover themselves
 -make dgl show # of watchers
 -configurable stuff: allowed chars in usernames,
@@ -69,6 +67,3 @@
 - Localization of variables, code clean up
 
 - Use /var/run/nologin and/or dgl-specific nologin file
-
-- Honor window size changes (currently the player has to relogin if window
-  size changes)
