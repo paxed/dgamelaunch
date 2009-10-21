@@ -155,7 +155,7 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
       {
 	  int tmpi, okay = 0;
 
-	  for (tmpi = 0; tmpi < NUM_SORTMODES; tmpi++)
+	  for (tmpi = (SORTMODE_NONE+1); tmpi < NUM_SORTMODES; tmpi++)
 	      if (!strcasecmp(SORTMODE_NAME[tmpi], $3 )) {
 		  globalconfig.sortmode = tmpi;
 		  okay = 1;

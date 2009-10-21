@@ -648,7 +648,7 @@ create_config ()
   globalconfig.shed_uid = (uid_t)-1;
   globalconfig.shed_gid = (gid_t)-1;
 
-  globalconfig.sortmode = SORTMODE_NONE;
+  globalconfig.sortmode = SORTMODE_USERNAME;
 
   if (config)
   {

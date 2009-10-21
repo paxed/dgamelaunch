@@ -559,11 +559,11 @@ inprogressmenu (int gameid)
           return;
 
 	case '.':
-	    if (sortmode < (NUM_SORTMODES-1)) sortmode++; else sortmode = SORTMODE_NONE;
+	    if (sortmode < (NUM_SORTMODES-1)) sortmode++; else sortmode = SORTMODE_USERNAME;
 	    break;
 
 	case ',':
-	    if (sortmode > 0) sortmode--; else sortmode = (NUM_SORTMODES-1);
+	    if (sortmode > SORTMODE_USERNAME) sortmode--; else sortmode = (NUM_SORTMODES-1);
 	    break;
 
 	case 12: case 18: /* ^L, ^R */

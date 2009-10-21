@@ -1,3 +1,13 @@
+-for menu definitions, allow "default" commands (when user presses a
+ key not defined in other commands):
+   commands[default] = ...
+
+-in watching-menu "The following games are in progress:" should change
+ depending if there's only 1 game. It should also list the # of games.
+-in watching-menu, maybe we shouldn't pick players who have been
+ idle for too long when randomly choosing one to watch.
+-change dgl-banner handling; we only use the top line of it nowadays...
+ (maybe make that info config line: bannerline = "## $SERVERID" or something)
 -allow the admin to config the watching menu:
   -top banner
   -bottom banner
@@ -10,7 +20,10 @@
        col 0=selectletter, 1=playername, 2=gamenum, 3=termsize, 4=startdate,
            5=starttime, 6=idletime
   -set default sort method
-
+  -selectorchars:
+     watch_selectorchars = "abcdefghijklmn" (a-zA-Z, minus qQ)
+  -keys:
+     currently: qQ=return, '.'=sort++, ','=sort--, etc
 -allow admin to set per-game "extra info" file,
    extrainfofile = "/nh343/var/extrainfo/%n.xtranfo"
  contents of which are shown in the watching menu as info-column.
