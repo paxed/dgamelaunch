@@ -9,7 +9,11 @@ AC_CONFIG_HEADER(config.h)
 
 AC_PROG_CC(cc gcc)
 AC_STDC_HEADERS
+
 AC_PROG_LEX
+if test "x$LEX" != xflex; then
+   AC_MSG_ERROR([lex or flex not found.])
+fi
 
 LIBS="$LIBS $LEXLIB"
 
