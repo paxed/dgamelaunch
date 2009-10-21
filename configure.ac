@@ -13,7 +13,11 @@ AC_PROG_LEX
 
 LIBS="$LIBS $LEXLIB"
 
-AC_PROG_YACC
+
+AC_CHECK_PROGS(YACC, 'bison -y' byacc yacc)
+if test -z "$YACC"; then
+   AC_MSG_ERROR([bison or yacc not found.])
+fi
 
 case "$(uname -s)" in
   Linux | *BSD)
