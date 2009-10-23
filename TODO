@@ -1,3 +1,4 @@
+-whenever config file has a dir, check that it ends with "/"
 -in domailuser(), we need find_curr_player_game(username)
 -for menu definitions, allow "default" commands (when user presses a
  key not defined in other commands):
