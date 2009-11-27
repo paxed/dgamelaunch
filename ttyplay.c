@@ -251,8 +251,10 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
               return READ_EOF;
               break;
 	    case 'r':
-		if (term_resizex > 0 && term_resizey > 0)
+		if (term_resizex > 0 && term_resizey > 0) {
 		    printf ("\033[8;%d;%dt", term_resizey, term_resizex);
+		    return READ_RESTART;
+		}
 		break;
 	    case 's':
 	      switch (stripped)
