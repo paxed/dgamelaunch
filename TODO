@@ -1,11 +1,14 @@
+-maybe allow something like changed_menu="[Updated %d]" config option  and
+ $CHANGED in the menu banner.
+ the $CHANGED will be replaced with the changed_menu value.
+ the %d in changed_menu will be replaced with the banner file
+ change time.
 -whenever config file has a dir, check that it ends with "/"
 -in domailuser(), we need find_curr_player_game(username)
 -for menu definitions, allow "default" commands (when user presses a
  key not defined in other commands):
    commands[default] = ...
 
--in watching-menu "The following games are in progress:" should change
- depending if there's only 1 game. It should also list the # of games.
 -in watching-menu, maybe we shouldn't pick players who have been
  idle for too long when randomly choosing one to watch.
 -change dgl-banner handling; we only use the top line of it nowadays...
@@ -32,6 +35,9 @@
  the game is responsible for updating the contents of that file.
 
 -update virus to the newest version.
+ (virus is originally from busybox:
+  http://git.busybox.net/busybox/tree/editors/vi.c
+  but that version needs to be made secure)
 -allow changing the name where the ttyrecs are saved, like
   ttyrec_fn = "%rttyrec/%n/%g/%p.ttyrec"
 -maybe save more stuff in the db, if we're using the sqlite
@@ -40,6 +46,8 @@
  text, instead of a text file.
  maybe adding a bannertype={auto,txt,ttyrec,screendump}
  into a menu def. auto=try to detect it from file extension.
+ would be useful to be able to define a program to run that
+ generates the banner? (eg. nethack hiscore list via nethack itself)
 -BUG: cannot quit watching until caught up with the stream.
 -allow configuring the watching, new user registration,
  email/passwd change, etc. screens.
@@ -50,16 +58,46 @@
 -maybe allow changing the watching-screen &c layouts too?
 -add commandline parameters to dgamelaunch:
    dgamelaunch --chpasswd "nick" "newpass"
--some games (robotfindskitten?) are not worth saving into ttyrecs, make it configurable.
+-some games (robotfindskitten?) are not worth saving into ttyrecs,
+ make it configurable. if no ttyrecs, then can't watch the game, which is
+ a pity. maybe rather just save the latest ttyrec, which ties into
+ having configurable ttyrec filenames...
 -save the game name into ttyrec filename, so we can find what game it was.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
 -allow configuring the gfx stripping. (number of chars, types of stripping,
  include unicode stripping from crawl dgl, etc)
+ This must be per-game configs; maybe we're running nethack and crawl
+ on the same server. ...does ttyplay know what game we're watching?
+
+charstrip "name" {
+  start_state = 0;
+  state = (0 and 0x0e), 0x00, 1;
+  state = (1 and 0x0f), 0x0f, 0;
+  state = (1 and 0x1b), 0x1b, 0;
+  state = (1 and gfxmap), gfxmap, 1;
+
+  # initializes the gfxmap from charstrip "name" gfxmap. could also have
+  # gfxmap_init = zero;
+  gfxmap_init = from "name";
+
+  # the following will replace characters 128-135 with the listed characters.
+  # accepts:
+  # 0xff (hexadecimal), 240 (decimal), 001 (octal), 'x' (character)
+  gfxmap = 128, (' ', '|', '#', 0xb3, 0x00, 240, 241);
+}
+
+
+in game definition:
+  char_strips = "name", "name", "name", ...
+or maybe add a new command '' set_charstrip "name" ''
+
+
 -public (no-password) accounts? (a per-user flag) what happens when someone
  is playing on the account and someone else logins and we start playing?
 -allow users to run recover themselves
--make dgl show # of watchers
+-make dgl show # of watchers. this would probably require adding a
+ shared memory block to keep track of who is watching who...
 -configurable stuff: allowed chars in usernames,
  allow char stripping, ...
 

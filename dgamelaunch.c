@@ -376,7 +376,7 @@ inprogressmenu (int gameid)
   static dg_sortmode sortmode = NUM_SORTMODES;
   time_t ctime;
   struct dg_game **games = NULL;
-  char ttyrecname[130], *replacestr = NULL, gametype[10];
+  char ttyrecname[130], gametype[10];
   int *is_nhext;
   sigset_t oldmask, toblock;
   int idx = -1;
@@ -603,14 +603,6 @@ watchgame:
               chosen_name = strdup (games[idx]->name);
               snprintf (ttyrecname, 130, "%s",
                         games[idx]->ttyrec_fn);
-
-              /* reuse the char* */
-              replacestr = strchr (ttyrecname, ':');
-
-              if (!replacestr) {
-		  debug_write("inprogressmenu replacestr");
-                graceful_exit (145);
-	      }
 
               clear ();
               refresh ();
