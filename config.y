@@ -245,6 +245,10 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
 
   case TYPE_MAXNICKLEN:
       globalconfig.max_newnick_len = $3;
+      if (globalconfig.max_newnick_len > DGL_PLAYERNAMELEN) {
+	  fprintf(stderr, "%s:%d: max_newnick_len > DGL_PLAYERNAMELEN\n", config, line);
+	  globalconfig.max_newnick_len = DGL_PLAYERNAMELEN;
+      }
       break;
 
     default:

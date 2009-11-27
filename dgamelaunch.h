@@ -15,6 +15,8 @@
 
 #define dglsign(x) (x < 0 ? -1 : (x > 0 ? 1 : 0))
 
+#define DGL_PLAYERNAMELEN 30 /* max. length of player name */
+
 typedef enum
 {
     DGLTIME_DGLSTART = 0,	/* when someone telnets in */

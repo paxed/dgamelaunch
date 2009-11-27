@@ -465,7 +465,7 @@ populate_games (int xgame, int *l, struct dg_user *me)
   DIR *pdir;
   struct dirent *pdirent;
   struct stat pstat;
-  char fullname[130], ttyrecname[130], pidws[80], playername[30];
+  char fullname[130], ttyrecname[130], pidws[80], playername[DGL_PLAYERNAMELEN+1];
   char *replacestr, *dir, *p;
   struct dg_game **games = NULL;
   struct flock fl = { 0 };
@@ -514,8 +514,8 @@ populate_games (int xgame, int *l, struct dg_user *me)
 	  if (!is_nhext)
 	    {
 		char *ttrecdir = NULL;
-		strncpy(playername, pdirent->d_name, 29);
-		playername[29] = '\0';
+		strncpy(playername, pdirent->d_name, DGL_PLAYERNAMELEN);
+		playername[DGL_PLAYERNAMELEN] = '\0';
 		if ((replacestr = strchr(playername, ':')))
 		    *replacestr = '\0';
 
@@ -700,7 +700,7 @@ create_config ()
   if (!globalconfig.chroot) globalconfig.chroot = "/var/lib/dgamelaunch/";
 
   if (globalconfig.max == 0) globalconfig.max = 64000;
-  if (globalconfig.max_newnick_len == 0) globalconfig.max_newnick_len = 20;
+  if (globalconfig.max_newnick_len == 0) globalconfig.max_newnick_len = DGL_PLAYERNAMELEN;
   if (!globalconfig.dglroot) globalconfig.dglroot = "/dgldir/";
   if (!globalconfig.banner)  globalconfig.banner = "/dgl-banner";
 

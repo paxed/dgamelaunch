@@ -513,12 +513,12 @@ inprogressmenu (int gameid)
                int match = -1;
 	       int firstmatch = -1;
 	       int nmatches = 0;
-               char findname[21];
+               char findname[DGL_PLAYERNAMELEN+1];
 	       if (len <= 0) break;
                findname[0] = '\0';
 	       mvprintw ((btm+2+top_banner_hei), 1, "Watch which player? =>                 "); /* stupid... */
 	       mvaddstr ((btm+2+top_banner_hei), 1, "Watch which player? => ");
-               if ((mygetnstr(findname, 20, 1) == OK) && (strlen(findname) > 1)) {
+               if ((mygetnstr(findname, DGL_PLAYERNAMELEN, 1) == OK) && (strlen(findname) > 1)) {
 		   int mlen = strlen(findname);
                    for (i = 0; i < len; i++)
                        if (!strncasecmp(games[i]->name, findname, mlen)) {
@@ -1024,7 +1024,7 @@ autologin (char* user, char *pass)
 void
 loginprompt (int from_ttyplay)
 {
-  char user_buf[22], pw_buf[22];
+  char user_buf[DGL_PLAYERNAMELEN+1], pw_buf[22];
   int error = 2;
 
   loggedin = 0;
@@ -1050,8 +1050,7 @@ loginprompt (int from_ttyplay)
 
       refresh ();
 
-      /* keep this at 20 chars for hysterical raisins */
-      if (mygetnstr (user_buf, 20, 1) != OK)
+      if (mygetnstr (user_buf, DGL_PLAYERNAMELEN, 1) != OK)
 	  return;
 
       if (*user_buf == '\0')
@@ -1416,7 +1415,7 @@ userexist (char *cname, int isnew)
 
   for (i = 0; i < f_num; i++)
     {
-	if (!strncasecmp (cname, users[i]->username, (isnew ? globalconfig.max_newnick_len : 20))) {
+	if (!strncasecmp (cname, users[i]->username, (isnew ? globalconfig.max_newnick_len : DGL_PLAYERNAMELEN))) {
 	    userexist_tmp_me = cpy_me(users[i]);
 	    return userexist_tmp_me;
 	}
@@ -1462,8 +1461,8 @@ userexist (char *cname, int isnew)
 
     char *qbuf;
 
-    char tmpbuf[32];
-    strncpy(tmpbuf, cname, (isnew ? globalconfig.max_newnick_len : 20));
+    char tmpbuf[DGL_PLAYERNAMELEN+2];
+    strncpy(tmpbuf, cname, (isnew ? globalconfig.max_newnick_len : DGL_PLAYERNAMELEN));
 
     /* Check that the nick doesn't interfere with already registered nicks */
     if (isnew && (strlen(cname) >= globalconfig.max_newnick_len))
@@ -1645,7 +1644,7 @@ writefile (int requirenew)
 
   for (i = 0; i < f_num; i++)
     {
-      if (loggedin && !strncmp (me->username, users[i]->username, 20))
+      if (loggedin && !strncmp (me->username, users[i]->username, DGL_PLAYERNAMELEN))
         {
           if (requirenew)
             {
@@ -1922,7 +1921,7 @@ int
 authenticate ()
 {
   int i, len, me_index;
-  char user_buf[22], pw_buf[22];
+  char user_buf[DGL_PLAYERNAMELEN+1], pw_buf[22];
   struct dg_game **games = NULL;
 
   /* We use simple password authentication, rather than challenge/response. */
@@ -1935,7 +1934,7 @@ authenticate ()
     user_buf[--len] = '\0';
   else
     {
-      fprintf (stderr, "Username too long (max 20 chars).\n");
+	fprintf (stderr, "Username too long (max %i chars).\n", DGL_PLAYERNAMELEN);
       return 1;
     }
 

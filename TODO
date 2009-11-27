@@ -1,3 +1,4 @@
+-update README
 -maybe allow something like changed_menu="[Updated %d]" config option  and
  $CHANGED in the menu banner.
  the $CHANGED will be replaced with the changed_menu value.
