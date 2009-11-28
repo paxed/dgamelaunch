@@ -16,6 +16,7 @@
 #define dglsign(x) (x < 0 ? -1 : (x > 0 ? 1 : 0))
 
 #define DGL_PLAYERNAMELEN 30 /* max. length of player name */
+#define DGL_PASSWDLEN 20 /* max. length of passwords */
 
 typedef enum
 {

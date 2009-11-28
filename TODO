@@ -1,3 +1,4 @@
+-allow admin to disabling the 'm' mail key in ttyplay.
 -update README
 -maybe allow something like changed_menu="[Updated %d]" config option  and
  $CHANGED in the menu banner.

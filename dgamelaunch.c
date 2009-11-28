@@ -740,7 +740,7 @@ change_email ()
 int
 changepw (int dowrite)
 {
-  char buf[21];
+  char buf[DGL_PASSWDLEN+1];
   int error = 2;
 
   /* A precondition is that struct `me' exists because we can be not-yet-logged-in. */
@@ -751,7 +751,7 @@ changepw (int dowrite)
 
   while (error)
     {
-      char repeatbuf[21];
+      char repeatbuf[DGL_PASSWDLEN+1];
       clear ();
 
       drawbanner (&banner, 1, 1);
@@ -762,8 +762,8 @@ changepw (int dowrite)
       mvaddstr (6, 1,
                 "in plaintext, so make it something new and expect it to be relatively");
       mvaddstr (7, 1, "insecure.");
-      mvaddstr (8, 1,
-                "20 character max. No ':' characters. Blank line to abort.");
+      mvprintw (8, 1,
+                "%i character max. No ':' characters. Blank line to abort.", DGL_PASSWDLEN);
       mvaddstr (10, 1, "=> ");
 
       if (error == 1)
@@ -774,7 +774,7 @@ changepw (int dowrite)
 
       refresh ();
 
-      if (mygetnstr (buf, 20, 0) != OK)
+      if (mygetnstr (buf, DGL_PASSWDLEN, 0) != OK)
 	  return 0;
 
       if (*buf == '\0')
@@ -788,7 +788,7 @@ changepw (int dowrite)
       mvaddstr (12, 1, "And again:");
       mvaddstr (13, 1, "=> ");
 
-      if (mygetnstr (repeatbuf, 20, 0) != OK)
+      if (mygetnstr (repeatbuf, DGL_PASSWDLEN, 0) != OK)
 	  return 0;
 
       if (!strcmp (buf, repeatbuf))
@@ -1024,7 +1024,7 @@ autologin (char* user, char *pass)
 void
 loginprompt (int from_ttyplay)
 {
-  char user_buf[DGL_PLAYERNAMELEN+1], pw_buf[22];
+  char user_buf[DGL_PLAYERNAMELEN+1], pw_buf[DGL_PASSWDLEN+2];
   int error = 2;
 
   loggedin = 0;
@@ -1076,7 +1076,7 @@ loginprompt (int from_ttyplay)
 
   refresh ();
 
-  if (mygetnstr (pw_buf, 20, 0) != OK)
+  if (mygetnstr (pw_buf, DGL_PASSWDLEN, 0) != OK)
       return;
 
   if (passwordgood (pw_buf))
@@ -1261,9 +1261,9 @@ passwordgood (char *cpw)
 {
   assert (me != NULL);
 
-  if (!strncmp (crypt (cpw, cpw), me->password, 13))
+  if (!strncmp (crypt (cpw, cpw), me->password, DGL_PASSWDLEN))
     return 1;
-  if (!strncmp (cpw, me->password, 20))
+  if (!strncmp (cpw, me->password, DGL_PASSWDLEN))
     return 1;
 
   return 0;
@@ -1314,9 +1314,9 @@ readfile (int nolock)
 
       users = realloc (users, sizeof (struct dg_user *) * (f_num + 1));
       users[f_num] = malloc (sizeof (struct dg_user));
-      users[f_num]->username = (char *) calloc (22, sizeof (char));
+      users[f_num]->username = (char *) calloc (DGL_PLAYERNAMELEN+2, sizeof (char));
       users[f_num]->email = (char *) calloc (82, sizeof (char));
-      users[f_num]->password = (char *) calloc (22, sizeof (char));
+      users[f_num]->password = (char *) calloc (DGL_PASSWDLEN+2, sizeof (char));
       users[f_num]->env = (char *) calloc (1026, sizeof (char));
 
       /* name field, must be valid */
@@ -1326,7 +1326,7 @@ readfile (int nolock)
             return 1;
           users[f_num]->username[(b - n)] = *b;
           b++;
-          if ((b - n) >= 21) {
+          if ((b - n) >= DGL_PLAYERNAMELEN) {
 	      debug_write("name field too long");
             graceful_exit (100);
 	  }
@@ -1356,7 +1356,7 @@ readfile (int nolock)
         {
           users[f_num]->password[(b - n)] = *b;
           b++;
-          if ((b - n) >= 20) {
+          if ((b - n) >= DGL_PASSWDLEN) {
 	      debug_write("passwd field too long");
             graceful_exit (102);
 	  }
@@ -1695,7 +1695,6 @@ writefile (int requirenew)
     int ret, retry = 10;
 
     char *qbuf;
-    char tmpbuf[32];
 
     if (requirenew) {
 	qbuf = sqlite3_mprintf("insert into dglusers (username, email, env, password, flags) values ('%q', '%q', '%q', '%q', %li)", me->username, me->email, me->env, me->password, me->flags);
@@ -1921,7 +1920,7 @@ int
 authenticate ()
 {
   int i, len, me_index;
-  char user_buf[DGL_PLAYERNAMELEN+1], pw_buf[22];
+  char user_buf[DGL_PLAYERNAMELEN+1], pw_buf[DGL_PASSWDLEN+1];
   struct dg_game **games = NULL;
 
   /* We use simple password authentication, rather than challenge/response. */
@@ -1944,7 +1943,7 @@ authenticate ()
     pw_buf[--len] = '\0';
   else
     {
-      fprintf (stderr, "Password too long (max 20 chars).\n");
+	fprintf (stderr, "Password too long (max %i chars).\n", DGL_PASSWDLEN);
       return 1;
     }
 
