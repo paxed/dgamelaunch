@@ -1888,7 +1888,8 @@ runmenuloop(struct dg_menu *menu)
 	    clear();
 	}
 	drawbanner(&ban, 1, 0);
-	mvprintw(menu->cursor_y, menu->cursor_x, "");
+	if (menu->cursor_x >= 0 && menu->cursor_y >= 0)
+	    mvprintw(menu->cursor_y, menu->cursor_x, "");
 	refresh();
 	userchoice = getch();
 	if (userchoice == ERR) return 1;
