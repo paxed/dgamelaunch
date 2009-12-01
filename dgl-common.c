@@ -211,7 +211,10 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    if (p1 && p2) {
 		FILE *tmpfile;
 		tmpfile = fopen(p2, "r");
-		if (tmpfile) break;
+		if (tmpfile) {
+		    fclose(tmpfile);
+		    break;
+		}
 	    }
 	    /* else fall through to cp */
 	case DGLCMD_CP:
