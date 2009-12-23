@@ -583,7 +583,7 @@ inprogressmenu (int gameid)
 	    if (strchr(selectorchars, menuchoice) && (len > 0)) {
 		int sidx = strchr(selectorchars, menuchoice) - selectorchars;
 
-		if (sidx > max_height) {
+		if ((sidx > max_height) || (sidx >= len)) {
 		    selected = -1;
 		    break;
 		}

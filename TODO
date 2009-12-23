@@ -1,3 +1,10 @@
+-when exiting from watching a player, move the cursor to the last line
+ of the screen before enabling the ncurses mode; so when we exit dgl,
+ the watched player's game is all visible and the menu prompt doesn't
+ mess it up.
+-watching menu will hilight the first matching username... what if we have
+ more than one game installed, and someone's playing more than one at the
+ same time?  Should also save game#, not just the username.
 -allow admin to disabling the 'm' mail key in ttyplay.
 -update README
 -maybe allow something like changed_menu="[Updated %d]" config option  and
