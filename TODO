@@ -1,3 +1,5 @@
+-change the watching-menu paging back to pre-1.5.0 behaviour
+ (don't backtrack in the gamelist to keep the last page full)
 -when exiting from watching a player, move the cursor to the last line
  of the screen before enabling the ncurses mode; so when we exit dgl,
  the watched player's game is all visible and the menu prompt doesn't
