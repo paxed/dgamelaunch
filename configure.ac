@@ -108,6 +108,44 @@ if test "$enable_sqlite" = yes; then
    AC_DEFINE_UNQUOTED(USE_SQLITE_DB, "$dgl_sqlite_db", [Path and filename of the SQLite database.])
 fi
 
+
+
+
+dgl_rlimit_core_default=157286400
+AC_ARG_WITH(rlimit-core,
+[AC_HELP_STRING([--with-rlimit-core=SIZE], [Enable and set the core dump maximum size.])],
+[dgl_rlimit_core=$withval; enable_rlimit=yes], [dgl_rlimit_core=$dgl_rlimit_core_default])
+
+if test "$enable_rlimit" = yes; then
+   if test "$dgl_rlimit_core" = yes; then
+      dgl_rlimit_core=$dgl_rlimit_core_default
+   fi
+   AC_CHECK_HEADERS([sys/resource.h], [], [AC_MSG_ERROR([sys/resource.h not found.])], [])
+   AC_MSG_RESULT([Enabled and set maximum core dump size to $dgl_rlimit_core])
+   AC_DEFINE(USE_RLIMIT,1,[Use getrlimit/setrlimit])
+   AC_DEFINE_UNQUOTED(USE_RLIMIT_CORE, $dgl_rlimit_core, [Maximum core dump size])
+   enable_rlimit=no
+fi
+
+dgl_rlimit_as_default=104857600
+AC_ARG_WITH(rlimit-as,
+[AC_HELP_STRING([--with-rlimit-as=SIZE], [Enable and set the maximum memory usage.])],
+[dgl_rlimit_as=$withval; enable_rlimit=yes], [dgl_rlimit_as=$dgl_rlimit_as_default])
+
+if test "$enable_rlimit" = yes; then
+   if test "$dgl_rlimit_as" = yes; then
+      dgl_rlimit_as=$dgl_rlimit_as_default
+   fi
+   AC_CHECK_HEADERS([sys/resource.h], [], [AC_MSG_ERROR([sys/resource.h not found.])], [])
+   AC_MSG_RESULT([Enabled and set maximum memory usage limit to $dgl_rlimit_as])
+   AC_DEFINE(USE_RLIMIT,1,[Use getrlimit/setrlimit])
+   AC_DEFINE_UNQUOTED(USE_RLIMIT_AS, $dgl_rlimit_as, [Maximum mem usage])
+   enable_rlimit=no
+fi
+
+
+
+
 AC_ARG_WITH(config-file,
 [AC_HELP_STRING([--with-config-file=PATH], [Define the path to the default configuration file.])],
 [configfile=$withval], [configfile="/etc/dgamelaunch.conf"])
