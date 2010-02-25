@@ -282,6 +282,14 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
 	      tcsetattr (0, TCSANOW, &t);
               return READ_RESTART;
               break;
+            case '?':
+		tcgetattr (0, &t);
+		initcurses();
+		(void) runmenuloop(dgl_find_menu("watchmenu_help"));
+		endwin ();
+		tcsetattr (0, TCSANOW, &t);
+		return READ_RESTART;
+		break;
             }
         }
     }
