@@ -113,6 +113,7 @@ dgl_find_menu(char *menuname)
  * %n == user name (string; gotten from 'me', or from 'plrname' if 'me' is null)
  * %r == chroot (string)  (aka "dglroot" config var)
  * %g == game name
+ * %s == short game name
  */
 char *
 dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
@@ -144,6 +145,12 @@ dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
 		break;
   	    case 'g':
 		if (game >= 0 && game < num_games && myconfig[game]) snprintf (p, end + 1 - p, "%s", myconfig[game]->game_name);
+		else return NULL;
+		while (*p != '\0')
+		    p++;
+		break;
+	    case 's':
+		if (game >= 0 && game < num_games && myconfig[game]) snprintf (p, end + 1 - p, "%s", myconfig[game]->shortname);
 		else return NULL;
 		while (*p != '\0')
 		    p++;
