@@ -17,6 +17,7 @@
 
 #define DGL_PLAYERNAMELEN 30 /* max. length of player name */
 #define DGL_PASSWDLEN 20 /* max. length of passwords */
+#define DGL_MAILMSGLEN 80 /* max. length of mail message */
 
 typedef enum
 {

@@ -833,7 +833,7 @@ wall_email(char *from, char *msg)
 	graceful_exit(121);
     }
 
-    if (strlen(msg) >= 80) {
+    if (strlen(msg) >= DGL_MAILMSGLEN) {
 	fprintf(stderr, "Error: wall: message too long!\n");
 	debug_write("wall: message too long");
 	graceful_exit(120);
@@ -870,7 +870,7 @@ void
 domailuser (char *username)
 {
   unsigned int len, i;
-  char *spool_fn, message[81];
+  char *spool_fn, message[DGL_MAILMSGLEN+1];
   FILE *user_spool = NULL;
   time_t now;
   int mail_empty = 1;
@@ -896,11 +896,12 @@ domailuser (char *username)
   /* print the enter your message line */
   clear ();
   drawbanner (&banner, 1, 1);
-  mvaddstr (5, 1,
-            "Enter your message here. It is to be one line only and 80 characters or less.");
+  mvprintw (5, 1,
+            "Enter your message here. It is to be one line only and %i characters or less.",
+	    DGL_MAILMSGLEN);
   mvaddstr (7, 1, "=> ");
 
-  if (mygetnstr (message, 80, 1) != OK)
+  if (mygetnstr (message, DGL_MAILMSGLEN, 1) != OK)
       return;
 
   for (i = 0; i < strlen (message); i++)
