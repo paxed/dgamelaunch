@@ -355,53 +355,68 @@ ttyplay (FILE * fp, double speed, ReadFunc read_func,
 }
 
 static off_t
+find_last_string_in_file(FILE * fp, const char *seq)
+{
+    char buf[512];
+    struct stat mystat;
+    off_t offset = 0L;
+    const long readsz = sizeof(buf);
+    int bytes_read = 0;
+    const int seqlen = strlen(seq);
+    const char *reset_pos = seq + seqlen - 1;
+    const char *match_pos = reset_pos;
+
+    fstat(fileno (fp), &mystat);
+    offset = mystat.st_size - readsz;
+    if (offset < 0)
+        offset = 0;
+    while (1)
+    {
+        const char *search_pos = 0;
+
+        fseeko(fp, offset, SEEK_SET);
+        bytes_read = fread(buf, 1, readsz, fp);
+
+        if (bytes_read <= 0)
+            break;
+
+        search_pos = buf + bytes_read - 1;
+        while (search_pos >= buf)
+        {
+            int matched = *search_pos == *match_pos;
+            if (!matched && match_pos != reset_pos)
+            {
+                match_pos = reset_pos;
+                matched = *search_pos == *match_pos;
+            }
+            if (matched)
+            {
+                if (match_pos == seq)
+                    return offset + (search_pos - buf);
+                --match_pos;
+            }
+            --search_pos;
+        }
+
+        // If we've reached the start of the file, exit.
+        if (!offset)
+            break;
+
+        offset -= readsz;
+        if (offset < 0)
+            offset = 0;
+    }
+
+    return 0;
+}
+
+static off_t
 find_seek_offset_clrscr (FILE * fp)
 {
   off_t raw_seek_offset = 0;
   off_t seek_offset_clrscr;
-  char *buf;
-  struct stat mystat;
-  int state = 0;
-  int i;
-  int bytesread;
 
-  fstat (fileno (fp), &mystat);
-  buf = malloc (mystat.st_size);
-  fseek (fp, 0, SEEK_SET);
-  bytesread = fread (buf, 1, mystat.st_size, fp);
-
-  /* one byte at at time sucks, but is a simple hack for the temp
-   * being to avoid looking for wraparounds */
-  for (i = 0; i < bytesread; i++)
-    {
-      if (buf[i] == 0x1b)
-        {
-          state = 1;
-        }
-      else if ((buf[i] == 0x5b) && (state == 1))
-        {
-          state = 2;
-        }
-      else if ((buf[i] == 0x32) && (state == 2))
-        {
-          state = 3;
-        }
-      else if ((buf[i] == 0x4a) && ((state == 2) || (state == 3)))
-        {
-          state = 4;
-        }
-      else
-        {
-          state = 0;
-        }
-
-      if (state == 4)
-        {
-          raw_seek_offset = i - 2;
-        }
-    }
-
-  free (buf);
+  raw_seek_offset = find_last_string_in_file(fp, "\033[2J");
 
   seek_offset_clrscr = 0;
   /* now find last filepos that is less than seek offset */
@@ -410,18 +425,20 @@ find_seek_offset_clrscr (FILE * fp)
     {
       char *buf;
       Header h;
+      long offset;
 
       if (ttyread (fp, &h, &buf, 0) != READ_DATA)
         {
           break;
         }
 
-      if (ftell (fp) < raw_seek_offset)
-        {
-          seek_offset_clrscr = ftell (fp);
-        }
-
       free (buf);
+
+      offset = ftell(fp);
+      if (offset < raw_seek_offset)
+          seek_offset_clrscr = ftell (fp);
+      else
+          break;
     }
 
   return seek_offset_clrscr;
