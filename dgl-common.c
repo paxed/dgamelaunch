@@ -257,6 +257,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		myargv[2] = 0;
 
 		endwin();
+		idle_alarm_set_enabled(0);
 		child = fork();
 		if (child == -1) {
 		    perror("fork");
@@ -267,6 +268,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		    exit(0);
 		} else
 		    waitpid(child, NULL, 0);
+		idle_alarm_set_enabled(1);
 		refresh();
 		check_retard(1);
 	    }
@@ -306,7 +308,9 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		int i;
 		for (i = 0; i < num_games; i++) {
 		    if ((!strcmp(myconfig[i]->game_name, p1) || !strcmp(myconfig[i]->shortname, p1)) && myconfig[i]->rcfile) {
+			idle_alarm_set_enabled(0);
 			editoptions(i);
+			idle_alarm_set_enabled(1);
 			check_retard(1);
 			break;
 		    }
@@ -342,6 +346,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 				myconfig[userchoice]->bin_args[i] = tmpstr;
 			    }
 
+			    idle_alarm_set_enabled(0);
 			    /* launch program */
 			    ttyrec_main (userchoice, me->username,
 					 dgl_format_str(userchoice, me, myconfig[userchoice]->ttyrecdir, NULL),
@@ -349,6 +354,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 
 			    /* lastly, run the generic "do these when a game is left" commands */
 			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMEEND], userchoice, me);
+			    idle_alarm_set_enabled(1);
 
 			    setproctitle ("%s", me->username);
 			    initcurses ();

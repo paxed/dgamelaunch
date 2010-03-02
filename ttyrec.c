@@ -167,6 +167,7 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
   }
 
   unlink (ipfile);
+  child = 0;
 
   return 0;
 }

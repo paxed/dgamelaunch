@@ -96,6 +96,7 @@ extern int editor_main (int argc, char **argv);
 /* global variables */
 
 char * __progname;
+int  g_idle_alarm_enabled = 0;
 
 #ifndef USE_SQLITE3
 int f_num = 0;
@@ -260,6 +261,42 @@ catch_sighup (int signum)
 }
 
 /* ************************************************************* */
+
+int
+dgl_getch(void)
+{
+    const int c = getch();
+    idle_alarm_reset();
+    return c;
+}
+
+/* ************************************************************* */
+
+static void
+dgl_idle_kill(int signal)
+{
+    kill(0, SIGHUP);
+}
+
+void
+idle_alarm_set_enabled(int enabled)
+{
+    signal(SIGALRM, SIG_IGN);
+    g_idle_alarm_enabled = enabled;
+    idle_alarm_reset();
+    if (enabled)
+        signal(SIGALRM, dgl_idle_kill);
+}
+
+void
+idle_alarm_reset(void)
+{
+    if (g_idle_alarm_enabled && globalconfig.menu_max_idle_time > 0)
+        alarm(globalconfig.menu_max_idle_time);
+}
+
+/* ************************************************************* */
+
 
 char *
 bannerstrmangle(char *buf, char *fromstr, char *tostr)
@@ -499,7 +536,7 @@ inprogressmenu (int gameid)
 
       refresh ();
 
-      switch ((menuchoice = getch ()))
+      switch ((menuchoice = dgl_getch ()))
         {
 	case '*':
 	    if (len > 0) {
@@ -717,7 +754,7 @@ change_email ()
     else if (check_email (buf))
     {
       mvprintw (8, 1, "Changing email address to '%s'. Confirm (y/n): ", buf);
-      if (getch() == 'y')
+      if (dgl_getch() == 'y')
       {
 	free(me->email);
 	me->email = strdup(buf);
@@ -727,7 +764,7 @@ change_email ()
       else
       {
 	mvaddstr(9, 1, "No changes made. Press any key to continue...");
-	getch();
+	dgl_getch();
 	return;
       }
     }
@@ -915,7 +952,7 @@ domailuser (char *username)
       mvaddstr (9, 1, "This scroll appears to be blank.");
       mvaddstr (10, 1, "(Aborting your message.)");
       mvaddstr (12, 1, "--More--");
-      getch ();
+      dgl_getch ();
       return;
     }
 
@@ -927,7 +964,7 @@ domailuser (char *username)
                 "(Couldn't open %s'%c spool file.  Aborting.)",
                 username, (username[strlen (username) - 1] != 's') ? 's' : 0);
       mvaddstr (12, 1, "--More--");
-      getch ();
+      dgl_getch ();
       return;
     }
 
@@ -942,7 +979,7 @@ domailuser (char *username)
           mvaddstr (10, 1,
                     "(Received a weird error from fcntl.  Aborting.)");
 	  mvaddstr (12, 1, "--More--");
-          getch ();
+          dgl_getch ();
           return;
         }
       sleep (1);
@@ -1125,7 +1162,7 @@ newuser ()
       mvaddstr (5, 1, "Sorry, too many users have registered now.");
       mvaddstr (6, 1, "You might email the server administrator.");
       mvaddstr (7, 1, "Press return to return to the menu. ");
-      getch ();
+      dgl_getch ();
 
       return;
   }
@@ -1811,7 +1848,7 @@ purge_stale_locks (int game)
 
 	for (seconds = HUP_WAIT - 1; seconds >= 0; seconds--)
 	{
-	  if (getch() != ERR)
+	  if (dgl_getch() != ERR)
 	  {
 	    nocbreak(); /* leave half-delay */
 	    cbreak();
@@ -1846,7 +1883,7 @@ purge_stale_locks (int game)
               mvprintw (3, 1,
                         "Couldn't terminate one of your stale %s processes gracefully.", myconfig[game]->game_name);
               mvaddstr (4, 1, "Force its termination? [yn] ");
-              if (tolower (getch ()) == 'y')
+              if (tolower (dgl_getch ()) == 'y')
                 {
                   kill (pid, SIGTERM);
                   break;
@@ -1885,6 +1922,7 @@ runmenuloop(struct dg_menu *menu)
     ban.lines = NULL;
     ban.len = 0;
 
+    idle_alarm_set_enabled(1);
     loadbanner(menu->banner_fn, &ban);
     while (1) {
 	if (doclear) {
@@ -1895,7 +1933,7 @@ runmenuloop(struct dg_menu *menu)
 	if (menu->cursor_x >= 0 && menu->cursor_y >= 0)
 	    mvprintw(menu->cursor_y, menu->cursor_x, "");
 	refresh();
-	userchoice = getch();
+	userchoice = dgl_getch();
 	if (userchoice == ERR) return 1;
 	tmpopt = menu->options;
 	while (tmpopt) {

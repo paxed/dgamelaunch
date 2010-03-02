@@ -65,6 +65,7 @@ WHITE		[\t ]*
 "maxusers"	{ return TYPE_MAX; }
 "maxnicklen"	{ return TYPE_MAXNICKLEN; }
 "allow_new_nicks"	{ return TYPE_ALLOW_REGISTRATION; }
+"menu_max_idle_time"	{ return TYPE_MENU_MAX_IDLE_TIME; }
 
 
 menu		{ return TYPE_DEFINE_MENU; }
