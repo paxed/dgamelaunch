@@ -58,6 +58,10 @@
 #include "io.h"
 #include "stripgfx.h"
 
+#ifdef __MACH__
+typedef void (*sighandler_t)(int);
+#endif
+
 int stripped = NO_GRAPHICS;
 static int got_sigwinch = 0;
 
