@@ -71,6 +71,7 @@
 #endif
 
 int slave;
+pid_t dgl_parent;
 pid_t child, subchild;
 pid_t input_child;
 char* ipfile = NULL;
@@ -89,6 +90,8 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
 {
   char dirname[100];
 
+  /* Note our PID to let children kill the main dgl process for idling */
+  dgl_parent = getpid();
   child = subchild = input_child = 0;
 
   if (!ttyrec_path) {
@@ -140,7 +143,7 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
         {
           close (slave);
           ipfile = gen_inprogress_lock (game, child, ttyrec_filename);
-          dooutput ();
+          dooutput (myconfig[game]->max_idle_time);
         }
       else
 	  doshell (game, username);
@@ -279,8 +282,17 @@ check_output (const char *str, int len)
     }
 }
 
+
+
 void
-dooutput ()
+game_idle_kill(int signal)
+{
+    kill(child, SIGHUP);
+    kill(dgl_parent, SIGHUP);
+}
+
+void
+dooutput (int max_idle_time)
 {
   int cc;
   time_t tvec, time ();
@@ -289,6 +301,8 @@ dooutput ()
   setbuf (stdout, NULL);
   (void) close (0);
   tvec = time ((time_t *) NULL);
+  /* Set up SIGALRM handler to kill idle games */
+  signal(SIGALRM, game_idle_kill);
   for (;;)
     {
       Header h;
@@ -296,6 +310,10 @@ dooutput ()
       cc = read (master, obuf, BUFSIZ);
       if (cc <= 0)
         break;
+
+      if (max_idle_time)
+          alarm(max_idle_time);
+
       if (uflg)
         check_output (obuf, cc);
       h.len = cc;

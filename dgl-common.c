@@ -45,7 +45,8 @@ struct dg_config defconfig = {
   /* num_args = */ 0,
   /* bin_args = */ NULL,
   /* rc_fmt = */ "%rrcfiles/%n.nethackrc", /* [dglroot]rcfiles/[username].nethackrc */
-  /* cmdqueue = */ NULL
+  /* cmdqueue = */ NULL,
+  /* max_idle_time = */ 0
 };
 
 char* config = NULL;

@@ -16,7 +16,7 @@ extern void fail (void);
 extern void fixtty (void);
 extern void getslave (void);
 extern void doinput (void);
-extern void dooutput (void);
+extern void dooutput (int max_idle_time);
 extern void doshell (int, char *);
 extern void finish (int);
 extern void remove_ipfile (void);

@@ -101,6 +101,7 @@ struct dg_config
     char **bin_args; /* args for game binary */
     char *rc_fmt;
     struct dg_cmdpart *cmdqueue;
+    int max_idle_time;
 };
 
 struct dg_globalconfig

@@ -82,6 +82,7 @@ cursor		{ return TYPE_CURSOR; }
 "lockfile"	{ return TYPE_PATH_LOCKFILE; }
 "inprogressdir" { return TYPE_PATH_INPROGRESS; }
 "game_args"	{ return TYPE_GAME_ARGS; }
+"max_idle_time"	{ return TYPE_MAX_IDLE_TIME; }
 "rc_fmt"	{ return TYPE_RC_FMT; }
 "ttyrecdir"	{ return TYPE_PATH_TTYREC; }
 server_id	{ return TYPE_SERVER_ID; }
