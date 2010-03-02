@@ -123,9 +123,82 @@ ttynowait (struct timeval prev, struct timeval cur, double speed)
 }
 
 int
+kbhit(void)
+{
+    int i = 0;
+    nodelay(stdscr, TRUE);
+    timeout(0);
+    i = wgetch(stdscr);
+    nodelay(stdscr, FALSE);
+
+    if (i == -1)
+        i = 0;
+    else
+        ungetch(i);
+    return (i);
+}
+
+int
+ttyplay_keyboard_action(int c)
+{
+    struct termios t;
+    switch (c)
+    {
+    case 'q':
+        return READ_QUIT;
+    case 'r':
+        if (term_resizex > 0 && term_resizey > 0) {
+            printf ("\033[8;%d;%dt", term_resizey, term_resizex);
+            return READ_RESTART;
+        }
+        break;
+    case 's':
+        switch (stripped)
+        {
+	case NO_GRAPHICS: populate_gfx_array ((stripped = DEC_GRAPHICS)); break;
+	case DEC_GRAPHICS: populate_gfx_array ((stripped = IBM_GRAPHICS)); break;
+	case IBM_GRAPHICS: populate_gfx_array ((stripped = NO_GRAPHICS)); break;
+        }
+        return READ_RESTART;
+
+    case 'm':
+        tcgetattr (0, &t);
+        if (!loggedin)
+        {
+            initcurses();
+            loginprompt(1);
+        }
+        if (loggedin)
+        {
+            initcurses ();
+            domailuser (chosen_name);
+        }
+        endwin ();
+        tcsetattr (0, TCSANOW, &t);
+        return READ_RESTART;
+    case '?':
+        tcgetattr (0, &t);
+        initcurses();
+        (void) runmenuloop(dgl_find_menu("watchmenu_help"));
+        endwin ();
+        tcsetattr (0, TCSANOW, &t);
+        return READ_RESTART;
+    }
+    return (READ_DATA);
+}
+
+int
 ttyread (FILE * fp, Header * h, char **buf, int pread)
 {
   long offset;
+
+  if (kbhit())
+      {
+	  const int c = wgetch(stdscr);
+	  const int action = ttyplay_keyboard_action(c);
+	  if (action != READ_DATA)
+	      return (action);
+      }
 
   /* do this BEFORE header read, hlen bug */
   offset = ftell (fp);
@@ -171,9 +244,8 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
   struct timeval origw = { 0, 100000 };
   int counter = 0;
   fd_set readfs;
-  struct termios t;
   int doread = 0;
-  static int tried_resize = 0;
+  int action = READ_DATA;
 
 #ifdef HAVE_KQUEUE
   if (kq == -1)
@@ -188,7 +260,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
   /*
    * Read persistently just like tail -f.
    */
-  while (ttyread (fp, h, buf, 1) == READ_EOF)
+  while ((action = ttyread (fp, h, buf, 1)) == READ_EOF)
     {
       fflush(stdout);
       clearerr (fp);
@@ -249,55 +321,13 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
           char c;
           read (STDIN_FILENO, &c, 1); /* drain the character */
 
-          switch (c)
-            {
-            case 'q':
-              return READ_EOF;
-              break;
-	    case 'r':
-		if (term_resizex > 0 && term_resizey > 0) {
-		    printf ("\033[8;%d;%dt", term_resizey, term_resizex);
-		    return READ_RESTART;
-		}
-		break;
-	    case 's':
-	      switch (stripped)
-	      {
-		case NO_GRAPHICS: populate_gfx_array ((stripped = DEC_GRAPHICS)); break;
-		case DEC_GRAPHICS: populate_gfx_array ((stripped = IBM_GRAPHICS)); break;
-		case IBM_GRAPHICS: populate_gfx_array ((stripped = NO_GRAPHICS)); break;
-	      }
-	      return READ_RESTART;
-	      break;
+	  action = ttyplay_keyboard_action(c);
+	  if (action != READ_DATA)
+	      return action;
 
-            case 'm':
-	      tcgetattr (0, &t);
-	      if (!loggedin)
-	      {
-		initcurses();
-		loginprompt(1);
-	      }
-              if (loggedin)
-	      {
-		initcurses ();
-		domailuser (chosen_name);
-	      }
-              endwin ();
-	      tcsetattr (0, TCSANOW, &t);
-              return READ_RESTART;
-              break;
-            case '?':
-		tcgetattr (0, &t);
-		initcurses();
-		(void) runmenuloop(dgl_find_menu("watchmenu_help"));
-		endwin ();
-		tcsetattr (0, TCSANOW, &t);
-		return READ_RESTART;
-		break;
-            }
         }
     }
-  return READ_DATA;
+  return (action);
 }
 
 void
@@ -469,15 +499,16 @@ void
 ttypeek (FILE * fp, double speed)
 {
   int r;
-
   do
   {
     setvbuf (fp, NULL, _IOFBF, 0);
-    ttyplay (fp, 0, ttyread, ttywrite, ttynowait, find_seek_offset_clrscr (fp));
-    clearerr (fp);
-    setvbuf (fp, NULL, _IONBF, 0);
-    fflush (stdout);
-    r = ttyplay (fp, speed, ttypread, ttywrite, ttynowait, -1);
+    r = ttyplay(fp, 0, ttyread, ttywrite, ttynowait, find_seek_offset_clrscr(fp));
+    if (r == READ_EOF) {
+	clearerr (fp);
+        setvbuf (fp, NULL, _IONBF, 0);
+        fflush (stdout);
+        r = ttyplay (fp, speed, ttypread, ttywrite, ttynowait, -1);
+    }
   } while (r == READ_RESTART);
 }
 
