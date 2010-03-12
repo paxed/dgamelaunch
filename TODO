@@ -77,7 +77,7 @@
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
 -allow configuring the gfx stripping. (number of chars, types of stripping,
- include unicode stripping from crawl dgl, etc)
+ include unicode stripping from crawl dgl, etc.)
  This must be per-game configs; maybe we're running nethack and crawl
  on the same server. ...does ttyplay know what game we're watching?
 
