@@ -39,8 +39,10 @@ errorexit()
 findlibs()
 {
   for i in "$@"; do
-      echo $(ldd "$i" | awk '{ print $3 }' | egrep -v ^'\(')
-      echo $(ldd "$i" | grep 'ld-linux' | awk '{ print $1 }')
+      if [ -z "`ldd "$i" | grep 'not a dynamic executable'`" ]; then
+         echo $(ldd "$i" | awk '{ print $3 }' | egrep -v ^'\(')
+         echo $(ldd "$i" | grep 'ld-linux' | awk '{ print $1 }')
+      fi
   done
 }
 
