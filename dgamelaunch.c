@@ -578,11 +578,7 @@ inprogressmenu (int gameid)
            }
            break;
         case '>':
-	    if ((offset + max_height) >= len) {
-		if (max_height < len) offset = (len - max_height);
-		else offset = 0;
-	    } else
-            offset += max_height;
+	    if ((offset + max_height) < (len-1)) offset += max_height;
           break;
 
         case '<':
