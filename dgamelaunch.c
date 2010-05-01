@@ -674,10 +674,14 @@ inprogressmenu (int gameid)
 #endif
 	  {
 	      time_t ctime;
+	      long secs, mins, hours;
+
 	      (void) time(&ctime);
-	      long secs = (ctime - games[i + offset]->idle_time) % 60;
-	      long mins = (ctime - games[i + offset]->idle_time) / 60;
-	      long hours= (ctime - games[i + offset]->idle_time) / (60*60);
+	      secs = (ctime - games[i + offset]->idle_time);
+	      hours = (secs / 3600);
+	      secs -= (hours * 3600);
+	      mins = (secs / 60) % 60;
+	      secs -= (mins*60);
 	      if (hours)
 		  snprintf(idletime, 10, "%ldh %ldm", hours, mins);
 	      else
