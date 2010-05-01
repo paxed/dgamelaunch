@@ -9,6 +9,10 @@
 #include <sys/stat.h>
 #include <time.h>
 
+#ifdef USE_SHMEM
+#include <semaphore.h>
+#endif
+
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
@@ -77,6 +81,22 @@ struct dg_menulist
     struct dg_menulist *next;
 };
 
+struct dg_shm
+{
+#ifdef USE_SHMEM
+    sem_t dg_sem;
+#endif
+    int max_n_games;
+    int cur_n_games;
+};
+
+struct dg_shm_game
+{
+    int  in_use;
+    int  nwatchers;
+    char ttyrec_fn[150];
+};
+
 struct dg_game
 {
   char *ttyrec_fn;
@@ -86,6 +106,9 @@ struct dg_game
   time_t idle_time;
   int ws_row, ws_col; /* Window size */
   int gamenum;
+  int is_in_shm;
+  int shm_idx;
+  int nwatchers;
 };
 
 struct dg_config
@@ -157,6 +180,9 @@ typedef enum
     SORTMODE_WINDOWSIZE,
     SORTMODE_STARTTIME,
     SORTMODE_IDLETIME,
+#ifdef USE_SHMEM
+    SORTMODE_WATCHERS,
+#endif
     NUM_SORTMODES
 } dg_sortmode;
 
@@ -166,11 +192,16 @@ static const char *SORTMODE_NAME[NUM_SORTMODES] = {
     "Game",
     "Windowsize",
     "Starttime",
-    "Idletime"
+    "Idletime",
+#ifdef USE_SHMEM
+    "Watchers",
+#endif
 };
 
 
 /* Global variables */
+extern int shm_n_games; /* TODO: make configurable */
+
 extern char* config; /* file path */
 extern struct dg_config **myconfig;
 extern char *chosen_name;

@@ -9,8 +9,6 @@
    will no longer work, because the cursor won't be moved to the previous
    line again
 
--change the watching-menu paging back to pre-1.5.0 behaviour
- (don't backtrack in the gamelist to keep the last page full)
 -when exiting from watching a player, move the cursor to the last line
  of the screen before enabling the ncurses mode; so when we exit dgl,
  the watched player's game is all visible and the menu prompt doesn't
@@ -118,8 +116,6 @@ or maybe add a new command '' set_charstrip "name" ''
 -public (no-password) accounts? (a per-user flag) what happens when someone
  is playing on the account and someone else logins and we start playing?
 -allow users to run recover themselves
--make dgl show # of watchers. this would probably require adding a
- shared memory block to keep track of who is watching who...
 -configurable stuff: allowed chars in usernames,
  allow char stripping, ...
 

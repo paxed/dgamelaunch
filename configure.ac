@@ -144,6 +144,19 @@ if test "$enable_rlimit" = yes; then
 fi
 
 
+AC_ARG_ENABLE(shmem,
+[AC_HELP_STRING([--enable-shmem], [Use a shared memory block to show number of watchers.])],
+[enable_shmem=yes], [])
+
+if test "$enable_shmem" = yes; then
+   AC_CHECK_HEADERS([semaphore.h], [], [AC_MSG_ERROR([semaphore.h not found.])], [])
+   AC_CHECK_HEADERS([sys/ipc.h], [], [AC_MSG_ERROR([sys/ipc.h not found.])], [])
+   AC_CHECK_HEADERS([sys/shm.h], [], [AC_MSG_ERROR([sys/shm.h not found.])], [])
+   AC_MSG_RESULT([Enabled showing number of watchers.])
+   AC_DEFINE(USE_SHMEM,1,[Use shared memory block])
+   LIBS="$LIBS -lrt"
+   # or -pthread?
+fi
 
 
 AC_ARG_WITH(config-file,

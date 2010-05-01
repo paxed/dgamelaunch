@@ -55,6 +55,8 @@ int loggedin = 0;
 char *chosen_name;
 int num_games = 0;
 
+int shm_n_games = 200;
+
 int dgl_local_COLS = -1, dgl_local_LINES = -1;
 int curses_resize = 0;
 
@@ -432,6 +434,19 @@ sort_game_starttime(const void *g1, const void *g2)
     return i;
 }
 
+static int
+sort_game_watchers(const void *g1, const void *g2)
+{
+    const struct dg_game *game1 = *(const struct dg_game **)g1;
+    const struct dg_game *game2 = *(const struct dg_game **)g2;
+    int i = dglsign(game1->nwatchers - game2->nwatchers);
+    if (!i)
+	i = strcmp(game1->time, game2->time);
+    if (!i)
+	return strcasecmp(game1->name, game2->name);
+    return i;
+}
+
 struct dg_game **
 sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
 {
@@ -441,6 +456,9 @@ sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
     case SORTMODE_WINDOWSIZE: qsort(games, len, sizeof(struct dg_game *), sort_game_windowsize); break;
     case SORTMODE_IDLETIME: qsort(games, len, sizeof(struct dg_game *), sort_game_idletime); break;
     case SORTMODE_STARTTIME: qsort(games, len, sizeof(struct dg_game *), sort_game_starttime); break;
+#ifdef USE_SHMEM
+    case SORTMODE_WATCHERS: qsort(games, len, sizeof(struct dg_game *), sort_game_watchers); break;
+#endif
     default: ;
     }
     return games;
@@ -573,6 +591,9 @@ populate_games (int xgame, int *l, struct dg_user *me)
               games[len]->idle_time = pstat.st_mtime;
 
 	      games[len]->gamenum = game;
+	      games[len]->is_in_shm = 0;
+	      games[len]->nwatchers = 0;
+	      games[len]->shm_idx = -1;
 
 	      n = read(fd, pidws, sizeof(pidws) - 1);
 	      if (n > 0)
