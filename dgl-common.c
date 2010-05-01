@@ -215,7 +215,12 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    if (p1 && (access(p1, F_OK) != 0)) unlink(p1);
 	    break;
 	case DGLCMD_CHDIR:
-	    if (p1) chdir(p1);
+	    if (p1) {
+		if (chdir(p1) == -1) {
+		    debug_write("chdir-command failed");
+		    graceful_exit(123);
+		}
+	    }
 	    break;
 	case DGLCMD_IF_NX_CP:
 	    if (p1 && p2) {
