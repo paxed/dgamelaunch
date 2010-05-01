@@ -444,7 +444,7 @@ sort_game_watchers(const void *g1, const void *g2)
 {
     const struct dg_game *game1 = *(const struct dg_game **)g1;
     const struct dg_game *game2 = *(const struct dg_game **)g2;
-    int i = dglsign(game1->nwatchers - game2->nwatchers);
+    int i = dglsign(game2->nwatchers - game1->nwatchers);
     if (!i)
 	i = strcmp(game1->time, game2->time);
     if (!i)
