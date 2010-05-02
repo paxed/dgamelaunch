@@ -537,7 +537,7 @@ shm_init(struct dg_shm **shm_dg_data, struct dg_shm_game **shm_dg_game)
   }
 
   (*shm_dg_data) = (struct dg_shm *)shm_data;
-  (*shm_dg_game) = (struct dg_shm_game *)(shm_data + sizeof(struct dg_shm));
+  (*shm_dg_game) = (struct dg_shm_game *)((*shm_dg_data) + sizeof(struct dg_shm));
 
   if (!shm_data_existed && shm_data) {
       memset(*shm_dg_game, 0, shm_n_games*sizeof(struct dg_shm_game));
