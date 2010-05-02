@@ -1,5 +1,9 @@
-1.5.1 (2010/??/??)
+1.5.1 (2010/05/02)
 	* Allow sorting the watching-menu by any column.
+	* Show number of people watching each game.
+	* Allow dgl to kill processes that are idle for too long.
+	* Allow setting resource limits on core dump size and memory usage.
+	* Improve configure-script.
 
 1.5.0 (2009/10/18)
 	* Merge the dgl-wall functionality into dgamelaunch itself.
