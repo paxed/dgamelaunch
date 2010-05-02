@@ -86,15 +86,15 @@ struct dg_shm
 #ifdef USE_SHMEM
     sem_t dg_sem;
 #endif
-    int max_n_games;
-    int cur_n_games;
+    long max_n_games;
+    long cur_n_games;
 };
 
 struct dg_shm_game
 {
-    int  in_use;
-    int  nwatchers;
-    char ttyrec_fn[150];
+    long  in_use;
+    long  nwatchers;
+    char  ttyrec_fn[150];
 };
 
 struct dg_game
