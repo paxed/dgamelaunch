@@ -835,8 +835,10 @@ watchgame:
 		  shm_idx = games[idx]->shm_idx;
 		  shm_sem_wait(shm_dg_data);
 		  if (shm_dg_game[shm_idx].in_use &&
-		      !strcmp(shm_dg_game[shm_idx].ttyrec_fn, games[idx]->ttyrec_fn))
+		      !strcmp(shm_dg_game[shm_idx].ttyrec_fn, games[idx]->ttyrec_fn)) {
 		      shm_dg_game[shm_idx].nwatchers++;
+		      games[idx]->nwatchers++;
+		  }
 		  shm_sem_post(shm_dg_data);
 	      }
 #endif
@@ -856,8 +858,10 @@ watchgame:
 		  shm_sem_wait(shm_dg_data);
 		  if (shm_dg_game[shm_idx].in_use &&
 		      !strcmp(shm_dg_game[shm_idx].ttyrec_fn, games[idx]->ttyrec_fn) &&
-		      (shm_dg_game[shm_idx].nwatchers > 0))
+		      (shm_dg_game[shm_idx].nwatchers > 0)) {
 		      shm_dg_game[shm_idx].nwatchers--;
+		      games[idx]->nwatchers--;
+		  }
 		  shm_sem_post(shm_dg_data);
 	      }
 #endif
