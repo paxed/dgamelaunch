@@ -616,14 +616,6 @@ inprogressmenu (int gameid)
 
       if (len == 0)
         offset = 0;
-      else
-        {
-	  while (offset >= len && offset >= max_height)
-	    offset -= max_height;
-
-	  while ((offset > 0) && (offset + max_height > len))
-	      offset--;
-	}
 
       erase ();
       drawbanner (&banner, 1, 1);
@@ -706,12 +698,8 @@ inprogressmenu (int gameid)
       shm_sem_post(shm_dg_data);
 
       btm = dgl_local_LINES-btm_banner_hei-top_banner_hei;
-      if (btm > i) btm = i+1;
       if (len > 0) {
-	  if (max_height+offset < len)
-	      mvprintw ((btm+top_banner_hei), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
-	  else
-	      mvprintw ((btm+top_banner_hei), 4, "(end)");
+	  mvprintw ((btm+top_banner_hei), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
 	  mvaddstr ((btm+2+top_banner_hei), 1, "Watch which game? ('?' for help) => ");
       } else {
 	  mvprintw(top_banner_hei,4,"Sorry, no games available for viewing.");
@@ -762,7 +750,7 @@ inprogressmenu (int gameid)
            }
            break;
         case '>':
-	    if ((offset + max_height) < (len-1)) offset += max_height;
+	    if ((offset + max_height) < len) offset += max_height;
           break;
 
         case '<':
