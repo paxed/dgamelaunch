@@ -339,34 +339,56 @@ bannerstrmangle(char *buf, char *fromstr, char *tostr)
 }
 
 void
+freebanner(struct dg_banner *ban)
+{
+    unsigned int l;
+    if (!ban) return;
+    l = ban->len;
+
+    while (l > 0) {
+	l--;
+	free(ban->lines[l]);
+    }
+    free(ban->lines);
+    ban->len = 0;
+    ban->lines = NULL;
+}
+
+void
+banner_addline(struct dg_banner *ban, char *line)
+{
+    size_t len = strlen(line);
+    if (!ban) return;
+    ban->len++;
+    ban->lines = realloc (ban->lines, sizeof (char *) * ban->len);
+    if (len >= 80) {
+	len = 80;
+	ban->lines[ban->len - 1] = malloc(len);
+	strncpy(ban->lines[ban->len - 1], line, len);
+	ban->lines[ban->len - 1][len-1] = '\0';
+    } else
+	ban->lines[ban->len - 1] = strdup(line);
+}
+
+void
 loadbanner (char *fname, struct dg_banner *ban)
 {
   FILE *bannerfile;
   char buf[80];
+  if (ban->len > 23) return;
 
   memset (buf, 0, 80);
-
-  if (ban->lines) return;
 
   bannerfile = fopen (fname, "r");
 
   if (!bannerfile)
     {
-#define NOTE_NO_DGL_BANNER "### NOTE: administrator has not installed a %s file"
-      size_t len;
-      ban->len = 2;
-      ban->lines = malloc (sizeof (char *));
-      ban->lines[0] =
-        strdup ("### dgamelaunch " PACKAGE_VERSION
-                " - network console game launcher");
-      len = strlen(fname) + ARRAY_SIZE(NOTE_NO_DGL_BANNER);
-      ban->lines[1] = malloc(len);
-      snprintf(ban->lines[1], len, NOTE_NO_DGL_BANNER, fname);
-#undef NOTE_NO_DGL_BANNER
-      return;
+	if (ban->len == 0)
+	    banner_addline(ban, "### dgamelaunch " PACKAGE_VERSION " - network console game launcher");
+	snprintf(buf, 80, "### NOTE: administrator has not installed a %s file", fname);
+	banner_addline(ban, buf);
+	return;
     }
-
-  ban->len = 0;
 
   while (fgets (buf, 80, bannerfile) != NULL)
     {
@@ -378,22 +400,31 @@ loadbanner (char *fname, struct dg_banner *ban)
       slen = strlen(buf);
       if ((slen > 0) && (buf[slen-1] == '\n')) buf[slen-1] = '\0';
 
-      ban->len++;
-      ban->lines = realloc (ban->lines, sizeof (char *) * ban->len);
-
       strncpy(bufnew, buf, 80);
-      strncpy(bufnew, bannerstrmangle(bufnew, "$VERSION", PACKAGE_STRING), 80);
-      strncpy(bufnew, bannerstrmangle(bufnew, "$SERVERID", globalconfig.server_id ? globalconfig.server_id : ""), 80);
-      if (me && loggedin) {
-	  strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", me->username), 80);
+      if (strstr(bufnew, "$INCLUDE(")) {
+	  char *fn = bufnew + 9;
+	  char *fn_end = strchr(fn, ')');
+	  if (fn_end) {
+	      *fn_end = '\0';
+	      if (strcmp(fname, fn)) {
+		  banner_addline(ban, fn);
+		  loadbanner(fn, ban);
+	      }
+	  }
       } else {
-	  strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", "[Anonymous]"), 80);
+	  strncpy(bufnew, bannerstrmangle(bufnew, "$VERSION", PACKAGE_STRING), 80);
+	  strncpy(bufnew, bannerstrmangle(bufnew, "$SERVERID", globalconfig.server_id ? globalconfig.server_id : ""), 80);
+	  if (me && loggedin) {
+	      strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", me->username), 80);
+	  } else {
+	      strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", "[Anonymous]"), 80);
+	  }
+	  banner_addline(ban, bufnew);
       }
-      ban->lines[ban->len - 1] = strdup(bufnew);
 
       memset (buf, 0, 80);
 
-      if (ban->len == 24)
+      if (ban->len >= 24)
 	  break;
   }
 
@@ -2135,7 +2166,10 @@ runmenuloop(struct dg_menu *menu)
 	    mvprintw(menu->cursor_y, menu->cursor_x, "");
 	refresh();
 	userchoice = dgl_getch();
-	if (userchoice == ERR) return 1;
+	if (userchoice == ERR) {
+	    freebanner(&ban);
+	    return 1;
+	}
 	tmpopt = menu->options;
 	while (tmpopt) {
 	    if (strchr(tmpopt->keys, userchoice)) {
@@ -2148,11 +2182,13 @@ runmenuloop(struct dg_menu *menu)
 	}
 
 	if (return_from_submenu) {
+	    freebanner(&ban);
 	    return_from_submenu = 0;
 	    return 0;
 	}
 
 	if (check_retard(0)) {
+	    freebanner(&ban);
 	    debug_write("retard");
 	    graceful_exit(119);
 	}
@@ -2414,7 +2450,8 @@ main (int argc, char** argv)
       graceful_exit(0);
   }
 
-
+  banner.len = 0;
+  banner.lines = NULL;
   loadbanner(globalconfig.banner, &banner);
 
   dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_DGLSTART], 0, NULL);
@@ -2475,6 +2512,8 @@ main (int argc, char** argv)
 
   if (me)
     free (me);
+
+  freebanner(&banner);
 
   graceful_exit (1);
 
