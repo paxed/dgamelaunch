@@ -698,6 +698,9 @@ inprogressmenu (int gameid)
       shm_sem_post(shm_dg_data);
 
       btm = dgl_local_LINES-btm_banner_hei-top_banner_hei;
+      if (len <= max_height)
+	  btm = i+1;
+
       if (len > 0) {
 	  mvprintw ((btm+top_banner_hei), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
 	  mvaddstr ((btm+2+top_banner_hei), 1, "Watch which game? ('?' for help) => ");
