@@ -614,6 +614,24 @@ inprogressmenu (int gameid)
 
   int di;
 
+  struct dg_watchcols {
+      int dat;
+      int sortmode;
+      int x;
+      char *colname;
+      char *fmt;
+  } watchcols[] = {
+      {0, SORTMODE_NONE,        1, "", "%s)"},
+      {1, SORTMODE_USERNAME,    4, "Username", "%-15s"},
+      {2, SORTMODE_GAMENUM,    21, "Game", "%-5s"},
+      {3, SORTMODE_WINDOWSIZE, 29, "Size", "%s"},
+      {4, SORTMODE_STARTTIME,  37, "Start date & time", "%s"},
+      {5, SORTMODE_IDLETIME,   58, "Idle time", "%-10s"},
+#ifdef USE_SHMEM
+      {6, SORTMODE_WATCHERS,   70, "Watchers", "%s"},
+#endif
+  };
+
   struct dg_shm *shm_dg_data = NULL;
   struct dg_shm_game *shm_dg_game = NULL;
 
@@ -654,23 +672,11 @@ inprogressmenu (int gameid)
       if (len > 0) {
 	  mvaddstr (3, 1, "The following games are in progress:");
 
-#define dgl_sortprintw(mode, x, str)                 \
-	  if (sortmode == mode) attron(title_attr);  \
-	  mvprintw(top_banner_hei,x,str);            \
-	  if (sortmode == mode) attroff(title_attr);
-
-	  mvprintw(top_banner_hei,1," ");
-
-	  dgl_sortprintw(SORTMODE_USERNAME,    4, "Username")
-	  dgl_sortprintw(SORTMODE_GAMENUM,    21, "Game")
-	  dgl_sortprintw(SORTMODE_WINDOWSIZE, 29, "Size")
-	  dgl_sortprintw(SORTMODE_STARTTIME,  37, "Start date & time")
-	  dgl_sortprintw(SORTMODE_IDLETIME,   58, "Idle time")
-#ifdef USE_SHMEM
-	  dgl_sortprintw(SORTMODE_WATCHERS,   70, "Watchers")
-#endif
-
-#undef dgl_sortprintw
+	  for (di = 0; di < ARRAY_SIZE(watchcols); di++) {
+	      if (sortmode == watchcols[di].sortmode) attron(title_attr);
+	      mvprintw(top_banner_hei, watchcols[di].x, watchcols[di].colname);
+	      if (sortmode == watchcols[di].sortmode) attroff(title_attr);
+	  }
       }
 
       shm_sem_wait(shm_dg_data);
@@ -690,11 +696,6 @@ inprogressmenu (int gameid)
 	    snprintf (gametype, sizeof gametype, "%3dx%3d",
 		games[i + offset]->ws_col, games[i + offset]->ws_row);
 
-#ifdef USE_SHMEM
-# define WATCH_LINE_FORMAT "%c) %-15s  %-5s  %s  %s %s  %-10s  %i"
-#else
-# define WATCH_LINE_FORMAT "%c) %-15s  %-5s  %s  %s %s  %-10s"
-#endif
 	  {
 	      time_t ctime;
 	      long secs, mins, hours;
@@ -711,16 +712,23 @@ inprogressmenu (int gameid)
 		  snprintf(idletime, 10, "%ldm %lds", mins, secs);
 	  }
 
-          mvprintw (top_banner_hei + 1 + i, 1, WATCH_LINE_FORMAT,
-                    selectorchars[i], games[i + offset]->name, myconfig[games[i + offset]->gamenum]->shortname, gametype,
-                    games[i + offset]->date, games[i + offset]->time,
-		    idletime,
+	  for (di = 0; di < ARRAY_SIZE(watchcols); di++) {
+	      char tmpbuf[80];
+	      switch (watchcols[di].dat) {
+	      default: break;
+	      case 0: tmpbuf[0] = selectorchars[i]; tmpbuf[1] = '\0'; break;
+	      case 1: snprintf(tmpbuf, 80, "%s", games[i + offset]->name); break;
+	      case 2: snprintf(tmpbuf, 80, "%s", myconfig[games[i + offset]->gamenum]->shortname); break;
+	      case 3: snprintf(tmpbuf, 80, "%s", gametype); break;
+	      case 4: snprintf(tmpbuf, 80, "%s %s", games[i + offset]->date, games[i + offset]->time); break;
+	      case 5: snprintf(tmpbuf, 80, "%s", idletime); break;
 #ifdef USE_SHMEM
-		    (games[i+offset]->is_in_shm ? shm_dg_game[games[i+offset]->shm_idx].nwatchers : -1)
-#else
-		    0
+	      case 6: snprintf(tmpbuf, 80, "%li", (games[i+offset]->is_in_shm ? shm_dg_game[games[i+offset]->shm_idx].nwatchers : -1)); break;
 #endif
-		    );
+	      }
+	      tmpbuf[79] = '\0';
+	      mvprintw(top_banner_hei + 1 + i, watchcols[di].x, watchcols[di].fmt, tmpbuf);
+	  }
 
 	  if (i + offset == selected) attroff(selected_attr);
 
