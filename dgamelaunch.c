@@ -624,7 +624,7 @@ inprogressmenu (int gameid)
       {0, SORTMODE_NONE,        1, "", "%s)"},
       {1, SORTMODE_USERNAME,    4, "Username", "%-15s"},
       {2, SORTMODE_GAMENUM,    21, "Game", "%-5s"},
-      {3, SORTMODE_WINDOWSIZE, 29, "Size", "%s"},
+      {3, SORTMODE_WINDOWSIZE, 28, " Size", "%s"},
       {4, SORTMODE_STARTTIME,  37, "Start date & time", "%s"},
       {5, SORTMODE_IDLETIME,   58, "Idle time", "%-10s"},
 #ifdef USE_SHMEM
@@ -673,8 +673,11 @@ inprogressmenu (int gameid)
 	  mvaddstr (3, 1, "The following games are in progress:");
 
 	  for (di = 0; di < ARRAY_SIZE(watchcols); di++) {
+	      char *col = watchcols[di].colname;
+	      int x = watchcols[di].x;
+	      while (*col == ' ') { x++; col++; }
 	      if (sortmode == watchcols[di].sortmode) attron(title_attr);
-	      mvprintw(top_banner_hei, watchcols[di].x, watchcols[di].colname);
+	      mvprintw(top_banner_hei, x, col);
 	      if (sortmode == watchcols[di].sortmode) attroff(title_attr);
 	  }
       }
