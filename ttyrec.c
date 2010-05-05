@@ -83,7 +83,6 @@ int master;
 
 struct termios tt;
 struct winsize win;
-int uflg;
 
 void
 ttyrec_id(int game, char *username, char *ttyrec_filename)
@@ -252,79 +251,6 @@ finish (int sig)
   }
 }
 
-struct linebuf
-{
-  char str[BUFSIZ + 1];         /* + 1 for an additional NULL character. */
-  int len;
-};
-
-
-void
-check_line (const char *line)
-{
-  static int uuencode_mode = 0;
-  static FILE *uudecode;
-
-  if (uuencode_mode == 1)
-    {
-      fprintf (uudecode, "%s", line);
-      if (strcmp (line, "end\n") == 0)
-        {
-          pclose (uudecode);
-          uuencode_mode = 0;
-        }
-    }
-  else
-    {
-      int dummy;
-      char dummy2[BUFSIZ];
-      if (sscanf (line, "begin %o %s", &dummy, dummy2) == 2)
-        {
-          /* 
-           * uuencode line found! 
-           */
-          uudecode = popen ("uudecode", "w");
-          fprintf (uudecode, "%s", line);
-          uuencode_mode = 1;
-        }
-    }
-}
-
-void
-check_output (const char *str, int len)
-{
-  static struct linebuf lbuf = { "", 0 };
-  int i;
-
-  for (i = 0; i < len; i++)
-    {
-      if (lbuf.len < BUFSIZ)
-        {
-          lbuf.str[lbuf.len] = str[i];
-          if (lbuf.str[lbuf.len] == '\r')
-            {
-              lbuf.str[lbuf.len] = '\n';
-            }
-          lbuf.len++;
-          if (lbuf.str[lbuf.len - 1] == '\n')
-            {
-              if (lbuf.len > 1)
-                {               /* skip a blank line. */
-                  lbuf.str[lbuf.len] = '\0';
-                  check_line (lbuf.str);
-                }
-              lbuf.len = 0;
-            }
-        }
-      else
-        {                       /* buffer overflow */
-          lbuf.len = 0;
-        }
-    }
-}
-
-
-
 void
 game_idle_kill(int signal)
 {
@@ -355,8 +281,6 @@ dooutput (int max_idle_time)
       if (max_idle_time)
           alarm(max_idle_time);
 
-      if (uflg)
-        check_output (obuf, cc);
       h.len = cc;
       gettimeofday (&h.tv, NULL);
       (void) write (1, obuf, cc);
