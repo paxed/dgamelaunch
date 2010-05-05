@@ -192,14 +192,15 @@ int
 ttyread (FILE * fp, Header * h, char **buf, int pread)
 {
   long offset;
+  int kb = kbhit();
 
-  if (kbhit())
-      {
-	  const int c = dgl_getch();
-	  const int action = ttyplay_keyboard_action(c);
-	  if (action != READ_DATA)
-	      return (action);
-      }
+  if (kb == ERR) return READ_QUIT;
+  else if (kb) {
+      const int c = dgl_getch();
+      const int action = ttyplay_keyboard_action(c);
+      if (action != READ_DATA)
+	  return (action);
+  }
 
   /* do this BEFORE header read, hlen bug */
   offset = ftell (fp);
