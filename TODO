@@ -1,6 +1,4 @@
--dgl menu file inclusion command: $INCLUDE(filename) or $INSERT(filename)
- would insert the file at that position of the menu file.
- would make easier to maintain banners, &c
+-$MTIME(filename)
 
 < Napkin> I'd suggest the default of DGL_MAILMSGLEN to be less
 < Napkin> there are 4 digits in front of the prompt, paxed. having

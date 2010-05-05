@@ -85,6 +85,45 @@ struct termios tt;
 struct winsize win;
 int uflg;
 
+void
+ttyrec_id(int game, char *username, char *ttyrec_filename)
+{
+    int i;
+    time_t tstamp;
+    Header h;
+    char *buf = (char *)malloc(1024);
+    char tmpbuf[256];
+    if (!buf) return;
+
+    tstamp = time(NULL);
+
+#define dCLRSCR "\033[2J"
+#define dCRLF   "\r\n"
+    snprintf(buf, 1024,
+            dCLRSCR "\033[1;1H" dCRLF
+            "Player: %s" dCRLF
+            "Game: %s" dCRLF
+            "Server: %s" dCRLF
+            "Filename: %s" dCRLF
+            "Time: (%lu) %s" dCRLF
+            dCLRSCR,
+            username,
+            myconfig[game]->game_name,
+            globalconfig.server_id,
+            ttyrec_filename,
+            tstamp, ctime(&tstamp)
+            );
+#undef dCLRSCR
+#undef dCRLF
+    h.len = strlen(buf);
+    gettimeofday (&h.tv, NULL);
+
+    (void) write_header(fscript, &h);
+    (void) fwrite(buf, 1, h.len, fscript);
+
+    free(buf);
+}
+
 int
 ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
 {
@@ -143,6 +182,7 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
         {
           close (slave);
           ipfile = gen_inprogress_lock (game, child, ttyrec_filename);
+	  ttyrec_id(game, username, ttyrec_filename);
           dooutput (myconfig[game]->max_idle_time);
         }
       else
