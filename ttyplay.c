@@ -144,6 +144,7 @@ ttyplay_keyboard_action(int c)
     struct termios t;
     switch (c)
     {
+    case ERR:
     case 'q':
         return READ_QUIT;
     case 'r':
@@ -213,14 +214,14 @@ ttyread (FILE * fp, Header * h, char **buf, int pread)
     {
       fprintf (stderr, "h->len too big (%ld) limit %ld\n",
 		      (long)h->len, (long)BUFSIZ);
-      exit (-21);
+      return READ_QUIT;
     }
 
   *buf = malloc (h->len + 1);
   if (*buf == NULL)
     {
       perror ("malloc");
-      exit (-22);
+      return READ_QUIT;
     }
 
   if (fread (*buf, 1, h->len, fp) != h->len)
@@ -253,7 +254,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
   if (kq == -1)
     {
       printf ("kqueue() failed.\n");
-      exit (1);
+      return READ_QUIT;
     }
 #endif
 
@@ -299,7 +300,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
 	     */
 	    endwin ();
 	    printf ("Exiting due to 20 minutes of inactivity.\n");
-	    exit (-23);
+	    return READ_QUIT;
 	  }
 	FD_ZERO (&readfs);
 	FD_SET (STDIN_FILENO, &readfs);
@@ -314,7 +315,7 @@ ttypread (FILE * fp, Header * h, char **buf, int pread)
 		return READ_RESTART;
 	    } else {
 		printf("select()/kevent() failed.\n");
-		exit (1);
+		return READ_QUIT;
 	    }
 	}
       if (doread)
