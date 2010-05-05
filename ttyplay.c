@@ -556,5 +556,7 @@ ttyplay_main (char *ttyfile, int mode, int resizex, int resizey)
 
   term_resizex = term_resizey = -1;
 
+  printf("\033[2J"); /* clear screen afterwards */
+
   return 0;
 }
