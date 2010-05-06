@@ -777,6 +777,18 @@ inprogressmenu (int gameid)
 
       switch ((menuchoice = dgl_getch ()))
         {
+	case KEY_DOWN:
+	    if (selected != -1) {
+		selected++;
+		if (selected >= len) selected = 0;
+	    }
+	    break;
+	case KEY_UP:
+	    if (selected != -1) {
+		if (selected == 0) selected = len;
+		selected--;
+	    }
+	    break;
 	case '*':
 	    if (len > 0) {
 		idx = random() % len;
@@ -816,10 +828,11 @@ inprogressmenu (int gameid)
                }
            }
            break;
+	case KEY_NPAGE:
         case '>':
 	    if ((offset + max_height) < len) offset += max_height;
           break;
-
+	case KEY_PPAGE:
         case '<':
           if ((offset - max_height) < 0)
 	      offset = 0;
@@ -835,11 +848,11 @@ inprogressmenu (int gameid)
 	    shmdt(shm_dg_data);
 #endif
           return;
-
+	case KEY_RIGHT:
 	case '.':
 	    if (sortmode < (NUM_SORTMODES-1)) sortmode++; else sortmode = SORTMODE_USERNAME;
 	    break;
-
+	case KEY_LEFT:
 	case ',':
 	    if (sortmode > SORTMODE_USERNAME) sortmode--; else sortmode = (NUM_SORTMODES-1);
 	    break;

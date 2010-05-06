@@ -1,3 +1,6 @@
+
+-move the games[] array into shmem?
+
 -$MTIME(filename)
 
 < Napkin> I'd suggest the default of DGL_MAILMSGLEN to be less
