@@ -253,6 +253,11 @@ gen_inprogress_lock (int game, pid_t pid, char* ttyrec_filename)
 
 /* ************************************************************* */
 
+#ifdef USE_SHMEM
+int hup_shm_idx = -1;
+char *hup_shm_ttyrec_fn = NULL;
+#endif
+
 void
 catch_sighup (int signum)
 {
@@ -262,6 +267,23 @@ catch_sighup (int signum)
       kill (child, SIGHUP);
       sleep (5);
     }
+#ifdef USE_SHMEM
+  if (hup_shm_idx != -1) {
+      struct dg_shm *shm_dg_data = NULL;
+      struct dg_shm_game *shm_dg_game = NULL;
+      shm_init(&shm_dg_data, &shm_dg_game);
+
+      shm_sem_wait(shm_dg_data);
+      if (shm_dg_game[hup_shm_idx].in_use &&
+	  !strcmp(shm_dg_game[hup_shm_idx].ttyrec_fn, hup_shm_ttyrec_fn) &&
+	  (shm_dg_game[hup_shm_idx].nwatchers > 0)) {
+	  shm_dg_game[hup_shm_idx].nwatchers--;
+      }
+      shm_sem_post(shm_dg_data);
+      hup_shm_idx = -1;
+      free(hup_shm_ttyrec_fn);
+  }
+#endif
   debug_write("catchup sighup");
   graceful_exit (2);
 }
@@ -872,6 +894,8 @@ watchgame:
 		      shm_dg_game[shm_idx].nwatchers++;
 		      games[idx]->nwatchers++;
 		  }
+		  hup_shm_idx = shm_idx;
+		  hup_shm_ttyrec_fn = strdup(games[idx]->ttyrec_fn);
 		  shm_sem_post(shm_dg_data);
 	      }
 #endif
@@ -888,6 +912,8 @@ watchgame:
 		  setproctitle("<Anonymous>");
 #ifdef USE_SHMEM
 	      if (games[idx]->is_in_shm) {
+		  hup_shm_idx = -1;
+		  free(hup_shm_ttyrec_fn);
 		  shm_sem_wait(shm_dg_data);
 		  if (shm_dg_game[shm_idx].in_use &&
 		      !strcmp(shm_dg_game[shm_idx].ttyrec_fn, games[idx]->ttyrec_fn) &&

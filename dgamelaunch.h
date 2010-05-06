@@ -251,6 +251,13 @@ extern void debug_write(char *str);
 extern struct dg_game **sort_games(struct dg_game **games, int len, dg_sortmode sortmode);
 
 int runmenuloop(struct dg_menu *menu);
+
+extern void shm_sem_wait(struct dg_shm *shm_dg_data);
+extern void shm_sem_post(struct dg_shm *shm_dg_data);
+extern void shm_update(struct dg_shm *shm_dg_data, struct dg_game **games, int len);
+extern void shm_mk_keys(key_t *shm_key, key_t *shm_sem_key);
+extern void shm_init(struct dg_shm **shm_dg_data, struct dg_shm_game **shm_dg_game);
+
 extern int dgl_getch(void);
 extern void idle_alarm_set_enabled(int enabled);
 extern void idle_alarm_reset(void);
