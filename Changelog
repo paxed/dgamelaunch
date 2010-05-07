@@ -1,3 +1,6 @@
+1.5.2 (2010/xx/xx)
+	* Output some identifying information into the ttyrecs.
+
 1.5.1 (2010/05/02)
 	* Allow sorting the watching-menu by any column.
 	* Show number of people watching each game.

@@ -636,6 +636,8 @@ inprogressmenu (int gameid)
 
   int di;
 
+  time_t ctime;
+
   struct dg_watchcols {
       int dat;
       int sortmode;
@@ -706,6 +708,8 @@ inprogressmenu (int gameid)
 
       shm_sem_wait(shm_dg_data);
 
+      (void) time(&ctime);
+
       for (i = 0; i < max_height; i++)
         {
           if (i + offset >= len)
@@ -722,10 +726,8 @@ inprogressmenu (int gameid)
 		games[i + offset]->ws_col, games[i + offset]->ws_row);
 
 	  {
-	      time_t ctime;
 	      long secs, mins, hours;
 
-	      (void) time(&ctime);
 	      secs = (ctime - games[i + offset]->idle_time);
 	      hours = (secs / 3600);
 	      secs -= (hours * 3600);
