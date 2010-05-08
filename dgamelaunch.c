@@ -713,12 +713,17 @@ inprogressmenu (int gameid)
 
 	  for (di = 0; di < ARRAY_SIZE(watchcols); di++) {
 	      char tmpbuf[80];
+	      int hilite = 0;
 	      switch (watchcols[di].dat) {
 	      default: break;
 	      case 0: tmpbuf[0] = selectorchars[i]; tmpbuf[1] = '\0'; break;
 	      case 1: snprintf(tmpbuf, 80, "%s", games[i + offset]->name); break;
 	      case 2: snprintf(tmpbuf, 80, "%s", myconfig[games[i + offset]->gamenum]->shortname); break;
-	      case 3: snprintf(tmpbuf, 80, "%s", gametype); break;
+	      case 3:
+		  snprintf(tmpbuf, 80, "%s", gametype);
+		  if ((games[i+offset]->ws_col > COLS || games[i+offset]->ws_row > LINES))
+		      hilite = CLR_RED;
+		  break;
 	      case 4: snprintf(tmpbuf, 80, "%s %s", games[i + offset]->date, games[i + offset]->time); break;
 	      case 5: snprintf(tmpbuf, 80, "%s", idletime); break;
 #ifdef USE_SHMEM
@@ -726,7 +731,12 @@ inprogressmenu (int gameid)
 #endif
 	      }
 	      tmpbuf[79] = '\0';
+	      if (hilite) attron(hilite);
 	      mvprintw(top_banner_hei + 1 + i, watchcols[di].x, watchcols[di].fmt, tmpbuf);
+	      if (hilite) {
+		  attron(CLR_NORMAL);
+		  hilite = 0;
+	      }
 	  }
 
 	  if (i + offset == selected) attroff(selected_attr);
@@ -1293,6 +1303,12 @@ initcurses ()
   nonl ();
   intrflush (stdscr, FALSE);
   keypad (stdscr, TRUE);
+#ifdef USE_NCURSES_COLOR
+  start_color();
+  use_default_colors();
+  init_pair(1, -1, -1);
+  init_pair(2, COLOR_RED, -1);
+#endif
 }
 
 /* ************************************************************* */

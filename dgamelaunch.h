@@ -23,6 +23,14 @@
 #define DGL_PASSWDLEN 20 /* max. length of passwords */
 #define DGL_MAILMSGLEN 80 /* max. length of mail message */
 
+#ifdef USE_NCURSES_COLOR
+# define CLR_NORMAL  COLOR_PAIR(1)   | A_NORMAL
+# define CLR_RED     COLOR_PAIR(2)   | A_NORMAL
+#else
+# define CLR_NORMAL  0
+# define CLR_RED     0
+#endif
+
 typedef enum
 {
     DGLTIME_DGLSTART = 0,	/* when someone telnets in */
