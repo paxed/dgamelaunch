@@ -201,24 +201,6 @@ gen_ttyrec_filename ()
 /* ************************************************************* */
 
 char*
-gen_nhext_filename ()
-{
-  time_t rawtime;
-  struct tm *ptm;
-  char *nhext_filename = calloc(100, sizeof(char));
-
-  /* append time to filename */
-  time (&rawtime);
-  ptm = gmtime (&rawtime);
-  snprintf (nhext_filename, 100, "%04i-%02i-%02i.%02i:%02i:%02i.nhext",
-            ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday,
-            ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
-  return nhext_filename;
-}
-
-/* ************************************************************* */
-
-char*
 gen_inprogress_lock (int game, pid_t pid, char* ttyrec_filename)
 {
   char *lockfile = NULL, filebuf[80];
@@ -612,7 +594,6 @@ inprogressmenu (int gameid)
   static dg_sortmode sortmode = NUM_SORTMODES;
   struct dg_game **games = NULL;
   char ttyrecname[130], gametype[10], idletime[10];
-  int *is_nhext;
   sigset_t oldmask, toblock;
   int idx = -1;
   int shm_idx = -1;
@@ -663,12 +644,6 @@ inprogressmenu (int gameid)
       sortmode = globalconfig.sortmode;
 
   abs_max_height = strlen(selectorchars);
-  is_nhext = (int *)calloc(abs_max_height+1, sizeof(int));
-
-  if (!is_nhext) {
-      debug_write("could not calloc is_nhext");
-      graceful_exit(70);
-  }
 
   shm_init(&shm_dg_data, &shm_dg_game);
 
@@ -681,7 +656,6 @@ inprogressmenu (int gameid)
 	term_resize_check();
 	max_height = dgl_local_LINES - (top_banner_hei + btm_banner_hei) - 1;
 	if (max_height < 2) {
-	    free(is_nhext);
 	    free_populated_games(games, len);
 	    return;
 	}
@@ -717,12 +691,7 @@ inprogressmenu (int gameid)
 
 	  if (i + offset == selected) attron(selected_attr);
 
-	  is_nhext[i] = !strcmp (games[i + offset]->ttyrec_fn + strlen (games[i + offset]->ttyrec_fn) - 6, ".nhext");
-
-	  if (is_nhext[i])
-	    strcpy (gametype, "  NhExt");
-	  else
-	    snprintf (gametype, sizeof gametype, "%3dx%3d",
+	  snprintf (gametype, sizeof gametype, "%3dx%3d",
 		games[i + offset]->ws_col, games[i + offset]->ws_row);
 
 	  {
@@ -822,7 +791,6 @@ inprogressmenu (int gameid)
 		   if (nmatches > 1)
 		       match = firstmatch;
                    if (match > -1) {
-		       if (!strcmp(games[match]->ttyrec_fn + strlen (games[match]->ttyrec_fn) - 6, ".nhext")) break;
 		       idx = match;
 		       selected = idx;
 		       goto watchgame;
@@ -844,7 +812,6 @@ inprogressmenu (int gameid)
 
 	case ERR:
 	case 'q': case 'Q':
-	    if (is_nhext) free(is_nhext);
 	    free_populated_games(games, len);
 #ifdef USE_SHMEM
 	    shmdt(shm_dg_data);
@@ -880,9 +847,6 @@ inprogressmenu (int gameid)
 		    selected = -1;
 		    break;
 		}
-
-		if (is_nhext[sidx]) /* Cannot watch NhExt game */
-		    break;
 
 	      idx = sidx + offset;
 	      if (require_enter) {
@@ -959,7 +923,6 @@ watchgame:
 	  selectedgame = NULL;
       }
     }
-  if (is_nhext) free(is_nhext);
   free_populated_games(games, len);
 #ifdef USE_SHMEM
   shmdt(shm_dg_data);
@@ -2247,66 +2210,6 @@ runmenuloop(struct dg_menu *menu)
     }
 }
 
-
-int
-authenticate ()
-{
-  int i, len, me_index;
-  char user_buf[DGL_PLAYERNAMELEN+1], pw_buf[DGL_PASSWDLEN+1];
-  struct dg_game **games = NULL;
-
-  /* We use simple password authentication, rather than challenge/response. */
-  printf ("\n");
-  fflush(stdout);
-
-  fgets (user_buf, sizeof(user_buf), stdin);
-  len = strlen (user_buf);
-  if (user_buf[len - 1] == '\n')
-    user_buf[--len] = '\0';
-  else
-    {
-	fprintf (stderr, "Username too long (max %i chars).\n", DGL_PLAYERNAMELEN);
-      return 1;
-    }
-
-  fgets (pw_buf, sizeof(pw_buf), stdin);
-  len = strlen (pw_buf);
-  if (pw_buf[len - 1] == '\n')
-    pw_buf[--len] = '\0';
-  else
-    {
-	fprintf (stderr, "Password too long (max %i chars).\n", DGL_PASSWDLEN);
-      return 1;
-    }
-
-  {
-      struct dg_user *tmpme;
-      if ((tmpme = userexist(user_buf, 0))) {
-	  me = cpy_me(tmpme);
-      if (passwordgood (pw_buf))
-        {
-	    games = populate_games (-1, &len, me);
-	  for (i = 0; i < len; i++)
-	    if (!strcmp (games[i]->name, user_buf))
-	      {
-		fprintf (stderr, "Game already in progress.\n");
-		free_populated_games(games, len);
-		return 1;
-	      }
-	  win.ws_row = win.ws_col = 0;
-	  gen_inprogress_lock (0, getppid (), gen_nhext_filename ());
-	  free_populated_games(games, len);
-	  return 0;
-	}
-      }
-  }
-
-  sleep (2);
-  fprintf (stderr, "Login failed.\n");
-  free_populated_games(games, len);
-  return 1;
-}
-
 int
 main (int argc, char** argv)
 {
@@ -2314,7 +2217,6 @@ main (int argc, char** argv)
     char atrcfilename[81], *p, *auth = NULL;
   unsigned int len;
   int c, i;
-  int nhext = 0, nhauth = 0;
   int userchoice;
   char *tmp;
   char *wall_email_str = NULL;
@@ -2360,12 +2262,6 @@ main (int argc, char** argv)
     {
       case 'q':
 	silent = 1; break;
-
-      case 'a':
-	nhauth = 1; break;
-
-      case 'e':
-	nhext = 1; break;
 
       case 'f':
 	if (config)
@@ -2433,8 +2329,7 @@ main (int argc, char** argv)
     }
 
   /* get master tty just before chroot (lives in /dev) */
-  if (!nhext && !nhauth)
-    ttyrec_getpty ();
+  ttyrec_getpty ();
 
 #ifdef USE_RLIMIT
 #ifdef USE_RLIMIT_CORE
@@ -2508,28 +2403,10 @@ main (int argc, char** argv)
 
   dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_DGLSTART], 0, NULL);
 
-  if (nhext)
-    {
-      char *myargv[3];
-
-      myargv[0] = myconfig[0]->game_path;
-      myargv[1] = "--proxy";
-      myargv[2] = 0;
-
-      execvp (myconfig[0]->game_path, myargv);
-      perror (myconfig[0]->game_path);
-      graceful_exit (1);
-    }
-
   /* simple login routine, uses ncurses */
   if (readfile (0)) {
       debug_write("log in fail");
     graceful_exit (110);
-  }
-
-  if (nhauth) {
-      debug_write("nhauth");
-    graceful_exit (authenticate ());
   }
 
   if (auth)

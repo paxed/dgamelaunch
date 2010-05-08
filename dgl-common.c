@@ -501,7 +501,7 @@ free_populated_games(struct dg_game **games, int len)
 struct dg_game **
 populate_games (int xgame, int *l, struct dg_user *me)
 {
-  int fd, len, n, is_nhext, pid;
+  int fd, len, n, pid;
   DIR *pdir;
   struct dirent *pdirent;
   struct stat pstat;
@@ -535,8 +535,6 @@ populate_games (int xgame, int *l, struct dg_user *me)
       if (!strcmp (pdirent->d_name, ".") || !strcmp (pdirent->d_name, ".."))
         continue;
 
-      is_nhext = !strcmp (pdirent->d_name + strlen (pdirent->d_name) - 6, ".nhext");
-
       inprog = dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL);
 
       if (!inprog) continue;
@@ -547,12 +545,8 @@ populate_games (int xgame, int *l, struct dg_user *me)
       /* O_RDWR here should be O_RDONLY, but we need to test for
        * an exclusive lock */
       fd = open (fullname, O_RDWR);
-      if (fd >= 0 && (is_nhext || fcntl (fd, F_SETLK, &fl) == -1))
+      if (fd >= 0 && (fcntl (fd, F_SETLK, &fl) == -1))
         {
-
-          /* stat to check idle status */
-	  if (!is_nhext)
-	    {
 		char *ttrecdir = NULL;
 		strncpy(playername, pdirent->d_name, DGL_PLAYERNAMELEN);
 		playername[DGL_PLAYERNAMELEN] = '\0';
@@ -569,8 +563,8 @@ populate_games (int xgame, int *l, struct dg_user *me)
 	      ttrecdir = dgl_format_str(game, me, myconfig[game]->ttyrecdir, playername);
 	      if (!ttrecdir) continue;
               snprintf (ttyrecname, 130, "%s%s", ttrecdir, replacestr);
-	    }
-          if (is_nhext || !stat (ttyrecname, &pstat))
+
+          if (!stat (ttyrecname, &pstat))
             {
               /* now it's a valid game for sure */
               games = realloc (games, sizeof (struct dg_game) * (len + 1));
@@ -619,30 +613,12 @@ populate_games (int xgame, int *l, struct dg_user *me)
 	      if (*p != '\0')
 	        p++;
 	      games[len]->ws_col = atoi(p);
-	      if (is_nhext)
-	        {
-		  if (kill (pid, 0) != 0)
-		    {
-		      /* Dead game */
-		      free (games[len]->ttyrec_fn);
-		      free (games[len]->name);
-		      free (games[len]->date);
-		      free (games[len]->time);
-		      free (games[len]);
-		      unlink (fullname);
-		    }
-		  else
-		    len++;
-		}
-	      else
-	        {
-		  if (games[len]->ws_row < 4 || games[len]->ws_col < 4)
-		  {
-		    games[len]->ws_row = 24;
-		    games[len]->ws_col = 80;
-		  }
-		  len++;
-		}
+
+	      if (games[len]->ws_row < 4 || games[len]->ws_col < 4) {
+		  games[len]->ws_row = 24;
+		  games[len]->ws_col = 80;
+	      }
+	      len++;
             }
         }
       else
