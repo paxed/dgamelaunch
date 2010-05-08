@@ -205,11 +205,13 @@ gen_inprogress_lock (int game, pid_t pid, char* ttyrec_filename)
 {
   char *lockfile = NULL, filebuf[80];
   int fd;
-  size_t len;
+  size_t len, wrlen;
   struct flock fl = { 0 };
 
   snprintf (filebuf, sizeof(filebuf), "%d\n%d\n%d\n",
 		  pid, win.ws_row, win.ws_col);
+
+  wrlen = strlen(filebuf);
 
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
@@ -228,7 +230,10 @@ gen_inprogress_lock (int game, pid_t pid, char* ttyrec_filename)
     graceful_exit (68);
   }
 
-  write (fd, filebuf, strlen (filebuf));
+  if (write (fd, filebuf, wrlen) != wrlen) {
+      debug_write("inprogress-lock write");
+      graceful_exit(70);
+  }
 
   return lockfile;
 }
