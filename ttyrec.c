@@ -205,7 +205,7 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
 	  sleep(1);
   }
 
-  unlink (ipfile);
+  remove_ipfile();
   child = 0;
 
   return 0;
@@ -359,7 +359,7 @@ done ()
       (void) tcsetattr (0, TCSAFLUSH, &tt);
     }
 
-  unlink(ipfile);
+  remove_ipfile();
   graceful_exit (0);
 }
 
@@ -403,6 +403,9 @@ getslave ()
 void
 remove_ipfile (void)
 {
-  if (ipfile != NULL)
-    unlink (ipfile);
+    if (ipfile != NULL) {
+	unlink (ipfile);
+	free(ipfile);
+	ipfile = NULL;
+    }
 }
