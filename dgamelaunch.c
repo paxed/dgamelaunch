@@ -780,7 +780,7 @@ inprogressmenu (int gameid)
 		do {
 		    idx = random() % len;
 		} while ((--cnt > 0) ||
-			 ((games[idx]->ws_col <= COLS) &&
+			 !((games[idx]->ws_col <= COLS) &&
 			  (games[idx]->ws_row <= LINES) &&
 			  ((ctime - games[idx]->idle_time) < 15)));
 		selected = idx;
