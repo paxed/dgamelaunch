@@ -671,6 +671,7 @@ inprogressmenu (int gameid)
       drawbanner (&banner, 1, 1);
 
       if (len > 0) {
+	  if (offset < 0) offset = 0;
 	  mvaddstr (3, 1, "The following games are in progress:");
 
 	  for (di = 0; di < ARRAY_SIZE(watchcols); di++) {
@@ -762,16 +763,18 @@ inprogressmenu (int gameid)
       switch ((menuchoice = dgl_getch ()))
         {
 	case KEY_DOWN:
-	    if (selected != -1) {
-		selected++;
-		if (selected >= len) selected = 0;
-	    }
+	    selected++;
+	    if (selected >= len) selected = 0;
+	    while (selected < offset) offset -= max_height;
+	    while (selected >= offset+max_height) offset += max_height;
 	    break;
 	case KEY_UP:
 	    if (selected != -1) {
 		if (selected == 0) selected = len;
 		selected--;
-	    }
+	    } else selected = len-1;
+	    while (selected < offset) offset -= max_height;
+	    while (selected >= offset+max_height) offset += max_height;
 	    break;
 	case '*':
 	    if (len > 0) {
