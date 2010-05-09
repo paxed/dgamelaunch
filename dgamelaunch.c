@@ -775,7 +775,14 @@ inprogressmenu (int gameid)
 	    break;
 	case '*':
 	    if (len > 0) {
-		idx = random() % len;
+		int cnt = 20;
+		(void) time(&ctime);
+		do {
+		    idx = random() % len;
+		} while ((--cnt > 0) ||
+			 ((games[idx]->ws_col <= COLS) &&
+			  (games[idx]->ws_row <= LINES) &&
+			  ((ctime - games[idx]->idle_time) < 15)));
 		selected = idx;
 		goto watchgame;
 	    }
