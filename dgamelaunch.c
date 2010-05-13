@@ -537,6 +537,22 @@ shm_mk_keys(key_t *shm_key, key_t *shm_sem_key)
 #endif
 }
 
+#ifdef USE_SHMEM
+int
+shm_free()
+{
+    key_t shm, sem;
+    int   shm_id;
+    int shm_size = sizeof(struct dg_shm) + shm_n_games * sizeof(struct dg_shm_game);
+    shm_mk_keys(&shm, &sem);
+    if ((shm_id = shmget(shm, shm_size, 0644)) != -1) {
+	shmctl(shm_id, IPC_RMID, NULL);
+	return 0;
+    }
+    return 1;
+}
+#endif
+
 void
 shm_init(struct dg_shm **shm_dg_data, struct dg_shm_game **shm_dg_game)
 {
@@ -2336,23 +2352,16 @@ main (int argc, char** argv)
 	break;
 
     case 'S': /* Free the shared memory block */
-	{
 #ifdef USE_SHMEM
-	    key_t shm, sem;
-	    int   shm_id;
-	    int shm_size = sizeof(struct dg_shm) + shm_n_games * sizeof(struct dg_shm_game);
-	    shm_mk_keys(&shm, &sem);
-	    if ((shm_id = shmget(shm, shm_size, 0644)) != -1) {
-		shmctl(shm_id, IPC_RMID, NULL);
-		if (!silent) fprintf(stderr, "shmem block freed.\n");
-	    } else {
-		if (!silent) fprintf(stderr, "nonexistent shmem block.\n");
-	    }
-#else
-	    if (!silent) fprintf(stderr, "warning: dgamelaunch was compiled without shmem.\n");
-#endif
-	    graceful_exit(0);
+	if (shm_free()) {
+	    if (!silent) fprintf(stderr, "nonexistent shmem block.\n");
+	} else {
+	    if (!silent) fprintf(stderr, "shmem block freed.\n");
 	}
+#else
+	if (!silent) fprintf(stderr, "warning: dgamelaunch was compiled without shmem.\n");
+#endif
+	graceful_exit(0);
 	break;
 
     case 'D': /* dump the shared memory block data */
