@@ -589,6 +589,41 @@ shm_init(struct dg_shm **shm_dg_data, struct dg_shm_game **shm_dg_game)
 #endif /* USE_SHMEM */
 }
 
+#ifdef USE_SHMEM
+void
+shm_dump()
+{
+    struct dg_shm *shm_dg_data = NULL;
+    struct dg_shm_game *shm_dg_game = NULL;
+    int di, unused = -1;
+    shm_init(&shm_dg_data, &shm_dg_game);
+    shm_sem_wait(shm_dg_data);
+    for (di = 0; di < shm_dg_data->max_n_games; di++) {
+	if (shm_dg_game[di].in_use) {
+	    if (unused != -1) {
+		if (unused != di-1)
+		    fprintf(stderr, "%i-%i:\tunused\n", unused, di-1);
+		else
+		    fprintf(stderr, "%i:\tunused\n", unused);
+		unused = -1;
+	    }
+	    fprintf(stderr, "%i:\t\"%s\"\twatchers:%li\n", di, shm_dg_game[di].ttyrec_fn, shm_dg_game[di].nwatchers);
+	} else {
+	    if (unused == -1) unused = di;
+	}
+    }
+    if (unused != -1) {
+	if (unused != di-1)
+	    fprintf(stderr, "%i-%i:\tunused\n", unused, di-1);
+	else
+	    fprintf(stderr, "%i:\tunused\n", unused);
+	unused = -1;
+    }
+    shm_sem_post(shm_dg_data);
+    shmdt(shm_dg_data);
+}
+#endif
+
 void
 inprogressmenu (int gameid)
 {
@@ -2278,7 +2313,7 @@ main (int argc, char** argv)
 
   __progname = basename(strdup(argv[0]));
 
-  while ((c = getopt(argc, argv, "qh:pf:aeW:S")) != -1)
+  while ((c = getopt(argc, argv, "qh:pf:aeW:SD")) != -1)
   {
     switch (c)
     {
@@ -2318,6 +2353,15 @@ main (int argc, char** argv)
 #endif
 	    graceful_exit(0);
 	}
+	break;
+
+    case 'D': /* dump the shared memory block data */
+#ifdef USE_SHMEM
+	shm_dump();
+#else
+	if (!silent) fprintf(stderr, "warning: dgamelaunch was compiled without shmem.\n");
+#endif
+	graceful_exit(0);
 	break;
 
       default:
