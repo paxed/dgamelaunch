@@ -1973,6 +1973,8 @@ editoptions (int game)
   myargv[1] = dgl_format_str(game, me, myconfig[game]->rc_fmt, NULL);
   myargv[2] = 0;
 
+  clear();
+  refresh();
   endwin ();
 
   editor = fork();
@@ -1985,12 +1987,15 @@ editoptions (int game)
   }
   else if (editor == 0)
   {
+    signals_block();
     editor_main (2, myargv);
+    signals_release();
     exit(0);
   }
   else
     waitpid(editor, NULL, 0);
 
+  initcurses();
   refresh ();
   check_retard(1);
 }
