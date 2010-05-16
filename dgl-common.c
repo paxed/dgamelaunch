@@ -346,7 +346,6 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 			    clear();
 			    refresh();
 			    endwin ();
-			    signal(SIGWINCH, SIG_DFL);
 
 			    /* first run the generic "do these when a game is started" commands */
 			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMESTART], userchoice, me);
@@ -360,17 +359,24 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 				myconfig[userchoice]->bin_args[i] = tmpstr;
 			    }
 
-			    signals_block();
+			    signal(SIGWINCH, SIG_DFL);
+			    signal(SIGINT, SIG_DFL);
+			    signal(SIGQUIT, SIG_DFL);
+			    signal(SIGTERM, SIG_DFL);
 			    idle_alarm_set_enabled(0);
 			    /* launch program */
 			    ttyrec_main (userchoice, me->username,
 					 dgl_format_str(userchoice, me, myconfig[userchoice]->ttyrecdir, NULL),
 					 gen_ttyrec_filename());
-
-			    /* lastly, run the generic "do these when a game is left" commands */
-			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMEEND], userchoice, me);
 			    idle_alarm_set_enabled(1);
-			    signals_release();
+			    /* lastly, run the generic "do these when a game is left" commands */
+			    signal (SIGHUP, catch_sighup);
+			    signal (SIGINT, catch_sighup);
+			    signal (SIGQUIT, catch_sighup);
+			    signal (SIGTERM, catch_sighup);
+			    signal(SIGWINCH, sigwinch_func);
+
+			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMEEND], userchoice, me);
 
 			    setproctitle ("%s", me->username);
 			    initcurses ();
