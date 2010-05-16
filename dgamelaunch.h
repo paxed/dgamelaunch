@@ -260,6 +260,9 @@ extern struct dg_game **sort_games(struct dg_game **games, int len, dg_sortmode 
 
 int runmenuloop(struct dg_menu *menu);
 
+extern void signals_block(void);
+extern void signals_release(void);
+
 extern void shm_sem_wait(struct dg_shm *shm_dg_data);
 extern void shm_sem_post(struct dg_shm *shm_dg_data);
 extern void shm_update(struct dg_shm *shm_dg_data, struct dg_game **games, int len);

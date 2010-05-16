@@ -180,6 +180,36 @@ ttyrec_getpty ()
 
 /* ************************************************************* */
 
+static int dgl_signal_blocked = 0;
+static sigset_t dgl_signal_blockmask;
+static sigset_t dgl_signal_oldmask;
+
+void
+signals_block()
+{
+    if (!dgl_signal_blocked) {
+	sigemptyset(&dgl_signal_blockmask);
+	sigaddset(&dgl_signal_blockmask, SIGHUP);
+	sigaddset(&dgl_signal_blockmask, SIGINT);
+	sigaddset(&dgl_signal_blockmask, SIGQUIT);
+	sigaddset(&dgl_signal_blockmask, SIGTERM);
+	sigprocmask(SIG_BLOCK, &dgl_signal_blockmask, &dgl_signal_oldmask);
+	dgl_signal_blocked = 1;
+    }
+}
+
+void
+signals_release()
+{
+    if (dgl_signal_blocked) {
+	sigprocmask(SIG_SETMASK, &dgl_signal_oldmask, NULL);
+	dgl_signal_blocked = 0;
+    }
+}
+
+
+/* ************************************************************* */
+
 char*
 gen_ttyrec_filename ()
 {
@@ -253,6 +283,7 @@ catch_sighup (int signum)
       sleep (5);
     }
 #ifdef USE_SHMEM
+  signals_block();
   if (hup_shm_idx != -1) {
       struct dg_shm *shm_dg_data = NULL;
       struct dg_shm_game *shm_dg_game = NULL;
@@ -268,6 +299,7 @@ catch_sighup (int signum)
       hup_shm_idx = -1;
       free(hup_shm_ttyrec_fn);
   }
+  signals_release();
 #endif
   debug_write("catchup sighup");
   graceful_exit (2);
@@ -939,6 +971,7 @@ watchgame:
               refresh ();
               endwin ();
 #ifdef USE_SHMEM
+	      signals_block();
 	      if (games[idx]->is_in_shm) {
 		  shm_idx = games[idx]->shm_idx;
 		  shm_sem_wait(shm_dg_data);
@@ -951,6 +984,7 @@ watchgame:
 		  hup_shm_ttyrec_fn = strdup(games[idx]->ttyrec_fn);
 		  shm_sem_post(shm_dg_data);
 	      }
+	      signals_release();
 #endif
 	      resizey = games[idx]->ws_row;
 	      resizex = games[idx]->ws_col;
@@ -964,6 +998,7 @@ watchgame:
 	      else
 		  setproctitle("<Anonymous>");
 #ifdef USE_SHMEM
+	      signals_block();
 	      if (games[idx]->is_in_shm) {
 		  hup_shm_idx = -1;
 		  free(hup_shm_ttyrec_fn);
@@ -976,6 +1011,7 @@ watchgame:
 		  }
 		  shm_sem_post(shm_dg_data);
 	      }
+	      signals_release();
 #endif
               initcurses ();
             }
@@ -1969,30 +2005,24 @@ writefile (int requirenew)
   int i = 0;
   int my_done = 0;
   struct flock fl = { 0 };
-  sigset_t oldmask, toblock;
 
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
   fl.l_start = 0;
   fl.l_len = 0;
 
-  sigemptyset(&toblock);
-  sigaddset(&toblock, SIGHUP);
-  sigaddset(&toblock, SIGINT);
-  sigaddset(&toblock, SIGQUIT);
-  sigaddset(&toblock, SIGTERM);
-  sigprocmask(SIG_BLOCK, &toblock, &oldmask);
+  signals_block();
 
   fpl = fopen (globalconfig.lockfile, "r+");
   if (!fpl)
     {
-      sigprocmask(SIG_SETMASK, &oldmask, NULL);
+	signals_release();
       debug_write("writefile locking failed");
       graceful_exit (115);
     }
   if (fcntl (fileno (fpl), F_SETLK, &fl))
     {
-      sigprocmask(SIG_SETMASK, &oldmask, NULL);
+	signals_release();
       debug_write("writefile fcntl failed");
       graceful_exit (107);
     }
@@ -2005,7 +2035,7 @@ writefile (int requirenew)
   fp = fopen (globalconfig.passwd, "w");
   if (!fp)
     {
-      sigprocmask(SIG_SETMASK, &oldmask, NULL);
+	signals_release();
       debug_write("passwd file fopen failed");
       graceful_exit (104);
     }
@@ -2020,7 +2050,7 @@ writefile (int requirenew)
                * as someone else. just die. */
 	      fclose(fp);
 	      fclose(fpl);
-              sigprocmask(SIG_SETMASK, &oldmask, NULL);
+	      signals_release();
 	      debug_write("two users registering at the same time");
               graceful_exit (111);
             }
@@ -2043,7 +2073,7 @@ writefile (int requirenew)
 	{
           fclose(fp);
 	  fclose(fpl);
-          sigprocmask(SIG_SETMASK, &oldmask, NULL);
+	  signals_release();
 	  debug_write("too many users in passwd db already");
           graceful_exit (116);
 	}
@@ -2052,7 +2082,7 @@ writefile (int requirenew)
   fclose (fp);
   fclose (fpl);
 
-  sigprocmask(SIG_SETMASK, &oldmask, NULL);
+  signals_release();
 }
 #else
 void
@@ -2391,6 +2421,10 @@ main (int argc, char** argv)
 
   /* signal handlers */
   signal (SIGHUP, catch_sighup);
+  signal (SIGINT, catch_sighup);
+  signal (SIGQUIT, catch_sighup);
+  signal (SIGTERM, catch_sighup);
+
   signal(SIGWINCH, sigwinch_func);
 
   (void) tcgetattr (0, &tt);
