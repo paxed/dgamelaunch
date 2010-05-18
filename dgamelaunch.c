@@ -1014,6 +1014,7 @@ watchgame:
 	      signals_release();
 #endif
               initcurses ();
+	      redrawwin(stdscr);
             }
         }
 

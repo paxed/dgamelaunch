@@ -1,4 +1,6 @@
 
+-remove editoptions() and the editor compiled into dgl.
+
 -move the games[] array into shmem?
 
 -$MTIME(filename)
