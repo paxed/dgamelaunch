@@ -1394,6 +1394,7 @@ freefile ()
 void
 initcurses ()
 {
+  printf("\033[2J");
   initscr ();
   cbreak ();
   noecho ();
@@ -1406,6 +1407,8 @@ initcurses ()
   init_pair(1, -1, -1);
   init_pair(2, COLOR_RED, -1);
 #endif
+  clear();
+  refresh();
 }
 
 /* ************************************************************* */
@@ -1996,7 +1999,6 @@ editoptions (int game)
     waitpid(editor, NULL, 0);
 
   initcurses();
-  refresh ();
   check_retard(1);
 }
 

@@ -82,7 +82,6 @@ term_resize_check()
 
     endwin();
     initcurses();
-    refresh();
     dgl_local_COLS = COLS;
     dgl_local_LINES = LINES;
     curses_resize = 0;
@@ -279,8 +278,6 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		    waitpid(child, NULL, 0);
 		idle_alarm_set_enabled(1);
 		initcurses();
-		clear();
-		refresh();
 		check_retard(1);
 	    }
 	    break;
@@ -379,8 +376,6 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 
 			    setproctitle ("%s", me->username);
 			    initcurses ();
-			    clear();
-			    refresh();
 			    check_retard(1); /* reset retard counter */
 			}
 			break;
