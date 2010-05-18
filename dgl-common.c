@@ -273,14 +273,13 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		    debug_write("exec-command fork failed");
 		    graceful_exit(114);
 		} else if (child == 0) {
-		    signals_block();
 		    execvp(p1, myargv);
-		    signals_release();
 		    exit(0);
 		} else
 		    waitpid(child, NULL, 0);
 		idle_alarm_set_enabled(1);
 		initcurses();
+		clear();
 		refresh();
 		check_retard(1);
 	    }
@@ -380,6 +379,8 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 
 			    setproctitle ("%s", me->username);
 			    initcurses ();
+			    clear();
+			    refresh();
 			    check_retard(1); /* reset retard counter */
 			}
 			break;

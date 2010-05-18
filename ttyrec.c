@@ -239,16 +239,16 @@ finish (int sig)
 
   if (die)
   {
-      if (wait_for_menu && input_child)
+      if (input_child)
       {
 	  // Need to kill the child that's writing input to pty.
 	  kill(input_child, SIGTERM);
 	  while ((pid = wait3(&status, WNOHANG, 0)) > 0);
-	  wait_for_menu = 0;
       }
       else
 	  done ();
   }
+  wait_for_menu = 0;
 }
 
 void
@@ -408,4 +408,5 @@ remove_ipfile (void)
 	free(ipfile);
 	ipfile = NULL;
     }
+    signal(SIGALRM, SIG_IGN);
 }

@@ -2277,7 +2277,6 @@ runmenuloop(struct dg_menu *menu)
     ban.lines = NULL;
     ban.len = 0;
 
-    idle_alarm_set_enabled(1);
     loadbanner(menu->banner_fn, &ban);
     while (1) {
 	if (doclear) {
@@ -2545,10 +2544,14 @@ main (int argc, char** argv)
   initcurses ();
   term_resize_check();
 
+  idle_alarm_set_enabled(1);
+
   while (1) {
       if (runmenuloop(dgl_find_menu(loggedin ? "mainmenu_user" : "mainmenu_anon")))
 	  break;
   }
+
+  idle_alarm_set_enabled(0);
 
   /* NOW we can safely kill this */
   freefile ();
