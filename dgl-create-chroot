@@ -86,7 +86,7 @@ LIBS="`findlibs dgamelaunch`"
 
 sudo mkdir -p "$CHROOT"
 cd "$CHROOT"
-sudo mkdir dgldir etc lib mail usr
+sudo mkdir dgldir etc lib mail usr bin
 sudo chown "$USRGRP" dgldir mail
 sudo cp "$CURDIR/dgamelaunch" "$DGLFILE"
 sudo ln -s "$DGLFILE" dgamelaunch
@@ -129,6 +129,12 @@ echo "Edit $CHROOT/etc/dgamelaunch.conf to suit your needs."
 [ -f /etc/localtime ] && sudo cp /etc/localtime .
 cd ..
 
+
+cd bin
+sudo cp "$CURDIR/ee" .
+sudo cp "$CURDIR/virus" .
+echo "Copied text editors 'ee' and 'virus' to chroot."
+cd ..
 
 
 sudo cp "$CURDIR/examples/dgl_menu_main_anon.txt" .

@@ -412,7 +412,7 @@ FILE *fopen();			/* declaration for open function	*/
 #endif /* __STDC__ */
 
 int
-editor_main(argc, argv)		/* beginning of main program		*/
+main(argc, argv)		/* beginning of main program		*/
 int argc;
 char *argv[];
 {

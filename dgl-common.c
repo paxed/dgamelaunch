@@ -311,20 +311,6 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_RETURN:
 	    return_from_submenu = 1;
 	    break;
-	case DGLCMD_EDITOPTIONS:
-	    if (loggedin && p1) {
-		int i;
-		for (i = 0; i < num_games; i++) {
-		    if ((!strcmp(myconfig[i]->game_name, p1) || !strcmp(myconfig[i]->shortname, p1)) && myconfig[i]->rcfile) {
-			idle_alarm_set_enabled(0);
-			editoptions(i);
-			idle_alarm_set_enabled(1);
-			check_retard(1);
-			break;
-		    }
-		}
-	    }
-	    break;
 	case DGLCMD_PLAYGAME:
 	    if (loggedin && me && p1) {
 		int userchoice, i;

@@ -174,7 +174,6 @@ typedef enum
     DGLCMD_QUIT,	/* quit */
     DGLCMD_CHMAIL,	/* chmail */
     DGLCMD_CHPASSWD,	/* chpasswd */
-    DGLCMD_EDITOPTIONS,	/* edit_options "foo" */
     DGLCMD_PLAYGAME,	/* play_game "foo" */
     DGLCMD_SUBMENU,	/* submenu "foo" */
     DGLCMD_RETURN	/* return */
@@ -286,7 +285,6 @@ extern int passwordgood(char *cpw);
 extern int readfile(int nolock);
 extern struct dg_user *userexist(char *cname, int isnew);
 extern void write_canned_rcfile(int game, char *target);
-extern void editoptions(int game);
 extern void writefile(int requirenew);
 extern void graceful_exit(int status);
 extern int purge_stale_locks(int game);

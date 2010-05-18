@@ -304,7 +304,7 @@ static int crashme = 0;
 
 
 extern int
-editor_main (int argc, char **argv)
+main (int argc, char **argv)
 {
 #ifdef BB_FEATURE_VI_YANKMARK
   int i;

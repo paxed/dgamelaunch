@@ -95,8 +95,6 @@
 extern FILE* yyin;
 extern int yyparse ();
 
-extern int editor_main (int argc, char **argv);
-
 /* global variables */
 
 char * __progname;
@@ -1960,48 +1958,6 @@ write_canned_rcfile (int game, char *target)
 }
 
 
-void
-editoptions (int game)
-{
-  FILE *rcfile;
-  char *myargv[3];
-  pid_t editor;
-
-  rcfile = fopen (dgl_format_str(game, me, myconfig[game]->rc_fmt, NULL), "r");
-  if (!rcfile)
-      write_canned_rcfile (game, dgl_format_str(game, me, myconfig[game]->rc_fmt, NULL));
-
-  /* use whatever editor_main to edit */
-
-  myargv[0] = "";
-  myargv[1] = dgl_format_str(game, me, myconfig[game]->rc_fmt, NULL);
-  myargv[2] = 0;
-
-  clear();
-  refresh();
-  endwin ();
-
-  editor = fork();
-
-  if (editor == -1)
-  {
-    perror("fork");
-    debug_write("edit fork failed");
-    graceful_exit(114);
-  }
-  else if (editor == 0)
-  {
-    signals_block();
-    editor_main (2, myargv);
-    signals_release();
-    exit(0);
-  }
-  else
-    waitpid(editor, NULL, 0);
-
-  initcurses();
-  check_retard(1);
-}
 
 /* ************************************************************* */
 

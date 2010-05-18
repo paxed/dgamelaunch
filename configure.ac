@@ -85,12 +85,6 @@ AC_SEARCH_LIBS(initscr, [ncurses curses], [], [
 ])
 
 
-AC_ARG_ENABLE(virus,
-[AC_HELP_STRING([--enable-virus], [Use the 'virus' vi clone instead of the friendly ee editor.])],
-[EDITOR=virus.c], [EDITOR=ee.c])
-
-AC_SUBST(EDITOR)
-
 
 AC_ARG_ENABLE(debugfile,
 [AC_HELP_STRING([--enable-debugfile], [Enable debugging output to a file.])],
