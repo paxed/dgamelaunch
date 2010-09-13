@@ -449,9 +449,12 @@ static off_t
 find_seek_offset_clrscr (FILE * fp)
 {
   off_t raw_seek_offset = 0;
+  off_t raw_seek_offset2 = 0;
   off_t seek_offset_clrscr;
 
   raw_seek_offset = find_last_string_in_file(fp, "\033[2J");
+  raw_seek_offset2 = find_last_string_in_file(fp, "\033[H\033[J");
+  if (raw_seek_offset2>raw_seek_offset) raw_seek_offset=raw_seek_offset2;
 
   seek_offset_clrscr = 0;
   /* now find last filepos that is less than seek offset */
@@ -534,7 +537,7 @@ ttyplay_main (char *ttyfile, int mode, int resizex, int resizey)
   new.c_cc[VMIN] = 1;
   new.c_cc[VTIME] = 0;
   tcsetattr (0, TCSANOW, &new); /* Make it current */
-
+  raw();
 
   if (resizex > 0 && resizey > 0) {
       term_resizex = resizex;
