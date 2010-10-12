@@ -138,6 +138,13 @@ dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
 		while (*p != '\0')
 		    p++;
 		break;
+	    case 'N':
+		if (me) *p = me->username[0];
+		else if (plrname) *p = plrname[0];
+		else return NULL;
+		p++;
+		*p = '\0';
+		break;
   	    case 'n':
 		if (me) snprintf (p, end + 1 - p, "%s", me->username);
 		else if (plrname) snprintf(p, end + 1 - p, "%s", plrname);
