@@ -752,6 +752,7 @@ inprogressmenu (int gameid)
       drawbanner (&banner, 1, 1);
 
       if (len > 0) {
+	  while (offset >= len) { offset -= max_height; }
 	  if (offset < 0) offset = 0;
 	  mvaddstr (3, 1, "The following games are in progress:");
 
