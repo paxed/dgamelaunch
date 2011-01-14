@@ -84,25 +84,25 @@ echo "Setting up chroot in $CHROOT"
 
 LIBS="`findlibs dgamelaunch`"
 
-sudo mkdir -p "$CHROOT"
+mkdir -p "$CHROOT" || errorexit "Cannot create chroot"
 cd "$CHROOT"
-sudo mkdir dgldir etc lib mail usr bin
-sudo chown "$USRGRP" dgldir mail
-sudo cp "$CURDIR/dgamelaunch" "$DGLFILE"
-sudo ln -s "$DGLFILE" dgamelaunch
+mkdir dgldir etc lib mail usr bin
+chown "$USRGRP" dgldir mail
+cp "$CURDIR/dgamelaunch" "$DGLFILE"
+ln -s "$DGLFILE" dgamelaunch
 
-sudo mkdir -p "$CHROOT/dgldir/inprogress-nh343"
-sudo mkdir -p "$CHROOT/dgldir/userdata"
-sudo chown "$USRGRP" "$CHROOT/dgldir/inprogress-nh343"
-sudo chown "$USRGRP" "$CHROOT/dgldir/userdata"
+mkdir -p "$CHROOT/dgldir/inprogress-nh343"
+mkdir -p "$CHROOT/dgldir/userdata"
+chown "$USRGRP" "$CHROOT/dgldir/inprogress-nh343"
+chown "$USRGRP" "$CHROOT/dgldir/userdata"
 
 
 if [ -n "$SQLITE_DBFILE" ]; then
   echo "Creating SQLite database at $SQLITE_DBFILE"
   SQLITE_DBFILE="`echo ${SQLITE_DBFILE%/}`"
   SQLITE_DBFILE="`echo ${SQLITE_DBFILE#/}`"
-  sudo sqlite3 "$CHROOT/$SQLITE_DBFILE" "create table dglusers (id integer primary key, username text, email text, env text, password text, flags integer);"
-  sudo chown "$USRGRP" "$CHROOT/$SQLITE_DBFILE"
+  sqlite3 "$CHROOT/$SQLITE_DBFILE" "create table dglusers (id integer primary key, username text, email text, env text, password text, flags integer);"
+  chown "$USRGRP" "$CHROOT/$SQLITE_DBFILE"
 fi
 
 
@@ -111,43 +111,43 @@ if [ -n "$COMPRESSBIN" -a -e "`which $COMPRESSBIN`" ]; then
   COMPRESSDIR="`echo ${COMPRESSDIR%/}`"
   COMPRESSDIR="`echo ${COMPRESSDIR#/}`"
   echo "Copying $COMPRESSBIN to $COMPRESSDIR"
-  sudo mkdir -p "$COMPRESSDIR"
-  sudo cp "`which $COMPRESSBIN`" "$COMPRESSDIR/"
+  mkdir -p "$COMPRESSDIR"
+  cp "`which $COMPRESSBIN`" "$COMPRESSDIR/"
   LIBS="$LIBS `findlibs $COMPRESSBIN`"
 fi
 
 
-sudo mkdir -p dev
+mkdir -p dev
 cd dev
-sudo mknod urandom c 1 9
+mknod urandom c 1 9
 cd ..
 
 
 cd etc
-sudo cp "$CURDIR/examples/dgamelaunch.conf" .
+cp "$CURDIR/examples/dgamelaunch.conf" .
 echo "Edit $CHROOT/etc/dgamelaunch.conf to suit your needs."
-[ -f /etc/localtime ] && sudo cp /etc/localtime .
+[ -f /etc/localtime ] && cp /etc/localtime .
 cd ..
 
 
 cd bin
-sudo cp "$CURDIR/ee" .
-sudo cp "$CURDIR/virus" .
+cp "$CURDIR/ee" .
+cp "$CURDIR/virus" .
 echo "Copied text editors 'ee' and 'virus' to chroot."
 cd ..
 
 
-sudo cp "$CURDIR/examples/dgl_menu_main_anon.txt" .
-sudo cp "$CURDIR/examples/dgl_menu_main_user.txt" .
-sudo cp "$CURDIR/examples/dgl_menu_watchmenu_help.txt" .
-sudo cp "$CURDIR/examples/dgl-banner" .
-sudo cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile.nh343"
-sudo chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile.nh343
+cp "$CURDIR/examples/dgl_menu_main_anon.txt" .
+cp "$CURDIR/examples/dgl_menu_main_user.txt" .
+cp "$CURDIR/examples/dgl_menu_watchmenu_help.txt" .
+cp "$CURDIR/examples/dgl-banner" .
+cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile.nh343"
+chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile.nh343
 
 NHSUBDIR="`echo ${NHSUBDIR%/}`"
 NHSUBDIR="`echo ${NHSUBDIR#/}`"
 
-sudo mkdir "$CHROOT/$NHSUBDIR"
+mkdir "$CHROOT/$NHSUBDIR"
 
 if [ ! -e "$NETHACKBIN" ]; then
   errorexit "Cannot find NetHack binary $NETHACKBIN"
@@ -157,8 +157,8 @@ if [ -n "$NETHACKBIN" -a -e "$NETHACKBIN" ]; then
   echo "Copying $NETHACKBIN"
   cd "$NHSUBDIR"
   NHBINFILE="`basename $NETHACKBIN`.`date +%Y%m%d`"
-  sudo cp "$NETHACKBIN" "$NHBINFILE"
-  sudo ln -s "$NHBINFILE" nethack
+  cp "$NETHACKBIN" "$NHBINFILE"
+  ln -s "$NHBINFILE" nethack
   LIBS="$LIBS `findlibs $NETHACKBIN`"
   cd "$CHROOT"
 fi
@@ -170,7 +170,7 @@ if [ -n "$NH_PLAYGROUND_FIXED" -a -d "$NH_PLAYGROUND_FIXED" ]; then
   echo "Copying NetHack playground stuff."
   NHFILES="*.lev *.dat cmdhelp data dungeon help hh history license opthelp options oracles recover rumors wizhelp"
   for fil in $NHFILES; do
-    sudo cp $NH_PLAYGROUND_FIXED/$fil "$CHROOT/$NHSUBDIR/"
+    cp $NH_PLAYGROUND_FIXED/$fil "$CHROOT/$NHSUBDIR/"
   done
 fi
 
@@ -180,18 +180,18 @@ NH_VAR_PLAYGROUND="`echo ${NH_VAR_PLAYGROUND#/}`"
 
 echo "Creating NetHack variable dir stuff."
 if [ -n "$NH_VAR_PLAYGROUND" ]; then
-  sudo mkdir -p "$CHROOT/$NH_VAR_PLAYGROUND"
-  sudo chown -R "$USRGRP" "$CHROOT/$NH_VAR_PLAYGROUND"
+  mkdir -p "$CHROOT/$NH_VAR_PLAYGROUND"
+  chown -R "$USRGRP" "$CHROOT/$NH_VAR_PLAYGROUND"
 fi
-sudo mkdir -p "$CHROOT/$NH_VAR_PLAYGROUND/save"
-sudo chown -R "$USRGRP" "$CHROOT/$NH_VAR_PLAYGROUND/save"
-sudo touch "$CHROOT/$NH_VAR_PLAYGROUND/logfile"
-sudo touch "$CHROOT/$NH_VAR_PLAYGROUND/perm"
-sudo touch "$CHROOT/$NH_VAR_PLAYGROUND/record"
-sudo touch "$CHROOT/$NH_VAR_PLAYGROUND/xlogfile"
+mkdir -p "$CHROOT/$NH_VAR_PLAYGROUND/save"
+chown -R "$USRGRP" "$CHROOT/$NH_VAR_PLAYGROUND/save"
+touch "$CHROOT/$NH_VAR_PLAYGROUND/logfile"
+touch "$CHROOT/$NH_VAR_PLAYGROUND/perm"
+touch "$CHROOT/$NH_VAR_PLAYGROUND/record"
+touch "$CHROOT/$NH_VAR_PLAYGROUND/xlogfile"
 
-sudo chown -R "$USRGRP" "$CHROOT/$NHSUBDIR"
-sudo chown -R "$USRGRP" "$CHROOT/$NH_VAR_PLAYGROUND"
+chown -R "$USRGRP" "$CHROOT/$NHSUBDIR"
+chown -R "$USRGRP" "$CHROOT/$NH_VAR_PLAYGROUND"
 
 
 
@@ -199,11 +199,11 @@ sudo chown -R "$USRGRP" "$CHROOT/$NH_VAR_PLAYGROUND"
 if [ -n "$TERMDATA" ]; then
     echo "Copying termdata files from $TERMDATA"
     for termdat in $TERMDATA; do
-	sudo mkdir -p "$CHROOT`dirname $termdat`"
+	mkdir -p "$CHROOT`dirname $termdat`"
 	if [ -d $termdat/. ]; then
-		sudo cp -LR $termdat/. $CHROOT$termdat
+		cp -LR $termdat/. $CHROOT$termdat
 	else
-		sudo cp $termdat $CHROOT`dirname $termdat`
+		cp $termdat $CHROOT`dirname $termdat`
 	fi
     done
 fi
@@ -212,8 +212,8 @@ fi
 LIBS=`for lib in $LIBS; do echo $lib; done | sort | uniq`
 echo "Copying libraries:" $LIBS
 for lib in $LIBS; do
-        sudo mkdir -p "$CHROOT`dirname $lib`"
-        sudo cp $lib "$CHROOT$lib"
+        mkdir -p "$CHROOT`dirname $lib`"
+        cp $lib "$CHROOT$lib"
 done
 
 
