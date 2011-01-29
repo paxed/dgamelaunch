@@ -453,6 +453,8 @@ sort_game_watchers(const void *g1, const void *g2)
     const struct dg_game *game1 = *(const struct dg_game **)g1;
     const struct dg_game *game2 = *(const struct dg_game **)g2;
     int i = dglsign(game2->nwatchers - game1->nwatchers);
+    if (!i && (sort_ctime - game1->idle_time < 5) && (sort_ctime - game2->idle_time < 5))
+	return strcasecmp(game1->name, game2->name);
     if (!i)
 	i = dglsign(game2->idle_time - game1->idle_time);
     if (!i)
@@ -473,7 +475,10 @@ sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
 	break;
     case SORTMODE_STARTTIME: qsort(games, len, sizeof(struct dg_game *), sort_game_starttime); break;
 #ifdef USE_SHMEM
-    case SORTMODE_WATCHERS: qsort(games, len, sizeof(struct dg_game *), sort_game_watchers); break;
+    case SORTMODE_WATCHERS:
+	(void) time(&sort_ctime);
+	qsort(games, len, sizeof(struct dg_game *), sort_game_watchers);
+	break;
 #endif
     default: ;
     }
