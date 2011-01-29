@@ -33,6 +33,14 @@
 
 typedef enum
 {
+    DGLACCT_ADMIN       = 0x01,	/* admin account */
+    DGLACCT_LOGIN_LOCK  = 0x02,	/* account is banned and cannot login */
+    DGLACCT_PASSWD_LOCK = 0x04,	/* account password cannot be changed */
+    DGLACCT_EMAIL_LOCK  = 0x08	/* account email cannot be changed */
+} dgl_acct_flag;
+
+typedef enum
+{
     DGLTIME_DGLSTART = 0,	/* when someone telnets in */
     DGLTIME_LOGIN,		/* right after user login */
     DGLTIME_REGISTER,		/* right after new nick is registered */
@@ -58,7 +66,7 @@ struct dg_user
   char *email;
   char *env;
   char *password;
-  int flags;
+  int flags;			/* dgl_acct_flag bitmask */
 };
 
 struct dg_banner
@@ -231,6 +239,7 @@ extern int dgl_local_LINES;
 /* dgamelaunch.c */
 extern void create_config(void);
 extern void ttyrec_getmaster(void);
+extern char *get_mainmenu_name(void);
 extern char *gen_ttyrec_filename(void);
 extern char *gen_inprogress_lock(int game, pid_t pid, char *ttyrec_filename);
 extern void catch_sighup(int signum);

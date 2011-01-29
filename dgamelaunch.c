@@ -208,6 +208,17 @@ signals_release()
 
 /* ************************************************************* */
 
+char *
+get_mainmenu_name()
+{
+    if (loggedin) {
+	if (me && (me->flags & DGLACCT_ADMIN)) return "mainmenu_admin";
+	return "mainmenu_user";
+    }
+    return "mainmenu_anon";
+}
+
+
 char*
 gen_ttyrec_filename ()
 {
@@ -1089,6 +1100,13 @@ change_email ()
 
   clear();
 
+  if (me->flags & DGLACCT_EMAIL_LOCK) {
+      drawbanner(&banner, 1, 1);
+      mvprintw(5, 1, "Sorry, you cannot change the email.--More--");
+      dgl_getch();
+      return;
+  }
+
   for (;;)
   {
       drawbanner(&banner, 1,1);
@@ -1144,6 +1162,14 @@ changepw (int dowrite)
   if (!me) {
       debug_write("no 'me' in changepw");
     graceful_exit (122);        /* Die. */
+  }
+
+  if (me->flags & DGLACCT_PASSWD_LOCK) {
+      clear();
+      drawbanner(&banner, 1, 1);
+      mvprintw(5, 1, "Sorry, you cannot change the password.--More--");
+      dgl_getch();
+      return 0;
   }
 
   while (error)
@@ -1420,7 +1446,7 @@ autologin (char* user, char *pass)
   tmp = userexist(user, 0);
   if (tmp) {
       me = cpy_me(tmp);
-      if (passwordgood(pass)) {
+      if (passwordgood(pass) && !(me->flags & DGLACCT_LOGIN_LOCK)) {
 	  loggedin = 1;
 	  setproctitle ("%s", me->username);
 	  dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_LOGIN], 0, me);
@@ -1488,6 +1514,13 @@ loginprompt (int from_ttyplay)
 
   if (passwordgood (pw_buf))
     {
+	if (me->flags & DGLACCT_LOGIN_LOCK) {
+	    clear ();
+	    mvprintw(5, 1, "Sorry, that account has been banned.--More--");
+	    dgl_getch();
+	    return;
+	}
+
       loggedin = 1;
       if (from_ttyplay)
 	  setproctitle("%s [watching %s]", me->username, chosen_name);
@@ -1651,6 +1684,7 @@ newuser ()
 
   me->email = strdup (buf);
   me->env = calloc (1, 1);
+  me->flags = 0;
 
   loggedin = 1;
 
@@ -2507,7 +2541,7 @@ main (int argc, char** argv)
   idle_alarm_set_enabled(1);
 
   while (1) {
-      if (runmenuloop(dgl_find_menu(loggedin ? "mainmenu_user" : "mainmenu_anon")))
+      if (runmenuloop(dgl_find_menu(get_mainmenu_name())))
 	  break;
   }
 

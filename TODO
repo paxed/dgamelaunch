@@ -1,6 +1,4 @@
 
--remove editoptions() and the editor compiled into dgl.
-
 -move the games[] array into shmem?
 
 -$MTIME(filename)
@@ -32,8 +30,6 @@
  key not defined in other commands):
    commands[default] = ...
 
--in watching-menu, maybe we shouldn't pick players who have been
- idle for too long when randomly choosing one to watch.
 -change dgl-banner handling; we only use the top line of it nowadays...
  (maybe make that info config line: bannerline = "## $SERVERID" or something)
 -allow the admin to config the watching menu:

@@ -302,7 +302,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    break;
 	case DGLCMD_LOGIN:
 	    if (!loggedin) loginprompt(0);
-	    if (loggedin) runmenuloop(dgl_find_menu("mainmenu_user"));
+	    if (loggedin) runmenuloop(dgl_find_menu(get_mainmenu_name()));
 	    break;
 	case DGLCMD_REGISTER:
 	    if (!loggedin && globalconfig.allow_registration) newuser();
