@@ -801,8 +801,12 @@ inprogressmenu (int gameid)
 	      secs -= (mins*60);
 	      if (hours)
 		  snprintf(idletime, 10, "%ldh %ldm", hours, mins);
-	      else
+	      else if (mins)
 		  snprintf(idletime, 10, "%ldm %lds", mins, secs);
+	      else if (secs > 4)
+		  snprintf(idletime, 10, "%lds", secs);
+	      else
+		  snprintf(idletime, 10, " ");
 	  }
 
 	  for (di = 0; di < ARRAY_SIZE(watchcols); di++) {
