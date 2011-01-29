@@ -396,11 +396,15 @@ sort_game_username(const void *g1, const void *g2)
     return strcasecmp(game1->name, game2->name);
 }
 
+time_t sort_ctime;
+
 static int
 sort_game_idletime(const void *g1, const void *g2)
 {
     const struct dg_game *game1 = *(const struct dg_game **)g1;
     const struct dg_game *game2 = *(const struct dg_game **)g2;
+    if ((sort_ctime - game1->idle_time < 5) && (sort_ctime - game2->idle_time < 5))
+	return strcasecmp(game1->name, game2->name);
     if (game2->idle_time != game1->idle_time)
 	return difftime(game2->idle_time, game1->idle_time);
     else
@@ -463,7 +467,10 @@ sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
     case SORTMODE_USERNAME: qsort(games, len, sizeof(struct dg_game *), sort_game_username); break;
     case SORTMODE_GAMENUM: qsort(games, len, sizeof(struct dg_game *), sort_game_gamenum); break;
     case SORTMODE_WINDOWSIZE: qsort(games, len, sizeof(struct dg_game *), sort_game_windowsize); break;
-    case SORTMODE_IDLETIME: qsort(games, len, sizeof(struct dg_game *), sort_game_idletime); break;
+    case SORTMODE_IDLETIME:
+	(void) time(&sort_ctime);
+	qsort(games, len, sizeof(struct dg_game *), sort_game_idletime);
+	break;
     case SORTMODE_STARTTIME: qsort(games, len, sizeof(struct dg_game *), sort_game_starttime); break;
 #ifdef USE_SHMEM
     case SORTMODE_WATCHERS: qsort(games, len, sizeof(struct dg_game *), sort_game_watchers); break;
