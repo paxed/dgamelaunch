@@ -1,4 +1,6 @@
 
+-document the exit (error) codes.
+
 -cursor keys are not restored after watching a game of
  curses-nethack.
 
