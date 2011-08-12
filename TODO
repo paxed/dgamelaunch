@@ -1,4 +1,8 @@
 
+-when no banner file given, try to make a banner automagically?
+ (needs some way to name the options given as keys... maybe another
+ format for the keys that includes a string to be used as the name)
+
 -document the exit (error) codes.
 
 -cursor keys are not restored after watching a game of

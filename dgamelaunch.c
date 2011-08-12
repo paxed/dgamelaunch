@@ -455,7 +455,6 @@ loadbanner (char *fname, struct dg_banner *ban)
 	  if (fn_end) {
 	      *fn_end = '\0';
 	      if (strcmp(fname, fn)) {
-		  banner_addline(ban, fn);
 		  loadbanner(fn, ban);
 	      }
 	  }
