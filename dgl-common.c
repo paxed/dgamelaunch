@@ -219,7 +219,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    if (p1 && (access(p1, F_OK) != 0)) mkdir(p1, 0755);
 	    break;
 	case DGLCMD_UNLINK:
-	    if (p1 && (access(p1, F_OK) != 0)) unlink(p1);
+	    if (p1 && (access(p1, F_OK) == 0)) unlink(p1);
 	    break;
 	case DGLCMD_CHDIR:
 	    if (p1) {
