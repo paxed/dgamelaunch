@@ -1,4 +1,11 @@
 
+
+[22:45] < kerio> paxed: dgamelaunch bug! :D - you *need* a file called dgamelaunch in the root of the jail - 
+                 otherwise the shared memory craps out
+[22:48] < kerio> anyway, /dgldir/shmkey would've been better
+
+
+
 -when no banner file given, try to make a banner automagically?
  (needs some way to name the options given as keys... maybe another
  format for the keys that includes a string to be used as the name)

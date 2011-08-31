@@ -41,6 +41,7 @@ static const char* lookup_token (int t);
 %token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_TTYREC
 %token TYPE_MALSTRING TYPE_PATH_INPROGRESS TYPE_GAME_ARGS TYPE_RC_FMT
 %token TYPE_CMDQUEUE TYPE_DEFINE_MENU TYPE_BANNER_FILE TYPE_CURSOR
+%token TYPE_POSTCMDQUEUE
 %token TYPE_MAX_IDLE_TIME TYPE_MENU_MAX_IDLE_TIME
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER TYPE_CMDQUEUENAME
@@ -356,6 +357,20 @@ game_definition : TYPE_CMDQUEUE
 	    myconfig[ncnf]->cmdqueue = curr_cmdqueue;
 	    curr_cmdqueue = NULL;
 	}
+	| TYPE_POSTCMDQUEUE
+	{
+	    if (myconfig[ncnf]->postcmdqueue) {
+		fprintf(stderr, "%s:%d: postcommand queue defined twice, bailing out\n",
+			config, line);
+		exit(1);
+	    }
+	}
+	'=' cmdlist
+	{
+	    myconfig[ncnf]->postcmdqueue = curr_cmdqueue;
+	    curr_cmdqueue = NULL;
+	}
+
 	| TYPE_GAME_ARGS '=' game_args_list
 	{
 	    /* nothing */

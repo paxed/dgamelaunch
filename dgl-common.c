@@ -46,6 +46,7 @@ struct dg_config defconfig = {
   /* bin_args = */ NULL,
   /* rc_fmt = */ "%rrcfiles/%n.nethackrc", /* [dglroot]rcfiles/[username].nethackrc */
   /* cmdqueue = */ NULL,
+  /* postcmdqueue = */ NULL,
   /* max_idle_time = */ 0
 };
 
@@ -364,6 +365,8 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 			    signal (SIGQUIT, catch_sighup);
 			    signal (SIGTERM, catch_sighup);
 			    signal(SIGWINCH, sigwinch_func);
+
+			    dgl_exec_cmdqueue(myconfig[userchoice]->postcmdqueue, userchoice, me);
 
 			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMEEND], userchoice, me);
 

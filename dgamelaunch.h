@@ -49,9 +49,56 @@ typedef enum
     NUM_DGLTIMES
 } dglcmd_times;
 
+typedef enum
+{
+    DGLCMD_NONE = 0,
+    DGLCMD_MKDIR,	/* mkdir foo */
+    DGLCMD_CHDIR,	/* chdir foo */
+    DGLCMD_IF_NX_CP,	/* ifnxcp foo bar */
+    DGLCMD_CP,		/* cp foo bar */
+    DGLCMD_UNLINK,	/* unlink foo */
+    DGLCMD_EXEC,	/* exec foo bar */
+    DGLCMD_SETENV,	/* setenv foo bar */
+    DGLCMD_WATCH_MENU,  /* watch_menu */
+    DGLCMD_LOGIN,       /* ask_login */
+    DGLCMD_REGISTER,	/* ask_register */
+    DGLCMD_QUIT,	/* quit */
+    DGLCMD_CHMAIL,	/* chmail */
+    DGLCMD_CHPASSWD,	/* chpasswd */
+    DGLCMD_PLAYGAME,	/* play_game "foo" */
+    DGLCMD_SUBMENU,	/* submenu "foo" */
+    DGLCMD_RETURN	/* return */
+} dglcmd_actions;
+
+typedef enum
+{
+    SORTMODE_NONE = 0,
+    SORTMODE_USERNAME,
+    SORTMODE_GAMENUM,
+    SORTMODE_WINDOWSIZE,
+    SORTMODE_STARTTIME,
+    SORTMODE_IDLETIME,
+#ifdef USE_SHMEM
+    SORTMODE_WATCHERS,
+#endif
+    NUM_SORTMODES
+} dg_sortmode;
+
+static const char *SORTMODE_NAME[NUM_SORTMODES] = {
+    "Unsorted",
+    "Username",
+    "Game",
+    "Windowsize",
+    "Starttime",
+    "Idletime",
+#ifdef USE_SHMEM
+    "Watchers",
+#endif
+};
+
 struct dg_cmdpart
 {
-    dglcmd_times cmd;
+    dglcmd_actions cmd;
     char *param1;
     char *param2;
     struct dg_cmdpart *next;
@@ -140,6 +187,7 @@ struct dg_config
     char **bin_args; /* args for game binary */
     char *rc_fmt;
     struct dg_cmdpart *cmdqueue;
+    struct dg_cmdpart *postcmdqueue;
     int max_idle_time;
 };
 
@@ -166,52 +214,6 @@ struct dg_globalconfig
     int menu_max_idle_time;
 };
 
-typedef enum
-{
-    DGLCMD_NONE = 0,
-    DGLCMD_MKDIR,	/* mkdir foo */
-    DGLCMD_CHDIR,	/* chdir foo */
-    DGLCMD_IF_NX_CP,	/* ifnxcp foo bar */
-    DGLCMD_CP,		/* cp foo bar */
-    DGLCMD_UNLINK,	/* unlink foo */
-    DGLCMD_EXEC,	/* exec foo bar */
-    DGLCMD_SETENV,	/* setenv foo bar */
-    DGLCMD_WATCH_MENU,  /* watch_menu */
-    DGLCMD_LOGIN,       /* ask_login */
-    DGLCMD_REGISTER,	/* ask_register */
-    DGLCMD_QUIT,	/* quit */
-    DGLCMD_CHMAIL,	/* chmail */
-    DGLCMD_CHPASSWD,	/* chpasswd */
-    DGLCMD_PLAYGAME,	/* play_game "foo" */
-    DGLCMD_SUBMENU,	/* submenu "foo" */
-    DGLCMD_RETURN	/* return */
-} dglcmd_actions;
-
-typedef enum
-{
-    SORTMODE_NONE = 0,
-    SORTMODE_USERNAME,
-    SORTMODE_GAMENUM,
-    SORTMODE_WINDOWSIZE,
-    SORTMODE_STARTTIME,
-    SORTMODE_IDLETIME,
-#ifdef USE_SHMEM
-    SORTMODE_WATCHERS,
-#endif
-    NUM_SORTMODES
-} dg_sortmode;
-
-static const char *SORTMODE_NAME[NUM_SORTMODES] = {
-    "Unsorted",
-    "Username",
-    "Game",
-    "Windowsize",
-    "Starttime",
-    "Idletime",
-#ifdef USE_SHMEM
-    "Watchers",
-#endif
-};
 
 
 /* Global variables */

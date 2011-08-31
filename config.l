@@ -89,6 +89,7 @@ cursor		{ return TYPE_CURSOR; }
 server_id	{ return TYPE_SERVER_ID; }
 sortmode	{ return TYPE_WATCH_SORTMODE; }
 commands	{ return TYPE_CMDQUEUE; }
+postcommands	{ return TYPE_POSTCMDQUEUE; }
 yes		{ yylval.i = 1; return TYPE_BOOL; }
 no		{ yylval.i = 0; return TYPE_BOOL; }
 dglstart	{ yylval.i = DGLTIME_DGLSTART; return TYPE_CMDQUEUENAME; }
