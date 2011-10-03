@@ -1158,6 +1158,62 @@ watchgame:
 #endif
 }
 
+void
+inprogressdisplay (int gameid)
+{
+    const char *selectorchars = "abcdefghijklmnoprstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ";
+  int i, len = 20;
+  static dg_sortmode sortmode = NUM_SORTMODES;
+  struct dg_game **games = NULL;
+  int shm_idx = -1;
+
+  time_t ctime;
+
+  struct dg_shm *shm_dg_data = NULL;
+  struct dg_shm_game *shm_dg_game = NULL;
+
+  struct dg_watchcols **watchcols = globalconfig_watch_columns();
+  struct dg_watchcols **curr_watchcol;
+
+  if (sortmode == NUM_SORTMODES)
+      sortmode = globalconfig.sortmode;
+
+  shm_init(&shm_dg_data, &shm_dg_game);
+
+  games = populate_games (gameid, &len, NULL); /* FIXME: should be 'me' instead of 'NULL' */
+  shm_update(shm_dg_data, games, len);
+  games = sort_games (games, len, sortmode);
+
+  shm_sem_wait(shm_dg_data);
+
+  (void) time(&ctime);
+
+  for (i = 0; i < 100; i++) {
+    if (i >= len)
+      break;
+
+    for (curr_watchcol = watchcols; *curr_watchcol; ++curr_watchcol) {
+      struct dg_watchcols *col = *curr_watchcol;
+      char tmpbuf[80];
+      int hilite = 0;
+      game_get_column_data(games[i],
+        selectorchars[i],
+        ctime, shm_dg_game,
+        tmpbuf, sizeof tmpbuf, &hilite, (dg_sortmode)col->dat);
+      fprintf(stdout, "%s#", tmpbuf); /* format in col->fmt */
+    }
+    fprintf(stdout, "\n");
+  }
+
+  shm_sem_post(shm_dg_data);
+
+  free_populated_games(games, len);
+
+#ifdef USE_SHMEM
+  shmdt(shm_dg_data);
+#endif
+}
+
 /* ************************************************************* */
 
 /*
@@ -2432,6 +2488,7 @@ main (int argc, char** argv)
   unsigned int len;
   int c, i;
   int userchoice;
+  int showplayers = 0;
   char *tmp;
   char *wall_email_str = NULL;
 #ifdef USE_RLIMIT
@@ -2470,10 +2527,13 @@ main (int argc, char** argv)
 
   __progname = basename(strdup(argv[0]));
 
-  while ((c = getopt(argc, argv, "qh:pf:aeW:SD")) != -1)
+  while ((c = getopt(argc, argv, "sqh:pf:aeW:SD")) != -1)
   {
     switch (c)
     {
+      case 's':
+	showplayers = 1; break;
+
       case 'q':
 	silent = 1; break;
 
@@ -2602,6 +2662,11 @@ main (int argc, char** argv)
     }
 
   setlocale(LC_CTYPE, "en_US.UTF-8");
+
+  if (showplayers) {
+    inprogressdisplay(-1);
+    graceful_exit (0);
+  }
 
   if (wall_email_str) {
       char *emailfrom = wall_email_str;
