@@ -23,33 +23,21 @@ extern void (*g_chain_winch)(int);
 /* Data structures */
 struct dg_config **myconfig = NULL;
 struct dg_config defconfig = {
-    /* chroot = */ /*"/var/lib/dgamelaunch/",*/
   /* game_path = */ "/bin/nethack",
   /* game_name = */ "NetHack",
   /* shortname = */ "NH",
-  /* chdir = */ /*NULL,*/
-  /* mkdir = */ /*NULL,*/
-  /* dglroot = *//*  "/dgldir/",*/
-  /* lockfile = */ /*"/dgl-lock",*/
-  /* passwd = */ /*"/dgl-login",*/
-  /* banner = */ /*"/dgl-banner",*/
   /* rcfile = */ NULL, /*"/dgl-default-rcfile",*/
+  /* ttyrecdir =*/ "%ruserdata/%n/ttyrec/",
   /* spool = */ "/var/mail/",
-  /* shed_user = */ /*"games",*/
-  /* shed_group = */ /*"games",*/
-  /* shed_uid = *//* 5,*/
-  /* shed_gid = */ /*60,*/ /* games:games in Debian */
-  /* max = */ /*64000,*/
-  /* savefilefmt = */ /*"",*/ /* don't do this by default */
   /* inprogressdir = */ "%rinprogress/",
-  NULL,
   /* num_args = */ 0,
   /* bin_args = */ NULL,
   /* rc_fmt = */ "%rrcfiles/%n.nethackrc", /* [dglroot]rcfiles/[username].nethackrc */
   /* cmdqueue = */ NULL,
   /* postcmdqueue = */ NULL,
   /* max_idle_time = */ 0,
-  /* extra_info_file = */ NULL
+  /* extra_info_file = */ NULL,
+  /* encoding */ 0
 };
 
 char* config = NULL;
