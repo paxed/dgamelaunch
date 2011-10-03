@@ -101,6 +101,7 @@ extern int yyparse ();
 char * __progname;
 int  g_idle_alarm_enabled = 0;
 int  showplayers = 0;
+int  initplayer = 0;
 void (*g_chain_winch)(int);
 
 #ifndef USE_SQLITE3
@@ -1624,7 +1625,7 @@ autologin (char* user, char *pass)
   tmp = userexist(user, 0);
   if (tmp) {
       me = cpy_me(tmp);
-      if (passwordgood(pass) && !(me->flags & DGLACCT_LOGIN_LOCK)) {
+      if ((passwordgood(pass) || initplayer == 1) && !(me->flags & DGLACCT_LOGIN_LOCK)) {
 	  loggedin = 1;
 	  setproctitle ("%s", me->username);
 	  dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_LOGIN], 0, me);
@@ -2539,7 +2540,7 @@ main (int argc, char** argv)
 
   __progname = basename(strdup(argv[0]));
 
-  while ((c = getopt(argc, argv, "sqh:pf:aeW:SD")) != -1)
+  while ((c = getopt(argc, argv, "sqh:pf:i:aeW:SD")) != -1)
   {
     switch (c)
     {
@@ -2558,6 +2559,19 @@ main (int argc, char** argv)
 	}
 
 	config = strdup(optarg);
+	break;
+
+      case 'i':
+	if (optarg && *optarg != '\0') {
+		if (p && *p != '\0')
+			*p = '\0';
+
+		p = strdup(optarg);
+		initplayer = 1;
+
+		if (auth && *auth != '\0')
+			*auth = '\0';
+	}
 	break;
 
     case 'W':
@@ -2699,6 +2713,25 @@ main (int argc, char** argv)
   loadbanner(globalconfig.banner, &banner);
 
   dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_DGLSTART], 0, NULL);
+
+  if (initplayer) {
+	  char *user, *pass;
+
+	  user = strdup(p);
+	  pass = strdup(p);
+
+	  autologin(user, pass);
+
+	  if (loggedin) {
+		dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_REGISTER], 0, me);
+		fprintf(stdout, "Setup of %s succeeded.\n", me->username);
+		graceful_exit(0);
+	  }
+	  else {
+		fprintf(stdout, "Setup of %s failed.\n", p);
+		graceful_exit(1);
+	  }
+  }
 
   /* simple login routine, uses ncurses */
   if (readfile (0)) {
