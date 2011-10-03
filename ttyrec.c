@@ -433,6 +433,8 @@ dooutput (int max_idle_time)
                       galt = 1;
                       continue;
                   }
+              else if (obuf[i] == 14 || obuf[i] == 15)
+                  continue;
               out += wctoutf8(out, charset_cp437[(unsigned char)obuf[i]]);
           }
           h.len = len = out - ubuf;
