@@ -92,6 +92,7 @@ sortmode	{ return TYPE_WATCH_SORTMODE; }
 watch_columns	{ return TYPE_WATCH_COLUMNS; }
 commands	{ return TYPE_CMDQUEUE; }
 postcommands	{ return TYPE_POSTCMDQUEUE; }
+encoding	{ return TYPE_ENCODING; }
 yes		{ yylval.i = 1; return TYPE_BOOL; }
 no		{ yylval.i = 0; return TYPE_BOOL; }
 dglstart	{ yylval.i = DGLTIME_DGLSTART; return TYPE_CMDQUEUENAME; }

@@ -198,6 +198,7 @@ struct dg_config
     struct dg_cmdpart *postcmdqueue;
     int max_idle_time;
     char *extra_info_file;
+    int encoding; // -1 = run --print-charset
 };
 
 struct dg_watchcols {

@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "dgamelaunch.h"
+#include "ttyrec.h"
 
 extern int yylex(void);
 extern void yyerror(const char*);
@@ -58,6 +59,7 @@ static int sortmode_number(const char *sortmode_name) {
 %token TYPE_CMDQUEUE TYPE_DEFINE_MENU TYPE_BANNER_FILE TYPE_CURSOR
 %token TYPE_POSTCMDQUEUE
 %token TYPE_MAX_IDLE_TIME TYPE_MENU_MAX_IDLE_TIME TYPE_EXTRA_INFO_FILE
+%token TYPE_ENCODING
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER TYPE_CMDQUEUENAME
 %type  <kt> KeyType
@@ -473,6 +475,17 @@ game_definition : TYPE_CMDQUEUE
 		myconfig[ncnf]->inprogressdir = strdup($3);
 		break;
 
+            case TYPE_ENCODING:
+                if (!strcasecmp($3, "ask"))
+                    myconfig[ncnf]->encoding = -1;
+                else if ((myconfig[ncnf]->encoding = encoding_by_name($3)) == -1)
+                {
+                    fprintf(stderr, "%s:%d: invalid value for encoding: \"%s\"\n",
+                            config, line, $3);
+                    exit(1);
+                }
+                break;
+
 	    default:
 		fprintf(stderr, "%s:%d: token does not belong into game definition, bailing out\n",
 			config, line);
@@ -608,6 +621,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_PASSWD	{ $$ = TYPE_PATH_PASSWD; }
 	| TYPE_PATH_LOCKFILE	{ $$ = TYPE_PATH_LOCKFILE; }
 	| TYPE_PATH_INPROGRESS	{ $$ = TYPE_PATH_INPROGRESS; }
+	| TYPE_ENCODING         { $$ = TYPE_ENCODING; }
 	| TYPE_RC_FMT		{ $$ = TYPE_RC_FMT; }
 	| TYPE_WATCH_SORTMODE	{ $$ = TYPE_WATCH_SORTMODE; }
 	| TYPE_SERVER_ID	{ $$ = TYPE_SERVER_ID; }

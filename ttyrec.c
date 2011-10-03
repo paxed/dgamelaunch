@@ -410,3 +410,16 @@ remove_ipfile (void)
     }
     signal(SIGALRM, SIG_IGN);
 }
+
+int encoding_by_name(const char *enc)
+{
+    if (!strcasecmp(enc, "UTF-8") || !strcasecmp(enc, "UNICODE"))
+        return 0;
+    if (!strcasecmp(enc, "IBM") || !strcasecmp(enc, "CP437"))
+        return 1;
+    if (!strcasecmp(enc, "DEC"))
+        return 2;
+    if (!strcasecmp(enc, "ASCII"))
+        return 1; // what to do with invalid chars?
+    return -1;
+}

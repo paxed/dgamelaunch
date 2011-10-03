@@ -28,4 +28,5 @@ extern int master, slave;
 extern struct termios tt;
 extern struct winsize win;
 
+extern int encoding_by_name(const char *enc);
 #endif
