@@ -47,7 +47,8 @@ struct dg_config defconfig = {
   /* rc_fmt = */ "%rrcfiles/%n.nethackrc", /* [dglroot]rcfiles/[username].nethackrc */
   /* cmdqueue = */ NULL,
   /* postcmdqueue = */ NULL,
-  /* max_idle_time = */ 0
+  /* max_idle_time = */ 0,
+  /* extra_info_file = */ NULL
 };
 
 char* config = NULL;
@@ -415,6 +416,16 @@ sort_game_idletime(const void *g1, const void *g2)
 }
 
 static int
+sort_game_extrainfo(const void *g1, const void *g2)
+{
+    const int extra_weight1 =
+        (*(const struct dg_game **) g1)->extra_info_weight;
+    const int extra_weight2 =
+        (*(const struct dg_game **) g2)->extra_info_weight;
+    return dglsign(extra_weight2 - extra_weight1);
+}
+
+static int
 sort_game_gamenum(const void *g1, const void *g2)
 {
     const struct dg_game *game1 = *(const struct dg_game **)g1;
@@ -477,6 +488,12 @@ sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
 	qsort(games, len, sizeof(struct dg_game *), sort_game_idletime);
 	break;
     case SORTMODE_STARTTIME: qsort(games, len, sizeof(struct dg_game *), sort_game_starttime); break;
+
+    case SORTMODE_EXTRA_INFO:
+        qsort(games, len, sizeof(struct dg_game *),
+              sort_game_extrainfo);
+        break;
+
 #ifdef USE_SHMEM
     case SORTMODE_WATCHERS:
 	(void) time(&sort_ctime);
@@ -512,9 +529,48 @@ free_populated_games(struct dg_game **games, int len)
 	if (games[i]->name) free(games[i]->name);
 	if (games[i]->date) free(games[i]->date);
 	if (games[i]->time) free(games[i]->time);
+        if (games[i]->extra_info) free(games[i]->extra_info);
 	free(games[i]);
     }
     free(games);
+}
+
+static
+void
+game_read_extra_info(struct dg_game *game, const char *extra_info_file)
+{
+    FILE *ei = NULL;
+    char *sep = NULL;
+    char buffer[120];
+    int buflen;
+
+    if (game->extra_info) {
+        free(game->extra_info);
+        game->extra_info = NULL;
+    }
+    game->extra_info_weight = 0;
+
+    if (!extra_info_file)
+        return;
+
+    if (!(ei = fopen(extra_info_file, "r")))
+        return;
+    *buffer = 0;
+    fgets(buffer, sizeof buffer, ei);
+    fclose(ei);
+
+    buflen = strlen(buffer);
+    if (buflen && buffer[buflen - 1] == '\n')
+        buffer[buflen - 1] = 0;
+
+    /* The extra info file format is <sort-weight>|<info> */
+    sep = strchr(buffer, '|');
+    game->extra_info = strdup(sep? sep + 1 : buffer);
+
+    if (sep) {
+        *sep = 0;
+        game->extra_info_weight = atoi(buffer);
+    }
 }
 
 struct dg_game **
@@ -637,6 +693,17 @@ populate_games (int xgame, int *l, struct dg_user *me)
 		  games[len]->ws_row = 24;
 		  games[len]->ws_col = 80;
 	      }
+
+              games[len]->extra_info = NULL;
+              games[len]->extra_info_weight = 0;
+              if (myconfig[game]->extra_info_file) {
+                  char *extra_info_file =
+                      dgl_format_str(game, NULL,
+                                     myconfig[game]->extra_info_file,
+                                     games[len]->name);
+                  game_read_extra_info(games[len], extra_info_file);
+              }
+
 	      len++;
             }
         }

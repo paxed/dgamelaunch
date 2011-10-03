@@ -756,6 +756,78 @@ sortmode_increment(struct dg_watchcols **watchcols,
         *sortmode = old_sortmode;
 }
 
+static
+void
+game_get_column_data(struct dg_game *game,
+                     char selectorchar,
+                     time_t ctime, struct dg_shm_game *shm_dg_game,
+                     char *data, int bufsz, int *hilite,
+                     dg_sortmode which_data)
+{
+    *data = 0;
+
+    switch (which_data) {
+    default: break;
+    case SORTMODE_NONE:
+        data[0] = selectorchar; data[1] = '\0';
+        break;
+
+    case SORTMODE_USERNAME:
+        snprintf(data, bufsz, "%s", game->name);
+        break;
+
+    case SORTMODE_GAMENUM:
+        snprintf(data, bufsz, "%s",
+                 myconfig[game->gamenum]->shortname);
+        break;
+
+    case SORTMODE_WINDOWSIZE:
+        snprintf(data, bufsz, "%3dx%3d", game->ws_col, game->ws_row);
+        if ((game->ws_col > COLS || game->ws_row > LINES))
+            *hilite = CLR_RED;
+        break;
+
+    case SORTMODE_STARTTIME:
+        snprintf(data, bufsz, "%s %s", game->date,
+                 game->time);
+        break;
+
+    case SORTMODE_IDLETIME:
+    {
+        long secs, mins, hours;
+
+        secs = (ctime - game->idle_time);
+        hours = (secs / 3600);
+        secs -= (hours * 3600);
+        mins = (secs / 60) % 60;
+        secs -= (mins*60);
+        if (hours)
+            snprintf(data, 10, "%ldh %ldm", hours, mins);
+        else if (mins)
+            snprintf(data, 10, "%ldm %lds", mins, secs);
+        else if (secs > 4)
+            snprintf(data, 10, "%lds", secs);
+        else
+            snprintf(data, 10, " ");
+        break;
+    }
+
+    case SORTMODE_EXTRA_INFO:
+        if (game->extra_info)
+            strlcpy(data, game->extra_info, bufsz);
+        break;
+
+#ifdef USE_SHMEM
+    case SORTMODE_WATCHERS:
+        snprintf(data, bufsz, "%li",
+                 (game->is_in_shm ?
+                  shm_dg_game[game->shm_idx].nwatchers : -1));
+        break;
+#endif
+    }
+    data[bufsz - 1] = '\0';
+}
+
 void
 inprogressmenu (int gameid)
 {
@@ -847,48 +919,15 @@ inprogressmenu (int gameid)
 
 	  if (i + offset == selected) attron(selected_attr);
 
-	  snprintf (gametype, sizeof gametype, "%3dx%3d",
-		games[i + offset]->ws_col, games[i + offset]->ws_row);
-
-	  {
-	      long secs, mins, hours;
-
-	      secs = (ctime - games[i + offset]->idle_time);
-	      hours = (secs / 3600);
-	      secs -= (hours * 3600);
-	      mins = (secs / 60) % 60;
-	      secs -= (mins*60);
-	      if (hours)
-		  snprintf(idletime, 10, "%ldh %ldm", hours, mins);
-	      else if (mins)
-		  snprintf(idletime, 10, "%ldm %lds", mins, secs);
-	      else if (secs > 4)
-		  snprintf(idletime, 10, "%lds", secs);
-	      else
-		  snprintf(idletime, 10, " ");
-	  }
-
 	  for (curr_watchcol = watchcols; *curr_watchcol; ++curr_watchcol) {
               struct dg_watchcols *col = *curr_watchcol;
 	      char tmpbuf[80];
 	      int hilite = 0;
-	      switch (col->dat) {
-	      default: break;
-	      case 0: tmpbuf[0] = selectorchars[i]; tmpbuf[1] = '\0'; break;
-	      case 1: snprintf(tmpbuf, 80, "%s", games[i + offset]->name); break;
-	      case 2: snprintf(tmpbuf, 80, "%s", myconfig[games[i + offset]->gamenum]->shortname); break;
-	      case 3:
-		  snprintf(tmpbuf, 80, "%s", gametype);
-		  if ((games[i+offset]->ws_col > COLS || games[i+offset]->ws_row > LINES))
-		      hilite = CLR_RED;
-		  break;
-	      case 4: snprintf(tmpbuf, 80, "%s %s", games[i + offset]->date, games[i + offset]->time); break;
-	      case 5: snprintf(tmpbuf, 80, "%s", idletime); break;
-#ifdef USE_SHMEM
-	      case 6: snprintf(tmpbuf, 80, "%li", (games[i+offset]->is_in_shm ? shm_dg_game[games[i+offset]->shm_idx].nwatchers : -1)); break;
-#endif
-	      }
-	      tmpbuf[79] = '\0';
+              game_get_column_data(games[i + offset],
+                                   selectorchars[i],
+                                   ctime, shm_dg_game,
+                                   tmpbuf, sizeof tmpbuf, &hilite,
+                                   (dg_sortmode)col->dat);
 	      if (hilite) attron(hilite);
 	      mvprintw(top_banner_hei + 1 + i, col->x, col->fmt, tmpbuf);
 	      if (hilite) {

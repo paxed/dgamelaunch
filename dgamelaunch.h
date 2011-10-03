@@ -81,6 +81,7 @@ typedef enum
     SORTMODE_WINDOWSIZE,
     SORTMODE_STARTTIME,
     SORTMODE_IDLETIME,
+    SORTMODE_EXTRA_INFO,
 #ifdef USE_SHMEM
     SORTMODE_WATCHERS,
 #endif
@@ -94,6 +95,7 @@ static const char *SORTMODE_NAME[NUM_SORTMODES] = {
     "Windowsize",
     "Starttime",
     "Idletime",
+    "Extrainfo",
 #ifdef USE_SHMEM
     "Watchers",
 #endif
@@ -175,6 +177,9 @@ struct dg_game
   int is_in_shm;
   int shm_idx;
   int nwatchers;
+
+  char *extra_info;
+  int extra_info_weight;
 };
 
 struct dg_config
@@ -192,6 +197,7 @@ struct dg_config
     struct dg_cmdpart *cmdqueue;
     struct dg_cmdpart *postcmdqueue;
     int max_idle_time;
+    char *extra_info_file;
 };
 
 struct dg_watchcols {

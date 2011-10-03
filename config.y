@@ -57,7 +57,7 @@ static int sortmode_number(const char *sortmode_name) {
 %token TYPE_MALSTRING TYPE_PATH_INPROGRESS TYPE_GAME_ARGS TYPE_RC_FMT
 %token TYPE_CMDQUEUE TYPE_DEFINE_MENU TYPE_BANNER_FILE TYPE_CURSOR
 %token TYPE_POSTCMDQUEUE
-%token TYPE_MAX_IDLE_TIME TYPE_MENU_MAX_IDLE_TIME
+%token TYPE_MAX_IDLE_TIME TYPE_MENU_MAX_IDLE_TIME TYPE_EXTRA_INFO_FILE
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER TYPE_CMDQUEUENAME
 %type  <kt> KeyType
@@ -422,6 +422,10 @@ game_definition : TYPE_CMDQUEUE
 	{
 	    /* nothing */
 	}
+	| TYPE_EXTRA_INFO_FILE '=' TYPE_VALUE
+	{
+            myconfig[ncnf]->extra_info_file = strdup($3);
+        }
         | TYPE_MAX_IDLE_TIME '=' TYPE_NUMBER
         {
             myconfig[ncnf]->max_idle_time = $3;
