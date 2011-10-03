@@ -112,14 +112,14 @@ struct dg_user *me = NULL;
 struct dg_banner banner;
 
 static struct dg_watchcols default_watchcols[] = {
-    {0, SORTMODE_NONE,        1, "", "%s)"},
-    {1, SORTMODE_USERNAME,    4, "Username", "%-15s"},
-    {2, SORTMODE_GAMENUM,    21, "Game", "%-5s"},
-    {3, SORTMODE_WINDOWSIZE, 28, " Size", "%s"},
-    {4, SORTMODE_STARTTIME,  37, "Start date & time", "%s"},
-    {5, SORTMODE_IDLETIME,   58, "Idle time", "%-10s"},
+    {SORTMODE_NONE, SORTMODE_NONE,        1, "", "%s)"},
+    {SORTMODE_USERNAME, SORTMODE_USERNAME,    4, "Username", "%-15s"},
+    {SORTMODE_GAMENUM, SORTMODE_GAMENUM,    21, "Game", "%-5s"},
+    {SORTMODE_WINDOWSIZE, SORTMODE_WINDOWSIZE, 28, " Size", "%s"},
+    {SORTMODE_STARTTIME, SORTMODE_STARTTIME,  37, "Start date & time", "%s"},
+    {SORTMODE_IDLETIME, SORTMODE_IDLETIME,   58, "Idle time", "%-10s"},
 #ifdef USE_SHMEM
-    {6, SORTMODE_WATCHERS,   70, "Watchers", "%s"},
+    {SORTMODE_WATCHERS, SORTMODE_WATCHERS,   70, "Watchers", "%s"},
 #endif
 };
 
