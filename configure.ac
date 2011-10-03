@@ -70,18 +70,18 @@ fi
 AC_SUBST(MKDEP)
 AC_SUBST(MKDEP_DIRECT)
 
-AC_SEARCH_LIBS(use_default_colors, [ncurses],
+AC_SEARCH_LIBS(use_default_colors, [ncursesw],
 [
-   AC_MSG_RESULT([Using ncurses and color.])
-   AC_DEFINE(USE_NCURSES_COLOR,1,[Use ncurses and color])
+   AC_MSG_RESULT([Using ncursesw and color.])
+   AC_DEFINE(USE_NCURSES_COLOR,1,[Use ncursesw and color])
 ],
 [
-   AC_MSG_RESULT([Not using ncurses, not using color.])
+   AC_MSG_RESULT([Not using ncursesw, not using color.])
 ])
 
 AC_PROG_INSTALL
-AC_SEARCH_LIBS(initscr, [ncurses curses], [], [
-   AC_MSG_ERROR([Cannot find curses or ncurses devel libs.])
+AC_SEARCH_LIBS(initscr, [ncursesw cursesw], [], [
+   AC_MSG_ERROR([Cannot find cursesw or ncursesw devel libs.])
 ])
 
 
