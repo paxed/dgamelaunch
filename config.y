@@ -21,9 +21,24 @@ extern int num_games;
 int ncnf = 0;
 struct dg_cmdpart *curr_cmdqueue = NULL;
 struct dg_menu *curr_menu = NULL;
+
+static struct dg_watchcols *curr_watch_columns[DGL_MAXWATCHCOLS];
+static int curr_n_watch_columns = 0;
+
 int cmdqueue_num = -1;
 
 static const char* lookup_token (int t);
+
+static int sortmode_number(const char *sortmode_name) {
+    int tmpi;
+    if (!*sortmode_name)
+        return SORTMODE_NONE;
+    for (tmpi = SORTMODE_NONE; tmpi < NUM_SORTMODES; tmpi++)
+        if (!strcasecmp(SORTMODE_NAME[tmpi], sortmode_name ))
+            return tmpi;
+    return -1;
+}
+
 
 %}
 
@@ -35,7 +50,7 @@ static const char* lookup_token (int t);
 
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX TYPE_MAXNICKLEN
 %token TYPE_GAME_SHORT_NAME TYPE_WATCH_SORTMODE TYPE_SERVER_ID
-%token TYPE_ALLOW_REGISTRATION
+%token TYPE_ALLOW_REGISTRATION TYPE_WATCH_COLUMNS
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
 %token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_TTYREC
@@ -155,16 +170,12 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
 
   case TYPE_WATCH_SORTMODE:
       {
-	  int tmpi, okay = 0;
-
-	  for (tmpi = (SORTMODE_NONE+1); tmpi < NUM_SORTMODES; tmpi++)
-	      if (!strcasecmp(SORTMODE_NAME[tmpi], $3 )) {
-		  globalconfig.sortmode = tmpi;
-		  okay = 1;
-		  break;
-	      }
-	  if (!okay)
-	      fprintf(stderr, "%s:%d: unknown sortmode '%s'\n", config, line, $3);
+          const int sortmode_num = sortmode_number($3);
+	  if (sortmode_num <= SORTMODE_NONE)
+	      fprintf(stderr, "%s:%d: unknown sortmode '%s'\n", config,
+                      line, $3);
+          else
+              globalconfig.sortmode = sortmode_num;
       }
       break;
 
@@ -262,10 +273,46 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
         config, line, lookup_token($1)); 
       exit(1);
   }
+}
+	| TYPE_WATCH_COLUMNS '=' '[' watch_columns ']' {
+            memcpy(globalconfig.watch_columns,
+                   curr_watch_columns,
+                   curr_n_watch_columns * sizeof(*curr_watch_columns));
+            globalconfig.n_watch_columns = curr_n_watch_columns;
+            memset(curr_watch_columns, 0, sizeof curr_watch_columns);
+            curr_n_watch_columns = 0;
+          };
+
+
+watch_columns: watch_columns ',' watch_column
+               | watch_column;
+
+watch_column: '[' TYPE_VALUE ',' TYPE_VALUE ',' TYPE_NUMBER ',' TYPE_VALUE ']' {
+    if (curr_n_watch_columns >= DGL_MAXWATCHCOLS) {
+        fprintf(stderr, "%s:%d too many watch column defs (max %d)\n",
+                config, line, DGL_MAXWATCHCOLS);
+        exit(1);
+    }
+
+    {
+        struct dg_watchcols watch_column, *new_watch_column = NULL;
+        watch_column.sortmode = sortmode_number($4);
+        if (watch_column.sortmode == -1) {
+            fprintf(stderr, "%s:%d invalid sort mode '%s'.\n",
+                    config, line, $4);
+            exit(1);
+        }
+        watch_column.dat = watch_column.sortmode;
+        watch_column.x = $6;
+        watch_column.colname = strdup($2);
+        watch_column.fmt = strdup($8);
+
+        new_watch_column = (struct dg_watchcols *) malloc(sizeof watch_column);
+        memcpy(new_watch_column, &watch_column, sizeof watch_column);
+
+        curr_watch_columns[curr_n_watch_columns++] = new_watch_column;
+    }
 };
-
-
-
 
 menu_definition : TYPE_BANNER_FILE '=' TYPE_VALUE
          {
@@ -559,6 +606,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_INPROGRESS	{ $$ = TYPE_PATH_INPROGRESS; }
 	| TYPE_RC_FMT		{ $$ = TYPE_RC_FMT; }
 	| TYPE_WATCH_SORTMODE	{ $$ = TYPE_WATCH_SORTMODE; }
+	| TYPE_WATCH_COLUMNS	{ $$ = TYPE_WATCH_COLUMNS; }
 	| TYPE_SERVER_ID	{ $$ = TYPE_SERVER_ID; }
 	;
 
@@ -590,6 +638,7 @@ const char* lookup_token (int t)
     case TYPE_MAX_IDLE_TIME: return "max_idle_time";
     case TYPE_RC_FMT: return "rc_fmt";
     case TYPE_WATCH_SORTMODE: return "sortmode";
+    case TYPE_WATCH_COLUMNS: return "watch_columns";
     case TYPE_SERVER_ID: return "server_id";
     default: abort();
   }

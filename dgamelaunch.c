@@ -107,6 +107,20 @@ struct dg_user **users = NULL;
 struct dg_user *me = NULL;
 struct dg_banner banner;
 
+static struct dg_watchcols default_watchcols[] = {
+    {0, SORTMODE_NONE,        1, "", "%s)"},
+    {1, SORTMODE_USERNAME,    4, "Username", "%-15s"},
+    {2, SORTMODE_GAMENUM,    21, "Game", "%-5s"},
+    {3, SORTMODE_WINDOWSIZE, 28, " Size", "%s"},
+    {4, SORTMODE_STARTTIME,  37, "Start date & time", "%s"},
+    {5, SORTMODE_IDLETIME,   58, "Idle time", "%-10s"},
+#ifdef USE_SHMEM
+    {6, SORTMODE_WATCHERS,   70, "Watchers", "%s"},
+#endif
+};
+
+static struct dg_watchcols *default_watchcols_list[DGL_MAXWATCHCOLS + 1];
+
 struct dg_user *
 cpy_me(struct dg_user *me)
 {
@@ -680,6 +694,68 @@ shm_dump()
 }
 #endif
 
+static
+struct dg_watchcols **
+globalconfig_watch_columns()
+{
+    if (globalconfig.n_watch_columns)
+        return globalconfig.watch_columns;
+
+    if (!*default_watchcols_list) {
+        int i;
+        for (i = 0; i < ARRAY_SIZE(default_watchcols); ++i)
+            default_watchcols_list[i] = &default_watchcols[i];
+    }
+    return default_watchcols_list;
+}
+
+static
+int
+watchcol_find_index(struct dg_watchcols **watchcols,
+                    int sortmode)
+{
+    int i;
+    for (i = 0; watchcols[i]; ++i)
+        if (watchcols[i]->sortmode == sortmode)
+            return i;
+    return -1;
+}
+
+static
+void
+sortmode_increment(struct dg_watchcols **watchcols,
+                   dg_sortmode *sortmode,
+                   int direction)
+{
+    int watch_column_index = watchcol_find_index(watchcols, *sortmode);
+    int n_watchcols;
+    int wrap_count = 0;
+    const dg_sortmode old_sortmode = *sortmode;
+
+    for (n_watchcols = 0; watchcols[n_watchcols]; ++n_watchcols)
+        ;
+
+    if (watch_column_index == -1 || !n_watchcols)
+        return;
+
+    do {
+        watch_column_index += direction;
+
+        if (watch_column_index < 0) {
+            watch_column_index = n_watchcols - 1;
+            ++wrap_count;
+        } else if (watch_column_index >= n_watchcols) {
+            watch_column_index = 0;
+            ++wrap_count;
+        }
+
+        *sortmode = watchcols[watch_column_index]->sortmode;
+    } while (wrap_count < 2 && !*sortmode);
+
+    if (!*sortmode)
+        *sortmode = old_sortmode;
+}
+
 void
 inprogressmenu (int gameid)
 {
@@ -709,30 +785,13 @@ inprogressmenu (int gameid)
 
   int require_enter = 0; /* TODO: make configurable */
 
-  int di;
-
   time_t ctime;
-
-  struct dg_watchcols {
-      int dat;
-      int sortmode;
-      int x;
-      char *colname;
-      char *fmt;
-  } watchcols[] = {
-      {0, SORTMODE_NONE,        1, "", "%s)"},
-      {1, SORTMODE_USERNAME,    4, "Username", "%-15s"},
-      {2, SORTMODE_GAMENUM,    21, "Game", "%-5s"},
-      {3, SORTMODE_WINDOWSIZE, 28, " Size", "%s"},
-      {4, SORTMODE_STARTTIME,  37, "Start date & time", "%s"},
-      {5, SORTMODE_IDLETIME,   58, "Idle time", "%-10s"},
-#ifdef USE_SHMEM
-      {6, SORTMODE_WATCHERS,   70, "Watchers", "%s"},
-#endif
-  };
 
   struct dg_shm *shm_dg_data = NULL;
   struct dg_shm_game *shm_dg_game = NULL;
+
+  struct dg_watchcols **watchcols = globalconfig_watch_columns();
+  struct dg_watchcols **curr_watchcol;
 
   if (sortmode == NUM_SORTMODES)
       sortmode = globalconfig.sortmode;
@@ -766,13 +825,14 @@ inprogressmenu (int gameid)
 	  if (offset < 0) offset = 0;
 	  mvaddstr (3, 1, "The following games are in progress:");
 
-	  for (di = 0; di < ARRAY_SIZE(watchcols); di++) {
-	      char *col = watchcols[di].colname;
-	      int x = watchcols[di].x;
+	  for (curr_watchcol = watchcols; *curr_watchcol; ++curr_watchcol) {
+              struct dg_watchcols *wcol = *curr_watchcol;
+	      char *col = wcol->colname;
+	      int x = wcol->x;
 	      while (*col == ' ') { x++; col++; }
-	      if (sortmode == watchcols[di].sortmode) attron(title_attr);
+	      if (sortmode == wcol->sortmode) attron(title_attr);
 	      mvprintw(top_banner_hei, x, col);
-	      if (sortmode == watchcols[di].sortmode) attroff(title_attr);
+	      if (sortmode == wcol->sortmode) attroff(title_attr);
 	  }
       }
 
@@ -808,10 +868,11 @@ inprogressmenu (int gameid)
 		  snprintf(idletime, 10, " ");
 	  }
 
-	  for (di = 0; di < ARRAY_SIZE(watchcols); di++) {
+	  for (curr_watchcol = watchcols; *curr_watchcol; ++curr_watchcol) {
+              struct dg_watchcols *col = *curr_watchcol;
 	      char tmpbuf[80];
 	      int hilite = 0;
-	      switch (watchcols[di].dat) {
+	      switch (col->dat) {
 	      default: break;
 	      case 0: tmpbuf[0] = selectorchars[i]; tmpbuf[1] = '\0'; break;
 	      case 1: snprintf(tmpbuf, 80, "%s", games[i + offset]->name); break;
@@ -829,7 +890,7 @@ inprogressmenu (int gameid)
 	      }
 	      tmpbuf[79] = '\0';
 	      if (hilite) attron(hilite);
-	      mvprintw(top_banner_hei + 1 + i, watchcols[di].x, watchcols[di].fmt, tmpbuf);
+	      mvprintw(top_banner_hei + 1 + i, col->x, col->fmt, tmpbuf);
 	      if (hilite) {
 		  attron(CLR_NORMAL);
 		  hilite = 0;
@@ -938,11 +999,11 @@ inprogressmenu (int gameid)
           return;
 	case KEY_RIGHT:
 	case '.':
-	    if (sortmode < (NUM_SORTMODES-1)) sortmode++; else sortmode = SORTMODE_USERNAME;
+            sortmode_increment(watchcols, &sortmode, 1);
 	    break;
 	case KEY_LEFT:
 	case ',':
-	    if (sortmode > SORTMODE_USERNAME) sortmode--; else sortmode = (NUM_SORTMODES-1);
+            sortmode_increment(watchcols, &sortmode, -1);
 	    break;
 
 	case 12: case 18: /* ^L, ^R */
