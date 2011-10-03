@@ -100,6 +100,7 @@ extern int yyparse ();
 
 char * __progname;
 int  g_idle_alarm_enabled = 0;
+void (*g_chain_winch)(int);
 
 #ifndef USE_SQLITE3
 int f_num = 0;
@@ -2535,8 +2536,6 @@ main (int argc, char** argv)
   signal (SIGQUIT, catch_sighup);
   signal (SIGTERM, catch_sighup);
 
-  signal(SIGWINCH, sigwinch_func);
-
   (void) tcgetattr (0, &tt);
   if (-1 == ioctl (0, TIOCGWINSZ, (char *) &win) || win.ws_row < 4 ||
 		  win.ws_col < 4) /* Rudimentary validity check */
@@ -2650,6 +2649,9 @@ main (int argc, char** argv)
   }
 
   initcurses ();
+
+  g_chain_winch = signal(SIGWINCH, sigwinch_func);
+
   term_resize_check();
 
   idle_alarm_set_enabled(1);

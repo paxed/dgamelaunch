@@ -18,6 +18,7 @@
 
 extern FILE* yyin;
 extern int yyparse ();
+extern void (*g_chain_winch)(int);
 
 /* Data structures */
 struct dg_config **myconfig = NULL;
@@ -74,6 +75,7 @@ sigwinch_func(int sig)
 {
     signal(SIGWINCH, sigwinch_func);
     curses_resize = 1;
+    g_chain_winch(sig);
 }
 
 void
