@@ -65,7 +65,7 @@ int curses_resize = 0;
 int selected_game = 0;
 int return_from_submenu = 0;
 
-mode_t default_fmode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+mode_t default_fmode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 
 struct dg_globalconfig globalconfig;
 
