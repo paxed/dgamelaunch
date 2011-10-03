@@ -51,6 +51,7 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 #include <termios.h>
 #include <time.h>
@@ -70,6 +71,7 @@
 #ifndef XCASE
 # define XCASE 0
 #endif
+static void query_encoding(int game, char *username);
 
 int slave;
 pid_t dgl_parent;
@@ -155,6 +157,8 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
   else
       snprintf (dirname, 100, "%s/%s", ttyrec_path, ttyrec_filename);
   ancient_encoding = myconfig[game]->encoding;
+  if (ancient_encoding == -1)
+      query_encoding(game, username);
 
   atexit(&remove_ipfile);
   if ((fscript = fopen (dirname, "w")) == NULL)
@@ -595,4 +599,86 @@ int encoding_by_name(const char *enc)
     if (!strcasecmp(enc, "ASCII"))
         return 1; // what to do with invalid chars?
     return -1;
+}
+
+static void call_print_charset(char *exe, char **args)
+{
+    char **args2, **a;
+    int nargs = 0;
+    for (args2 = args; *args2; args2++)
+        nargs++;
+    args2 = calloc(nargs + 1, sizeof(char*));
+    for (a = args2; *args; args++)
+        *a++ = *args;
+
+    *a++ = "--print-charset";
+    *a = 0;
+    execvp(exe, args2);
+}
+
+static void query_encoding(int game, char *username)
+{
+    int son;
+    int p[2];
+    int null;
+    struct timeval  tv;
+    fd_set          se;
+    char buf[128];
+
+    if (pipe(p))
+        perror("pipe");
+    switch(son = fork())
+    {
+    case -1:
+        perror("fork");
+        fail();
+    case 0:
+        null = open("/dev/null", O_RDONLY);
+        if (null != -1)
+            dup2(null, 0), close(null);
+        else
+        {
+            fprintf(stderr, "Error: can't open /dev/null\n");
+            // non-fatal, but if the child opens some other file, it might
+            // get confused
+            close(0);
+        }
+        dup2(p[1], 1);
+        close(p[1]);
+        close(p[0]);
+        call_print_charset(myconfig[game]->game_path, myconfig[game]->bin_args);
+        exit(1);
+    }
+    close(p[1]);
+
+    FD_ZERO(&se);
+    FD_SET(p[0],&se);
+    tv.tv_sec = 60; // FIXME: a huge delay, in case there's a db rebuild
+    tv.tv_usec = 0;
+    if (select(p[0]+1,&se,NULL,NULL,&tv) != 1)
+    {
+        fprintf(stderr, "Error: can't obtain charset info.\nPress any key...\n");
+        read(0, buf, 1);
+        close(p[0]); // SIGPIPE
+        kill(son, SIGTERM); // and SIGTERM for a good measure
+        waitpid(son, 0, 0);
+        ancient_encoding = 0;
+        return;
+    }
+
+    // Sending _one_ short message over a pipe is atomic on all systems I know.
+    // Don't assume this on about any other file descriptor.
+    read(p[0], buf, sizeof(buf)-1);
+    buf[sizeof(buf)-1] = 0;
+    close(p[0]);
+    kill(son, SIGTERM);
+    waitpid(son, 0, 0);
+    if (strchr(buf, '\n'))
+        *strchr(buf, '\n') = 0;
+    ancient_encoding = encoding_by_name(buf);
+    if (ancient_encoding == -1)
+    {
+        fprintf(stderr, "Error: unknown encoding \"%s\"\nPress any key...\n", buf);
+        read(0, buf, 1);
+    }
 }
