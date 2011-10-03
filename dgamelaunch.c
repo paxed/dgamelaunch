@@ -992,6 +992,7 @@ inprogressmenu (int gameid)
 
 	case ERR:
 	case 'q': case 'Q':
+        case '\x1b':
 	    free_populated_games(games, len);
 #ifdef USE_SHMEM
 	    shmdt(shm_dg_data);
