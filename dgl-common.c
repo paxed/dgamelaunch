@@ -74,7 +74,6 @@ sigwinch_func(int sig)
 {
     signal(SIGWINCH, sigwinch_func);
     curses_resize = 1;
-    term_resize_check();
 }
 
 void

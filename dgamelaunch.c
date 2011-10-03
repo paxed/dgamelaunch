@@ -2383,6 +2383,7 @@ runmenuloop(struct dg_menu *menu)
 
     loadbanner(menu->banner_fn, &ban);
     while (1) {
+	term_resize_check();
 	if (doclear) {
 	    doclear = 0;
 	    write(1, "\033%G", 3);
