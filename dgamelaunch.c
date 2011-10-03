@@ -1906,6 +1906,8 @@ userexist (char *cname, int isnew)
     char *qbuf;
 
     char tmpbuf[DGL_PLAYERNAMELEN+2];
+
+    memset(tmpbuf, 0, DGL_PLAYERNAMELEN+2);
     strncpy(tmpbuf, cname, (isnew ? globalconfig.max_newnick_len : DGL_PLAYERNAMELEN));
 
     /* Check that the nick doesn't interfere with already registered nicks */

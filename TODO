@@ -1,3 +1,9 @@
+%t format variable: path+filename of the finished ttyrec, in postcommands
+
+
+< kerio> paxed: it would also be cool to have %g and %s work within a game definition too
+
+< kerio> paxed: is this intended behavior? i can't set two different spooldirs for two different games
 
 
 [22:45] < kerio> paxed: dgamelaunch bug! :D - you *need* a file called dgamelaunch in the root of the jail - 
