@@ -2687,7 +2687,9 @@ main (int argc, char** argv)
 	}
     }
 
-  setlocale(LC_CTYPE, "en_US.UTF-8");
+  if (globalconfig.locale) {
+      setlocale(LC_CTYPE, globalconfig.locale);
+  }
 
   if (showplayers) {
     inprogressdisplay(-1);

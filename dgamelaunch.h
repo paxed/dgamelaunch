@@ -225,6 +225,7 @@ struct dg_globalconfig
     int allow_registration; /* allow registering new nicks */
     int sortmode; /* default watching-screen sortmode */
     char *server_id; /* string for the server name or whatever */
+    char *locale;
 
     struct dg_cmdpart *cmdqueue[NUM_DGLTIMES];
 

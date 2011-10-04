@@ -59,7 +59,7 @@ static int sortmode_number(const char *sortmode_name) {
 %token TYPE_CMDQUEUE TYPE_DEFINE_MENU TYPE_BANNER_FILE TYPE_CURSOR
 %token TYPE_POSTCMDQUEUE
 %token TYPE_MAX_IDLE_TIME TYPE_MENU_MAX_IDLE_TIME TYPE_EXTRA_INFO_FILE
-%token TYPE_ENCODING
+%token TYPE_ENCODING TYPE_LOCALE
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER TYPE_CMDQUEUENAME
 %type  <kt> KeyType
@@ -204,6 +204,11 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
     case TYPE_PATH_PASSWD:
       if (globalconfig.passwd) free(globalconfig.passwd);
       globalconfig.passwd = strdup($3);
+      break;
+
+    case TYPE_LOCALE:
+      if (globalconfig.locale) free(globalconfig.locale);
+      globalconfig.locale = strdup($3);
       break;
 
     default:
@@ -622,6 +627,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_LOCKFILE	{ $$ = TYPE_PATH_LOCKFILE; }
 	| TYPE_PATH_INPROGRESS	{ $$ = TYPE_PATH_INPROGRESS; }
 	| TYPE_ENCODING         { $$ = TYPE_ENCODING; }
+	| TYPE_LOCALE		{ $$ = TYPE_LOCALE; }
 	| TYPE_RC_FMT		{ $$ = TYPE_RC_FMT; }
 	| TYPE_WATCH_SORTMODE	{ $$ = TYPE_WATCH_SORTMODE; }
 	| TYPE_SERVER_ID	{ $$ = TYPE_SERVER_ID; }
@@ -657,6 +663,7 @@ const char* lookup_token (int t)
     case TYPE_WATCH_SORTMODE: return "sortmode";
     case TYPE_WATCH_COLUMNS: return "watch_columns";
     case TYPE_SERVER_ID: return "server_id";
+    case TYPE_LOCALE: return "locale";
     default: abort();
   }
 }

@@ -738,6 +738,7 @@ create_config ()
   if (!globalconfig.allow_registration) globalconfig.allow_registration = 1;
   globalconfig.menulist = NULL;
   globalconfig.server_id = NULL;
+  globalconfig.locale = NULL;
 
   globalconfig.shed_uid = (uid_t)-1;
   globalconfig.shed_gid = (gid_t)-1;
