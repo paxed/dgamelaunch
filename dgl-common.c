@@ -744,6 +744,7 @@ create_config ()
   globalconfig.shed_gid = (gid_t)-1;
 
   globalconfig.sortmode = SORTMODE_USERNAME;
+  globalconfig.utf8esc = 0;
 
   if (config)
   {

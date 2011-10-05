@@ -226,6 +226,7 @@ struct dg_globalconfig
     int sortmode; /* default watching-screen sortmode */
     char *server_id; /* string for the server name or whatever */
     char *locale;
+    int utf8esc; /* send select-utf8-charset escape code */
 
     struct dg_cmdpart *cmdqueue[NUM_DGLTIMES];
 

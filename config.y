@@ -59,7 +59,7 @@ static int sortmode_number(const char *sortmode_name) {
 %token TYPE_CMDQUEUE TYPE_DEFINE_MENU TYPE_BANNER_FILE TYPE_CURSOR
 %token TYPE_POSTCMDQUEUE
 %token TYPE_MAX_IDLE_TIME TYPE_MENU_MAX_IDLE_TIME TYPE_EXTRA_INFO_FILE
-%token TYPE_ENCODING TYPE_LOCALE
+%token TYPE_ENCODING TYPE_LOCALE TYPE_UTF8ESC
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER TYPE_CMDQUEUENAME
 %type  <kt> KeyType
@@ -225,6 +225,9 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
 	    switch ($1) {
 	    case TYPE_ALLOW_REGISTRATION:
 		globalconfig.allow_registration = $<i>3;
+		break;
+	    case TYPE_UTF8ESC:
+		globalconfig.utf8esc = $<i>3;
 		break;
 	    default:
 		fprintf(stderr, "%s:%d: token %s does not take a boolean, bailing out\n",
@@ -628,6 +631,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_INPROGRESS	{ $$ = TYPE_PATH_INPROGRESS; }
 	| TYPE_ENCODING         { $$ = TYPE_ENCODING; }
 	| TYPE_LOCALE		{ $$ = TYPE_LOCALE; }
+	| TYPE_UTF8ESC		{ $$ = TYPE_UTF8ESC; }
 	| TYPE_RC_FMT		{ $$ = TYPE_RC_FMT; }
 	| TYPE_WATCH_SORTMODE	{ $$ = TYPE_WATCH_SORTMODE; }
 	| TYPE_SERVER_ID	{ $$ = TYPE_SERVER_ID; }
@@ -664,6 +668,7 @@ const char* lookup_token (int t)
     case TYPE_WATCH_COLUMNS: return "watch_columns";
     case TYPE_SERVER_ID: return "server_id";
     case TYPE_LOCALE: return "locale";
+    case TYPE_UTF8ESC: return "utf8esc";
     default: abort();
   }
 }
