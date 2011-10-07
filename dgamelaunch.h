@@ -262,6 +262,8 @@ extern mode_t default_fmode;
 extern int dgl_local_COLS;
 extern int dgl_local_LINES;
 
+extern char last_ttyrec[512];
+
 /* dgamelaunch.c */
 extern void create_config(void);
 extern void ttyrec_getmaster(void);

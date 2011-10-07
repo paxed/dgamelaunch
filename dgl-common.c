@@ -107,6 +107,7 @@ dgl_find_menu(char *menuname)
  * %r == chroot (string)  (aka "dglroot" config var)
  * %g == game name
  * %s == short game name
+ * %t == ttyrec file (full path&name) of the last game played.
  */
 char *
 dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
@@ -157,6 +158,11 @@ dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
 		break;
 	    case 'r':
 		snprintf (p, end + 1 - p, "%s", globalconfig.dglroot);
+		while (*p != '\0')
+		    p++;
+		break;
+	    case 't':
+		snprintf (p, end + 1 - p, "%s", last_ttyrec);
 		while (*p != '\0')
 		    p++;
 		break;

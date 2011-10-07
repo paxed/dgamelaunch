@@ -87,6 +87,8 @@ int master;
 struct termios tt;
 struct winsize win;
 
+char last_ttyrec[512] = { '\0' };
+
 int ancient_encoding = 0;
 
 void
@@ -159,6 +161,8 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
   ancient_encoding = myconfig[game]->encoding;
   if (ancient_encoding == -1)
       query_encoding(game, username);
+
+  snprintf(last_ttyrec, 512, "%s", dirname);
 
   atexit(&remove_ipfile);
   if ((fscript = fopen (dirname, "w")) == NULL)
