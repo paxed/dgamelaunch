@@ -99,6 +99,7 @@ ttyrec_id(int game, char *username, char *ttyrec_filename)
     Header h;
     char *buf = (char *)malloc(1024);
     char tmpbuf[256];
+    char *server_id = banner_var_value("$SERVERID");
     if (!buf) return;
 
     tstamp = time(NULL);
@@ -115,7 +116,7 @@ ttyrec_id(int game, char *username, char *ttyrec_filename)
             dCLRSCR,
             username,
             myconfig[game]->game_name,
-            globalconfig.server_id,
+	    (server_id ? server_id : "Unknown"),
             ttyrec_filename,
             tstamp, ctime(&tstamp)
             );

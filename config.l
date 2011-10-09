@@ -87,7 +87,7 @@ extra_info_file { return TYPE_EXTRA_INFO_FILE; }
 "max_idle_time"	{ return TYPE_MAX_IDLE_TIME; }
 "rc_fmt"	{ return TYPE_RC_FMT; }
 "ttyrecdir"	{ return TYPE_PATH_TTYREC; }
-server_id	{ return TYPE_SERVER_ID; }
+bannervars	{ return TYPE_BANNERVARS; }
 sortmode	{ return TYPE_WATCH_SORTMODE; }
 watch_columns	{ return TYPE_WATCH_COLUMNS; }
 commands	{ return TYPE_CMDQUEUE; }

@@ -50,7 +50,7 @@ static int sortmode_number(const char *sortmode_name) {
 }
 
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX TYPE_MAXNICKLEN
-%token TYPE_GAME_SHORT_NAME TYPE_WATCH_SORTMODE TYPE_SERVER_ID
+%token TYPE_GAME_SHORT_NAME TYPE_WATCH_SORTMODE TYPE_BANNERVARS
 %token TYPE_ALLOW_REGISTRATION TYPE_WATCH_COLUMNS
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
@@ -181,11 +181,6 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
       }
       break;
 
-  case TYPE_SERVER_ID:
-      if (globalconfig.server_id) free(globalconfig.server_id);
-      globalconfig.server_id = strdup($3);
-      break;
-
     case TYPE_PATH_DGLDIR:
       if (globalconfig.dglroot) free(globalconfig.dglroot);
       globalconfig.dglroot = strdup($3);
@@ -284,6 +279,9 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
       exit(1);
   }
 }
+	| TYPE_BANNERVARS '=' '[' banner_vars ']'
+	{
+	}
 	| TYPE_WATCH_COLUMNS '=' '[' watch_columns ']' {
             memcpy(globalconfig.watch_columns,
                    curr_watch_columns,
@@ -293,6 +291,14 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
             curr_n_watch_columns = 0;
           };
 
+
+banner_vars : banner_vars ',' banner_var
+	| banner_var;
+
+banner_var : TYPE_VALUE '=' TYPE_VALUE
+	{
+	    banner_var_add($1, $3);
+	};
 
 watch_columns: watch_columns ',' watch_column
                | watch_column;
@@ -634,7 +640,6 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_UTF8ESC		{ $$ = TYPE_UTF8ESC; }
 	| TYPE_RC_FMT		{ $$ = TYPE_RC_FMT; }
 	| TYPE_WATCH_SORTMODE	{ $$ = TYPE_WATCH_SORTMODE; }
-	| TYPE_SERVER_ID	{ $$ = TYPE_SERVER_ID; }
 	;
 
 %%
@@ -666,7 +671,7 @@ const char* lookup_token (int t)
     case TYPE_RC_FMT: return "rc_fmt";
     case TYPE_WATCH_SORTMODE: return "sortmode";
     case TYPE_WATCH_COLUMNS: return "watch_columns";
-    case TYPE_SERVER_ID: return "server_id";
+    case TYPE_BANNERVARS: return "bannervars";
     case TYPE_LOCALE: return "locale";
     case TYPE_UTF8ESC: return "utf8esc";
     default: abort();

@@ -405,6 +405,45 @@ bannerstrmangle(char *buf, char *fromstr, char *tostr)
 }
 
 void
+banner_var_add(char *name, char *value)
+{
+    struct dg_banner_var *tmp = (struct dg_banner_var *)malloc(sizeof(struct dg_banner_var));
+
+    if (!tmp) return;
+
+    tmp->name = strdup(name);
+    tmp->value = strdup(value);
+    tmp->next = globalconfig.banner_var_list;
+    globalconfig.banner_var_list = tmp;
+}
+
+void
+banner_var_free()
+{
+    struct dg_banner_var *tmp;
+    struct dg_banner_var *bv = globalconfig.banner_var_list;
+    while (bv) {
+	tmp = bv->next;
+	free(bv->name);
+	free(bv->value);
+	free(bv);
+	bv = tmp;
+    }
+    globalconfig.banner_var_list = NULL;
+}
+
+char *
+banner_var_value(char *name)
+{
+    struct dg_banner_var *bv = globalconfig.banner_var_list;
+    while (bv) {
+	if (!strcmp(bv->name, name)) return bv->name;
+	bv = bv->next;
+    }
+    return NULL;
+}
+
+void
 freebanner(struct dg_banner *ban)
 {
     unsigned int l;
@@ -477,8 +516,12 @@ loadbanner (char *fname, struct dg_banner *ban)
 	      }
 	  }
       } else {
+	  struct dg_banner_var *bv = globalconfig.banner_var_list;
+	  while (bv) {
+	      strncpy(bufnew, bannerstrmangle(bufnew, bv->name, bv->value), 80);
+	      bv = bv->next;
+	  }
 	  strncpy(bufnew, bannerstrmangle(bufnew, "$VERSION", PACKAGE_STRING), 80);
-	  strncpy(bufnew, bannerstrmangle(bufnew, "$SERVERID", globalconfig.server_id ? globalconfig.server_id : ""), 80);
 	  if (me && loggedin) {
 	      strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", me->username), 80);
 	  } else {
@@ -2782,7 +2825,7 @@ main (int argc, char** argv)
     free (me);
 
   freebanner(&banner);
-
+  banner_var_free();
   graceful_exit (1);
 
   return 1;

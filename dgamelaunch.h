@@ -101,6 +101,12 @@ static const char *SORTMODE_NAME[NUM_SORTMODES] = {
 #endif
 };
 
+struct dg_banner_var {
+    char *name;
+    char *value;
+    struct dg_banner_var *next;
+};
+
 struct dg_cmdpart
 {
     dglcmd_actions cmd;
@@ -224,7 +230,7 @@ struct dg_globalconfig
     char* lockfile;
     int allow_registration; /* allow registering new nicks */
     int sortmode; /* default watching-screen sortmode */
-    char *server_id; /* string for the server name or whatever */
+    struct dg_banner_var *banner_var_list;
     char *locale;
     int utf8esc; /* send select-utf8-charset escape code */
 
@@ -273,6 +279,9 @@ extern char *gen_inprogress_lock(int game, pid_t pid, char *ttyrec_filename);
 extern void catch_sighup(int signum);
 extern void loadbanner(char *fname, struct dg_banner *ban);
 extern void drawbanner(struct dg_banner *ban, unsigned int start_line, unsigned int howmany);
+extern void banner_var_add(char *name, char *value);
+extern char *banner_var_value(char *name);
+extern void banner_var_free(void);
 extern int check_retard(int reset);
 extern char *dgl_format_str(int game, struct dg_user *me, char *str, char *plrname);
 
