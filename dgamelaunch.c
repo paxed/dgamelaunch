@@ -369,55 +369,6 @@ idle_alarm_reset(void)
 
 /* ************************************************************* */
 
-char *
-bannerfuncmangle(char *buf, char *fromstr, char *(*strmangler)(char *))
-{
-    static char bufnew[81];
-    char *loc;
-    char *b = buf;
-    char *bnpos = bufnew;
-    memset(bufnew, 0, 80);
-
-    if (strstr(b, fromstr)) {
-	while ((loc = strstr(b, fromstr)) != NULL) {
-	    char *fn = loc + strlen(fromstr);
-	    if (*fn == '(') {
-		char *fn_end = strchr(fn, ')');
-		if (fn_end) {
-		    char funcparam[81];
-		    char *funcout;
-		    fn++;
-		    memset(funcparam, 0, 80);
-		    memcpy(funcparam, fn, (fn_end - fn));
-		    funcout = (*strmangler)(funcparam);
-		    memcpy(bnpos, b, (loc - b));
-		    bnpos += strlen(bnpos);
-		    b = fn_end;
-		    b++;
-		    memcpy(bnpos, funcout, strlen(funcout));
-		    bnpos += strlen(funcout);
-		}
-	    }
-	}
-    }
-    strcpy(bnpos, b);
-    return bufnew;
-}
-
-char *
-bannermangler_func_esc(char *str)
-{
-    static char buf[11];
-    int len = strlen(str);
-    if (len > 7) len = 7;
-    buf[0] = '\x1b';
-    buf[1] = '[';
-    strncpy((buf + 2), str, len);
-    buf[len+2] = 'm';
-    buf[len+3] = '\0';
-    return buf;
-}
-
 
 char *
 bannerstrmangle(char *buf, char *fromstr, char *tostr)
@@ -576,7 +527,6 @@ loadbanner (char *fname, struct dg_banner *ban)
 	  } else {
 	      strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", "[Anonymous]"), 80);
 	  }
-	  strncpy(bufnew, bannerfuncmangle(bufnew, "$ESC", bannermangler_func_esc), 80);
 	  banner_addline(ban, bufnew);
       }
 
