@@ -95,6 +95,7 @@ postcommands	{ return TYPE_POSTCMDQUEUE; }
 encoding	{ return TYPE_ENCODING; }
 locale		{ return TYPE_LOCALE; }
 utf8esc		{ return TYPE_UTF8ESC; }
+filemode	{ return TYPE_FILEMODE; }
 yes		{ yylval.i = 1; return TYPE_BOOL; }
 no		{ yylval.i = 0; return TYPE_BOOL; }
 dglstart	{ yylval.i = DGLTIME_DGLSTART; return TYPE_CMDQUEUENAME; }
