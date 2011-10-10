@@ -117,6 +117,33 @@ If you have problems with dgamelaunch's display make sure that your chroot's
 populated.
 
 
+COMMANDLINE PARAMETERS
+======================
+
+ -a		Ignored.
+ -e		Ignored.
+ -f file	Read configuration from file.
+ -h		Ignored.
+ -i user	Autologin and run the register -command hook for "user"
+    		(with password "user").
+ -p		Ignored.
+ -q		Be quiet, suppress errors.
+ -s		Show players currently playing.
+ -W user:msg	Send message "msg" to all players. The message seems
+    		to come from "user".
+ -S 		Free the shared memory block.
+ -D		Show contents of the shared memory block.
+
+
+ENVIRONMENT VARIABLES
+=====================
+
+ Linux telnetd allows importing the USER environment variables via telnet,
+ while FreeBSD does not.  FreeBSD, on the other hand, does allow the LOGNAME
+ environment variable.  Dgamelaunch will first check USER, then LOGNAME,
+ for "username:password", and tries autologin if either exists.
+
+
 ERROR CODES
 ===========
 
