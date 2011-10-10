@@ -1,5 +1,3 @@
-%t format variable: path+filename of the finished ttyrec, in postcommands
-
 
 < kerio> paxed: it would also be cool to have %g and %s work within a game definition too
 
@@ -39,13 +37,8 @@
 -watching menu will hilight the first matching username... what if we have
  more than one game installed, and someone's playing more than one at the
  same time?  Should also save game#, not just the username.
--allow admin to disabling the 'm' mail key in ttyplay.
+-allow admin to disable the 'm' mail key in ttyplay.
 -update README
--maybe allow something like changed_menu="[Updated %d]" config option  and
- $CHANGED in the menu banner.
- the $CHANGED will be replaced with the changed_menu value.
- the %d in changed_menu will be replaced with the banner file
- change time.
 -whenever config file has a dir, check that it ends with "/"
 -in domailuser(), we need find_curr_player_game(username)
 -for menu definitions, allow "default" commands (when user presses a
@@ -57,14 +50,6 @@
 -allow the admin to config the watching menu:
   -top banner
   -bottom banner
-  -remove and reorder the columns:
-     watch_title = "   Name      Game  Size   Start date & time  Idle"
-       this doesn't allow hiliting the sorted title, though...
-     watch_columns = "0) 1  2  3  4 5  6"
-       where the numbers correspond to the columns, everything else
-       is passed through. the columns have default widths.
-       col 0=selectletter, 1=playername, 2=gamenum, 3=termsize, 4=startdate,
-           5=starttime, 6=idletime
   -set default sort method
   -selectorchars:
      watch_selectorchars = "abcdefghijklmn" (a-zA-Z, minus qQ)
@@ -92,18 +77,14 @@
 -BUG: cannot quit watching until caught up with the stream.
 -allow configuring the watching, new user registration,
  email/passwd change, etc. screens.
--make default_fmode configurable, and add config
- file command "chmod file mode"
--allow setting the new rcfile access rights.
+-add config file command "chmod file mode"
 -allow configuring the ttyrec dir location & file format.
--maybe allow changing the watching-screen &c layouts too?
 -add commandline parameters to dgamelaunch:
    dgamelaunch --chpasswd "nick" "newpass"
 -some games (robotfindskitten?) are not worth saving into ttyrecs,
  make it configurable. if no ttyrecs, then can't watch the game, which is
  a pity. maybe rather just save the latest ttyrec, which ties into
  having configurable ttyrec filenames...
--save the game name into ttyrec filename, so we can find what game it was.
 -allow configuring ttyplay.c; some games may use different clear-screen
  commands. (see for example crawl)
 -allow configuring the gfx stripping. (number of chars, types of stripping,

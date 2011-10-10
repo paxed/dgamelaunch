@@ -803,6 +803,34 @@ sortmode_increment(struct dg_watchcols **watchcols,
         *sortmode = old_sortmode;
 }
 
+char *
+get_timediff(time_t ctime, long seconds)
+{
+    static char data[32];
+    long secs, mins, hours;
+
+    secs = (ctime - seconds);
+
+    if (showplayers) {
+	snprintf(data, 10, "%ld", secs);
+	return data;
+    }
+
+    hours = (secs / 3600);
+    secs -= (hours * 3600);
+    mins = (secs / 60) % 60;
+    secs -= (mins*60);
+    if (hours)
+	snprintf(data, 10, "%ldh %ldm", hours, mins);
+    else if (mins)
+	snprintf(data, 10, "%ldm %lds", mins, secs);
+    else if (secs > 4)
+	snprintf(data, 10, "%lds", secs);
+    else
+	snprintf(data, 10, " ");
+    return data;
+}
+
 static
 void
 game_get_column_data(struct dg_game *game,
@@ -843,31 +871,21 @@ game_get_column_data(struct dg_game *game,
                  game->time);
         break;
 
-    case SORTMODE_IDLETIME:
-    {
-        long secs, mins, hours;
-
-        secs = (ctime - game->idle_time);
-
-	if (showplayers) {
-		snprintf(data, 10, "%ld", secs);
-		break;
+    case SORTMODE_DURATION:
+	{
+	    /* TODO: populate_games() should put st_ctime into game struct */
+	    struct tm timetm;
+	    char tmptimebuf[32];
+	    snprintf(tmptimebuf, 30, "%s %s", game->date, game->time);
+	    tmptimebuf[31] = '\0';
+	    strptime(tmptimebuf, "%Y-%m-%d %H:%M:%S", &timetm);
+	    snprintf(data, 10, get_timediff(ctime, mktime(&timetm)));
 	}
+	break;
 
-        hours = (secs / 3600);
-        secs -= (hours * 3600);
-        mins = (secs / 60) % 60;
-        secs -= (mins*60);
-        if (hours)
-            snprintf(data, 10, "%ldh %ldm", hours, mins);
-        else if (mins)
-            snprintf(data, 10, "%ldm %lds", mins, secs);
-        else if (secs > 4)
-            snprintf(data, 10, "%lds", secs);
-        else
-            snprintf(data, 10, " ");
+    case SORTMODE_IDLETIME:
+	snprintf(data, 10, get_timediff(ctime, game->idle_time));
         break;
-    }
 
     case SORTMODE_EXTRA_INFO:
         if (game->extra_info)

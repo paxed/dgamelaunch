@@ -482,6 +482,7 @@ sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
 	(void) time(&sort_ctime);
 	qsort(games, len, sizeof(struct dg_game *), sort_game_idletime);
 	break;
+    case SORTMODE_DURATION:
     case SORTMODE_STARTTIME: qsort(games, len, sizeof(struct dg_game *), sort_game_starttime); break;
 
     case SORTMODE_EXTRA_INFO:

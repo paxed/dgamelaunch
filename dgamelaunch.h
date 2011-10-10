@@ -80,6 +80,7 @@ typedef enum
     SORTMODE_GAMENUM,
     SORTMODE_WINDOWSIZE,
     SORTMODE_STARTTIME,
+    SORTMODE_DURATION,
     SORTMODE_IDLETIME,
     SORTMODE_EXTRA_INFO,
 #ifdef USE_SHMEM
@@ -94,6 +95,7 @@ static const char *SORTMODE_NAME[NUM_SORTMODES] = {
     "Game",
     "Windowsize",
     "Starttime",
+    "Duration",
     "Idletime",
     "Extrainfo",
 #ifdef USE_SHMEM
