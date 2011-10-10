@@ -175,7 +175,7 @@ ttyrec_getpty ()
 #ifdef HAVE_OPENPTY
     if (openpty (&master, &slave, NULL, NULL, NULL) == -1) {
 	debug_write("cannot openpty");
-	graceful_exit (62);
+	graceful_exit (61);
     }
 #else
     if ((master = open ("/dev/ptmx", O_RDWR)) < 0) {
@@ -329,7 +329,7 @@ catch_sighup (int signum)
   signals_release();
 #endif
   debug_write("catchup sighup");
-  graceful_exit (2);
+  graceful_exit (7);
 }
 
 /* ************************************************************* */
@@ -1978,7 +1978,7 @@ readfile (int nolock)
       }
       if (fcntl (fileno (fpl), F_SETLKW, &fl) == -1) {
 	  debug_write("cannot fcntl lockfile");
-        graceful_exit (114);
+        graceful_exit (95);
       }
     }
 
@@ -2054,7 +2054,7 @@ readfile (int nolock)
           b++;
           if ((b - n) >= 1024) {
 	      debug_write("env field too long");
-            graceful_exit (102);
+            graceful_exit (103);
 	  }
         }
 
@@ -2157,7 +2157,7 @@ userexist (char *cname, int isnew)
     if (ret) {
 	sqlite3_close(db);
 	debug_write("sqlite3_open failed");
-	graceful_exit(109);
+	graceful_exit(96);
     }
 
     if (userexist_tmp_me) {
@@ -2278,7 +2278,7 @@ writefile (int requirenew)
     {
 	signals_release();
       debug_write("passwd file fopen failed");
-      graceful_exit (104);
+      graceful_exit (99);
     }
 
   for (i = 0; i < f_num; i++)
@@ -2345,7 +2345,7 @@ writefile (int requirenew)
     if (ret) {
 	sqlite3_close(db);
 	debug_write("writefile sqlite3_open failed");
-	graceful_exit(107);
+	graceful_exit(97);
     }
 
     sqlite3_busy_timeout(db, 10000);
@@ -2356,7 +2356,7 @@ writefile (int requirenew)
     if (ret != SQLITE_OK) {
 	sqlite3_close(db);
 	debug_write("writefile sqlite3_exec failed");
-	graceful_exit(106);
+	graceful_exit(98);
     }
     sqlite3_close(db);
 }
@@ -2719,32 +2719,32 @@ main (int argc, char** argv)
       if (chroot (globalconfig.chroot))
 	{
 	  perror ("cannot change root directory");
-	  graceful_exit (1);
+	  graceful_exit (2);
 	}
 
       if (chdir ("/"))
 	{
 	  perror ("cannot chdir to root directory");
-	  graceful_exit (1);
+	  graceful_exit (3);
 	}
 
       /* shed privs. this is done immediately after chroot. */
       if (setgroups (1, &globalconfig.shed_gid) == -1)
 	{
 	  perror ("setgroups");
-	  graceful_exit (1);
+	  graceful_exit (4);
 	}
 
       if (setgid (globalconfig.shed_gid) == -1)
 	{
 	  perror ("setgid");
-	  graceful_exit (1);
+	  graceful_exit (5);
 	}
 
       if (setuid (globalconfig.shed_uid) == -1)
 	{
 	  perror ("setuid");
-	  graceful_exit (1);
+	  graceful_exit (6);
 	}
     }
 
@@ -2792,7 +2792,7 @@ main (int argc, char** argv)
 	  }
 	  else {
 		fprintf(stdout, "Setup of %s failed.\n", p);
-		graceful_exit(1);
+		graceful_exit(10);
 	  }
   }
 
@@ -2844,7 +2844,7 @@ main (int argc, char** argv)
 
   freebanner(&banner);
   banner_var_free();
-  graceful_exit (1);
+  graceful_exit (20);
 
   return 1;
 }

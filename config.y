@@ -140,7 +140,7 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
       if (!strcmp($3, "root"))
       {
         fprintf(stderr, "%s:%d: I refuse to run as root! Aborting.\n", config, line);
-	graceful_exit(1);
+	graceful_exit(8);
       }
       globalconfig.shed_user = strdup($3);
       if ((usr = getpwnam($3)) != NULL)
@@ -155,7 +155,7 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
 	else
 	{
 	  fprintf(stderr, "%s:%d: I refuse to run as %s (uid 0!) Aborting.\n", config, line, $3);
-	  graceful_exit(1);
+	  graceful_exit(9);
 	}
       }
       else
@@ -247,7 +247,7 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
       if ($3 == 0)
       {
         fprintf(stderr, "%s:%d: I refuse to run as uid 0 (root)! Aborting.\n", config, line);
-        graceful_exit(1);
+        graceful_exit(11);
       }
 
       globalconfig.shed_uid = $3;

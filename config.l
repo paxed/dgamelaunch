@@ -27,7 +27,7 @@ WHITE		[\t ]*
 {NEGNUMBER} {
   fprintf(stderr,"%s:%d: negative value not accepted! Fix it now!\n",
       config, line);
-  graceful_exit(1);
+  graceful_exit(13);
 }
 
 {NUMBER} { 
@@ -126,7 +126,7 @@ DEFINE		{ return TYPE_DEFINE_GAME; }
 
 [0-9a-zA-Z_]+ {
   fprintf(stderr, "%s:%d:%d unrecognized token \"%s\"\n", config, line, col, yytext);
-  graceful_exit(1);
+  graceful_exit(12);
 }
 
 %%
