@@ -1,4 +1,6 @@
 
+-update dgamelaunch.8
+
 -occasionally dgl crashes, leaving the shmem semaphore in a state
  where the shmem block has to be freed.
 
@@ -18,8 +20,6 @@
 -when no banner file given, try to make a banner automagically?
  (needs some way to name the options given as keys... maybe another
  format for the keys that includes a string to be used as the name)
-
--document the exit (error) codes.
 
 -cursor keys are not restored after watching a game of
  curses-nethack.
@@ -125,8 +125,6 @@ or maybe add a new command '' set_charstrip "name" ''
 -allow users to run recover themselves
 -configurable stuff: allowed chars in usernames,
  allow char stripping, ...
-
-- Flags for operators/staff/admins or (optionally) user-bans.
 
 - Localization of variables, code clean up
 

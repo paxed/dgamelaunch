@@ -371,22 +371,21 @@ idle_alarm_reset(void)
 
 
 char *
-bannerstrmangle(char *buf, char *fromstr, char *tostr)
+bannerstrmangle(char *buf, char *bufnew, int buflen, char *fromstr, char *tostr)
 {
-    static char bufnew[81];
     char *loc;
     char *b = buf;
 
-    memset (bufnew, 0, 80);
+    memset (bufnew, 0, buflen);
 
     if (strstr(b, fromstr)) {
 	int i = 0;
 	while ((loc = strstr (b, fromstr)) != NULL) {
-	    for (; i < 80; i++) {
+	    for (; i < buflen; i++) {
 		if (loc != b)
 		    bufnew[i] = *(b++);
 		else {
-		    strlcat (bufnew, tostr, 80);
+		    strlcat (bufnew, tostr, buflen);
 		    b += strlen(fromstr);
 		    i += strlen(tostr);
 		    break;
@@ -398,9 +397,8 @@ bannerstrmangle(char *buf, char *fromstr, char *tostr)
 	}
 
 	if (*b)
-	    strlcat(bufnew, b, 80);
-    } else strncpy(bufnew, buf, 80);
-
+	    strlcat(bufnew, b, buflen);
+    } else strncpy(bufnew, buf, buflen);
     return bufnew;
 }
 
@@ -516,16 +514,17 @@ loadbanner (char *fname, struct dg_banner *ban)
 	      }
 	  }
       } else {
+	  char tmpbufnew[80];
 	  struct dg_banner_var *bv = globalconfig.banner_var_list;
 	  while (bv) {
-	      strncpy(bufnew, bannerstrmangle(bufnew, bv->name, bv->value), 80);
+	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, bv->name, bv->value), 80);
 	      bv = bv->next;
 	  }
-	  strncpy(bufnew, bannerstrmangle(bufnew, "$VERSION", PACKAGE_STRING), 80);
+	  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, "$VERSION", PACKAGE_STRING), 80);
 	  if (me && loggedin) {
-	      strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", me->username), 80);
+	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, "$USERNAME", me->username), 80);
 	  } else {
-	      strncpy(bufnew, bannerstrmangle(bufnew, "$USERNAME", "[Anonymous]"), 80);
+	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, "$USERNAME", "[Anonymous]"), 80);
 	  }
 	  banner_addline(ban, bufnew);
       }
