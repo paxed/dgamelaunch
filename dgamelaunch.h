@@ -280,7 +280,7 @@ extern char *gen_ttyrec_filename(void);
 extern char *gen_inprogress_lock(int game, pid_t pid, char *ttyrec_filename);
 extern void catch_sighup(int signum);
 extern void loadbanner(char *fname, struct dg_banner *ban);
-extern void drawbanner(struct dg_banner *ban, unsigned int start_line, unsigned int howmany);
+extern void drawbanner(struct dg_banner *ban);
 extern void banner_var_add(char *name, char *value);
 extern char *banner_var_value(char *name);
 extern void banner_var_free(void);

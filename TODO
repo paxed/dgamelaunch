@@ -1,4 +1,9 @@
 
+-occasionally dgl crashes, leaving the shmem semaphore in a state
+ where the shmem block has to be freed.
+
+-configure option --ncurses and --ncursesw
+
 < kerio> paxed: it would also be cool to have %g and %s work within a game definition too
 
 < kerio> paxed: is this intended behavior? i can't set two different spooldirs for two different games
@@ -45,8 +50,6 @@
  key not defined in other commands):
    commands[default] = ...
 
--change dgl-banner handling; we only use the top line of it nowadays...
- (maybe make that info config line: bannerline = "## $SERVERID" or something)
 -allow the admin to config the watching menu:
   -top banner
   -bottom banner
@@ -74,6 +77,8 @@
  into a menu def. auto=try to detect it from file extension.
  would be useful to be able to define a program to run that
  generates the banner? (eg. nethack hiscore list via nethack itself)
+ to output raw escape codes under ncurses, use write(1, "foo", strlen("foo"))
+ (must restore cursor position after printing or ncurses is confoosed)
 -BUG: cannot quit watching until caught up with the stream.
 -allow configuring the watching, new user registration,
  email/passwd change, etc. screens.

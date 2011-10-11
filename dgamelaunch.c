@@ -540,17 +540,14 @@ loadbanner (char *fname, struct dg_banner *ban)
 }
 
 void
-drawbanner (struct dg_banner *ban, unsigned int start_line, unsigned int howmany)
+drawbanner (struct dg_banner *ban)
 {
   unsigned int i;
 
   if (!ban) return;
 
-  if (howmany > ban->len || howmany == 0)
-    howmany = ban->len;
-
-  for (i = 0; i < howmany; i++)
-    mvaddstr (start_line + i, 1, ban->lines[i]);
+  for (i = 0; i < ban->len; i++)
+    mvaddstr (1 + i, 1, ban->lines[i]);
 }
 
 void
@@ -965,7 +962,7 @@ inprogressmenu (int gameid)
         offset = 0;
 
       erase ();
-      drawbanner (&banner, 1, 1);
+      drawbanner (&banner);
 
       if (len > 0) {
 	  while (offset >= len) { offset -= max_height; }
@@ -1340,7 +1337,7 @@ change_email ()
   clear();
 
   if (me->flags & DGLACCT_EMAIL_LOCK) {
-      drawbanner(&banner, 1, 1);
+      drawbanner(&banner);
       mvprintw(5, 1, "Sorry, you cannot change the email.--More--");
       dgl_getch();
       return;
@@ -1348,7 +1345,7 @@ change_email ()
 
   for (;;)
   {
-      drawbanner(&banner, 1,1);
+      drawbanner(&banner);
 
     mvprintw(3, 1, "Your current email is: %s", me->email);
     mvaddstr(4, 1, "Please enter a new one (max 80 chars; blank line aborts)");
@@ -1405,7 +1402,7 @@ changepw (int dowrite)
 
   if (me->flags & DGLACCT_PASSWD_LOCK) {
       clear();
-      drawbanner(&banner, 1, 1);
+      drawbanner(&banner);
       mvprintw(5, 1, "Sorry, you cannot change the password.--More--");
       dgl_getch();
       return 0;
@@ -1416,7 +1413,7 @@ changepw (int dowrite)
       char repeatbuf[DGL_PASSWDLEN+1];
       clear ();
 
-      drawbanner (&banner, 1, 1);
+      drawbanner (&banner);
 
       mvprintw (5, 1,
                 "Please enter a%s password. Remember that this is sent over the net",
@@ -1554,7 +1551,7 @@ domailuser (char *username)
 
   /* print the enter your message line */
   clear ();
-  drawbanner (&banner, 1, 1);
+  drawbanner (&banner);
   mvprintw (5, 1,
             "Enter your message here. It is to be one line only and %i characters or less.",
 	    DGL_MAILMSGLEN);
@@ -1706,7 +1703,7 @@ loginprompt (int from_ttyplay)
     {
       clear ();
 
-      drawbanner (&banner, 1, 1);
+      drawbanner (&banner);
 
       if (from_ttyplay == 1)
 	mvaddstr (4, 1, "This operation requires you to be logged in.");
@@ -1742,7 +1739,7 @@ loginprompt (int from_ttyplay)
 
   clear ();
 
-  drawbanner (&banner, 1, 1);
+  drawbanner (&banner);
 
   mvaddstr (5, 1, "Please enter your password.");
   mvaddstr (7, 1, "=> ");
@@ -1796,7 +1793,7 @@ newuser ()
   {
       clear ();
 
-      drawbanner (&banner, 1, 1);
+      drawbanner (&banner);
 
       mvaddstr (5, 1, "Sorry, too many users have registered now.");
       mvaddstr (6, 1, "You might email the server administrator.");
@@ -1818,7 +1815,7 @@ newuser ()
 
       sprintf(buf, "%i character max.", globalconfig.max_newnick_len);
 
-      drawbanner (&banner, 1, 1);
+      drawbanner (&banner);
 
       mvaddstr (5, 1, "Welcome new user. Please enter a username.");
       mvaddstr (6, 1,
@@ -1886,7 +1883,7 @@ newuser ()
     {
       clear ();
 
-      drawbanner (&banner, 1, 1);
+      drawbanner (&banner);
 
       mvaddstr (5, 1, "Please enter your email address.");
       mvaddstr (6, 1, "This is sent _nowhere_ but will be used if you ask"
@@ -2425,7 +2422,7 @@ purge_stale_locks (int game)
       if (firsttime)
       {
 	clear ();
-	drawbanner (&banner, 1, 1);
+	drawbanner (&banner);
 
 #define HUP_WAIT 10 /* seconds before HUPPING */
 	mvprintw (3, 1,
@@ -2521,7 +2518,7 @@ runmenuloop(struct dg_menu *menu)
 	    if (globalconfig.utf8esc) write(1, "\033%G", 3);
 	    clear();
 	}
-	drawbanner(&ban, 1, 0);
+	drawbanner(&ban);
 	if (menu->cursor_x >= 0 && menu->cursor_y >= 0)
 	    mvprintw(menu->cursor_y, menu->cursor_x, "");
 	refresh();
