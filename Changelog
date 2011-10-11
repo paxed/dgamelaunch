@@ -1,5 +1,9 @@
-1.5.2 (2010/xx/xx)
+1.5.2 (2011/xx/xx)
 	* Output some identifying information into the ttyrecs.
+	* Added banner inclusion and configurable string replacements.
+	* Configurable watching-menu columns and extra-info column.
+	* UTF8 output
+	* Documented error codes
 
 1.5.1 (2010/05/02)
 	* Allow sorting the watching-menu by any column.

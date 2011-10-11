@@ -2,32 +2,63 @@ dgamelaunch
 ===========
 
 dgamelaunch is a network-based game shell where anyone can sign up for an
-account and start playing any game which suits your fancy - currently, though,
-it only supports NetHack (see http://www.nethack.org).
+account and start playing any game which suits your fancy - games known to
+work with dgamelaunch are for example NetHack (http://www.nethack.org) and
+Crawl (http://crawl.develz.org).
 
-It requires GNU Make (often called gmake), a curses library and development
-headers to build and should compile without issue on Linux, Solaris, FreeBSD 4
-and 5. (Whether it _runs_ on all of these platforms is a different issue. We'd
+
+DGAMELAUNCH VERSIONS
+====================
+
+Development version can be fetched from the source repository with subversion:
+
+  svn co svn://triplehelix.org/dgamelaunch/trunk
+
+Releases are downloadable at http://alt.org/nethack/dgamelaunch/
+
+
+REQUIREMENTS
+============
+
+- normal development tools (make, etc)
+- autotools (autogen, autoconf, automake)
+- ncurses library and development files
+- bison (or yacc or byacc)
+- flex (or lex)
+- optionally sqlite3 library and development files
+
+
+COMPILING
+=========
+
+Basically all you have to do is:
+
+  ./autogen.sh && make
+
+Some options you might want give to autogen:
+
+ --with-config-file=/absolute/path/to/dgamelaunch.config
+ --enable-shmem
+ --enable-sqlite
+
+
+Dgamelaunch should compile without issue on Linux, Solaris, FreeBSD 4 and 5.
+(Whether it _runs_ on all of these platforms is a different issue. We'd
 like to hear about it.)
 
-On all platforms you should make sure that the curses library is accessible
-at runtime using the -R flag to gcc, or using LD_RUN_PATH or LD_LIBRARY_PATH
-as environment variables during build and run time, respectively.
-
-NOTE: As of version 1.4 of dgamelaunch, 'ee' is now the default rc-file editor.
-Using the 'virus' editor is still supported - all you have to do is
-
-  gmake clean; gmake VIRUS=1
-
-(The gmake clean will guarantee that the dgamelaunch binary gets rebuilt.)
-
 dgamelaunch was originally developed by M. Drew Streib <dtype@dtype.org> but
-is now a collaborative project. Copyright and contact information is in the 
+is now a collaborative project. Copyright and contact information is in the
 COPYING file, included with this package.
-Mailing list: http://alt.org/mailman/listinfo/nethack/
+
 
 BASIC SETUP INSTRUCTIONS
 ========================
+
+These instructions are not current. For a more up-to-date ones, see
+http://nethackwiki.com/wiki/User:Paxed/HowTo_setup_dgamelaunch
+
+
+
 
 1) Setup a chroot jail. There is a helpful script included to accomplish this,
 called dgl-create-chroot, in the source directory. The default settings are
