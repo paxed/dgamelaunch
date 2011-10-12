@@ -486,7 +486,7 @@ char *argv[];
 		int keyt;
 		wrefresh(text_win);
 		keyt = wget_wch(text_win, &in);
-		if (in == ERR)
+		if (keyt == ERR)
 			exit(0);
 
 		resize_check();
