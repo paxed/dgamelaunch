@@ -62,10 +62,6 @@
      watch_selectorchars = "abcdefghijklmn" (a-zA-Z, minus qQ)
   -keys:
      currently: qQ=return, '.'=sort++, ','=sort--, etc
--allow admin to set per-game "extra info" file,
-   extrainfofile = "/nh343/var/extrainfo/%n.xtranfo"
- contents of which are shown in the watching menu as info-column.
- the game is responsible for updating the contents of that file.
 
 -update virus to the newest version.
  (virus is originally from busybox:
