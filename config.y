@@ -57,7 +57,7 @@ static int sortmode_number(const char *sortmode_name) {
 %token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_TTYREC
 %token TYPE_MALSTRING TYPE_PATH_INPROGRESS TYPE_GAME_ARGS TYPE_RC_FMT
 %token TYPE_CMDQUEUE TYPE_DEFINE_MENU TYPE_BANNER_FILE TYPE_CURSOR
-%token TYPE_POSTCMDQUEUE
+%token TYPE_POSTCMDQUEUE TYPE_TIMEFORMAT
 %token TYPE_MAX_IDLE_TIME TYPE_MENU_MAX_IDLE_TIME TYPE_EXTRA_INFO_FILE
 %token TYPE_ENCODING TYPE_LOCALE TYPE_UTF8ESC TYPE_FILEMODE
 %token <s> TYPE_VALUE
@@ -301,7 +301,11 @@ banner_vars : banner_vars ',' banner_var
 
 banner_var : TYPE_VALUE '=' TYPE_VALUE
 	{
-	    banner_var_add($1, $3);
+	    banner_var_add($1, $3, 0);
+	}
+	| TYPE_VALUE '=' TYPE_TIMEFORMAT '(' TYPE_VALUE ')'
+	{
+	    banner_var_add($1, $5, 1);
 	};
 
 watch_columns: watch_columns ',' watch_column

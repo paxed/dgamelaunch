@@ -88,6 +88,7 @@ extra_info_file { return TYPE_EXTRA_INFO_FILE; }
 "rc_fmt"	{ return TYPE_RC_FMT; }
 "ttyrecdir"	{ return TYPE_PATH_TTYREC; }
 bannervars	{ return TYPE_BANNERVARS; }
+timeformat	{ return TYPE_TIMEFORMAT; }
 sortmode	{ return TYPE_WATCH_SORTMODE; }
 watch_columns	{ return TYPE_WATCH_COLUMNS; }
 commands	{ return TYPE_CMDQUEUE; }

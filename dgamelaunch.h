@@ -106,6 +106,7 @@ static const char *SORTMODE_NAME[NUM_SORTMODES] = {
 struct dg_banner_var {
     char *name;
     char *value;
+    int special;
     struct dg_banner_var *next;
 };
 
@@ -281,7 +282,7 @@ extern char *gen_inprogress_lock(int game, pid_t pid, char *ttyrec_filename);
 extern void catch_sighup(int signum);
 extern void loadbanner(char *fname, struct dg_banner *ban);
 extern void drawbanner(struct dg_banner *ban);
-extern void banner_var_add(char *name, char *value);
+extern void banner_var_add(char *name, char *value, int special);
 extern char *banner_var_value(char *name);
 extern void banner_var_free(void);
 extern int check_retard(int reset);

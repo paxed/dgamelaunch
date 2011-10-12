@@ -403,7 +403,7 @@ bannerstrmangle(char *buf, char *bufnew, int buflen, char *fromstr, char *tostr)
 }
 
 void
-banner_var_add(char *name, char *value)
+banner_var_add(char *name, char *value, int special)
 {
     struct dg_banner_var *tmp = (struct dg_banner_var *)malloc(sizeof(struct dg_banner_var));
 
@@ -411,6 +411,7 @@ banner_var_add(char *name, char *value)
 
     tmp->name = strdup(name);
     tmp->value = strdup(value);
+    tmp->special = special;
     tmp->next = globalconfig.banner_var_list;
     globalconfig.banner_var_list = tmp;
 }
@@ -431,11 +432,25 @@ banner_var_free()
 }
 
 char *
+banner_var_resolve(struct dg_banner_var *bv)
+{
+  static char tmpbuf[81];
+  time_t tstamp;
+  struct tm *ptm;
+  if (!bv) return NULL;
+  if (!bv->special) return bv->value;
+  time(&tstamp);
+  ptm = gmtime(&tstamp);
+  strftime(tmpbuf, 80, bv->value, ptm);
+  return tmpbuf;
+}
+
+char *
 banner_var_value(char *name)
 {
     struct dg_banner_var *bv = globalconfig.banner_var_list;
     while (bv) {
-	if (!strcmp(bv->name, name)) return bv->name;
+	if (!strcmp(bv->name, name)) return banner_var_resolve(bv);
 	bv = bv->next;
     }
     return NULL;
@@ -517,7 +532,7 @@ loadbanner (char *fname, struct dg_banner *ban)
 	  char tmpbufnew[80];
 	  struct dg_banner_var *bv = globalconfig.banner_var_list;
 	  while (bv) {
-	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, bv->name, bv->value), 80);
+	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, bv->name, banner_var_resolve(bv)), 80);
 	      bv = bv->next;
 	  }
 	  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, "$VERSION", PACKAGE_STRING), 80);
