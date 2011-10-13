@@ -807,7 +807,11 @@ create_config ()
   if (!globalconfig.dglroot) globalconfig.dglroot = "/dgldir/";
   if (!globalconfig.banner)  globalconfig.banner = "/dgl-banner";
 
+#ifndef USE_SQLITE3
   if (!globalconfig.passwd) globalconfig.passwd = "/dgl-login";
+#else
+  if (!globalconfig.passwd) globalconfig.passwd = USE_SQLITE_DB;
+#endif
   if (!globalconfig.lockfile) globalconfig.lockfile = "/dgl-lock";
   if (!globalconfig.shed_user && globalconfig.shed_uid == (uid_t)-1)
 	  {

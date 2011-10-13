@@ -2164,7 +2164,7 @@ userexist (char *cname, int isnew)
 
     qbuf = sqlite3_mprintf("select * from dglusers where username like '%q' limit 1", tmpbuf);
 
-    ret = sqlite3_open(USE_SQLITE_DB, &db); /* FIXME: use globalconfig->passwd? */
+    ret = sqlite3_open(globalconfig.passwd, &db);
     if (ret) {
 	sqlite3_close(db);
 	debug_write("sqlite3_open failed");
@@ -2352,7 +2352,7 @@ writefile (int requirenew)
 	qbuf = sqlite3_mprintf("update dglusers set username='%q', email='%q', env='%q', password='%q', flags=%li where id=%i", me->username, me->email, me->env, me->password, me->flags, me->id);
     }
 
-    ret = sqlite3_open(USE_SQLITE_DB, &db); /* FIXME: use globalconfig->passwd? */
+    ret = sqlite3_open(globalconfig.passwd, &db);
     if (ret) {
 	sqlite3_close(db);
 	debug_write("writefile sqlite3_open failed");
