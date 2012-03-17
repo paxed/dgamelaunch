@@ -1118,11 +1118,7 @@ inprogressmenu (int gameid)
 	case ERR:
 	case 'q': case 'Q':
         case '\x1b':
-	    free_populated_games(games, len);
-#ifdef USE_SHMEM
-	    shmdt(shm_dg_data);
-#endif
-          return;
+	    goto leavewatchgame;
 	case KEY_RIGHT:
 	case '.':
             sortmode_increment(watchcols, &sortmode, 1);
@@ -1162,7 +1158,8 @@ inprogressmenu (int gameid)
 		  break;
 	      } else selected = idx;
 watchgame:
-
+	      if (!(idx >= 0 && idx < len && games[idx] && games[idx]->name))
+		  goto leavewatchgame;
               /* valid choice has been made */
               chosen_name = strdup (games[idx]->name);
               snprintf (ttyrecname, 130, "%s",
@@ -1236,6 +1233,7 @@ watchgame:
 	  selectedgame = NULL;
       }
     }
+leavewatchgame:
   free_populated_games(games, len);
 #ifdef USE_SHMEM
   shmdt(shm_dg_data);
