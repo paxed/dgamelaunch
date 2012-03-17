@@ -2594,12 +2594,16 @@ main (int argc, char** argv)
   argv = saved_argv;
 #endif
 
-  p = getenv("USER");
+  p = getenv("DGLAUTH");
 
   /* Linux telnetd allows importing the USER envvar via telnet,
    * while FreeBSD does not.  FreeBSD, on the other hand, does allow
    * the LOGNAME envvar.  Check USER first, then LOGNAME.
    */
+  if (p == NULL) {
+      p = getenv("USER");
+  }
+
   if (p == NULL) {
       p = getenv("LOGNAME");
   }
@@ -2608,9 +2612,12 @@ main (int argc, char** argv)
     auth = strdup(p);
   /* else auth is still NULL */
 
+  /* just to be sure */
+  unsetenv("DGLAUTH"); unsetenv("USER"); unsetenv("LOGNAME");
+
   __progname = basename(strdup(argv[0]));
 
-  while ((c = getopt(argc, argv, "sqh:pf:i:aeW:SD")) != -1)
+  while ((c = getopt(argc, argv, "sqh:pi:aeW:SD")) != -1)
   {
     switch (c)
     {
@@ -2619,17 +2626,6 @@ main (int argc, char** argv)
 
       case 'q':
 	silent = 1; break;
-
-      case 'f':
-	if (config)
-	{
-	  if (!silent)
-	    fprintf(stderr, "warning: using %s\n", argv[optind]);
-	  free(config);
-	}
-
-	config = strdup(optarg);
-	break;
 
       case 'i':
 	if (optarg && *optarg != '\0') {

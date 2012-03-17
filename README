@@ -10,9 +10,9 @@ Crawl (http://crawl.develz.org).
 DGAMELAUNCH VERSIONS
 ====================
 
-Development version can be fetched from the source repository with subversion:
+Development version can be fetched from the source repository with git:
 
-  svn co svn://triplehelix.org/dgamelaunch/trunk
+  git clone git://github.com/paxed/dgamelaunch.git
 
 Releases are downloadable at http://alt.org/nethack/dgamelaunch/
 
@@ -153,7 +153,6 @@ COMMANDLINE PARAMETERS
 
  -a		Ignored.
  -e		Ignored.
- -f file	Read configuration from file.
  -h		Ignored.
  -i user	Autologin and run the register -command hook for "user"
     		(with password "user").
@@ -173,6 +172,7 @@ ENVIRONMENT VARIABLES
  while FreeBSD does not.  FreeBSD, on the other hand, does allow the LOGNAME
  environment variable.  Dgamelaunch will first check USER, then LOGNAME,
  for "username:password", and tries autologin if either exists.
+ Dgamelaunch-specific DGLAUTH is checked before either of those.
 
 
 ERROR CODES
