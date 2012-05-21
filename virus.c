@@ -1178,6 +1178,7 @@ do_cmd (Byte c)
       // user changed mind and erased the "/"-  do nothing
       break;
     case 'N':                  // N- backward search for last pattern
+      if (last_search_pattern == 0) break;
       if (cmdcnt-- > 1)
         {
           do_cmd (c);
