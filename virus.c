@@ -82,6 +82,7 @@ char *vi_Version = "0.0.6+dgamelaunch " PACKAGE_VERSION;
 #include <ctype.h>
 #include <assert.h>
 #include <errno.h>
+#include <err.h>
 #include <stdarg.h>
 
 #include "last_char_is.c"
