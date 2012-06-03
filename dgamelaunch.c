@@ -123,6 +123,25 @@ static struct dg_watchcols default_watchcols[] = {
 #endif
 };
 
+int color_remap[16] = {
+    COLOR_PAIR(9) | A_NORMAL,
+    COLOR_PAIR(COLOR_BLUE) | A_NORMAL,
+    COLOR_PAIR(COLOR_GREEN) | A_NORMAL,
+    COLOR_PAIR(COLOR_CYAN) | A_NORMAL,
+    COLOR_PAIR(COLOR_RED) | A_NORMAL,
+    COLOR_PAIR(COLOR_MAGENTA) | A_NORMAL,
+    COLOR_PAIR(COLOR_YELLOW) | A_NORMAL,
+    COLOR_PAIR(COLOR_BLACK) | A_NORMAL,
+    COLOR_PAIR(10) | A_BOLD,
+    COLOR_PAIR(COLOR_BLUE) | A_BOLD,
+    COLOR_PAIR(COLOR_GREEN) | A_BOLD,
+    COLOR_PAIR(COLOR_CYAN) | A_BOLD,
+    COLOR_PAIR(COLOR_RED) | A_BOLD,
+    COLOR_PAIR(COLOR_MAGENTA) | A_BOLD,
+    COLOR_PAIR(COLOR_YELLOW) | A_BOLD,
+    COLOR_PAIR(COLOR_WHITE) | A_BOLD,
+};
+
 static struct dg_watchcols *default_watchcols_list[DGL_MAXWATCHCOLS + 1];
 
 struct dg_user *
@@ -434,14 +453,14 @@ banner_var_free()
 char *
 banner_var_resolve(struct dg_banner_var *bv)
 {
-  static char tmpbuf[81];
+  static char tmpbuf[DGL_BANNER_LINELEN+1];
   time_t tstamp;
   struct tm *ptm;
   if (!bv) return NULL;
   if (!bv->special) return bv->value;
   time(&tstamp);
   ptm = gmtime(&tstamp);
-  strftime(tmpbuf, 80, bv->value, ptm);
+  strftime(tmpbuf, DGL_BANNER_LINELEN, bv->value, ptm);
   return tmpbuf;
 }
 
@@ -479,8 +498,8 @@ banner_addline(struct dg_banner *ban, char *line)
     if (!ban) return;
     ban->len++;
     ban->lines = realloc (ban->lines, sizeof (char *) * ban->len);
-    if (len >= 80) {
-	len = 80;
+    if (len >= DGL_BANNER_LINELEN) {
+	len = DGL_BANNER_LINELEN;
 	ban->lines[ban->len - 1] = malloc(len);
 	strncpy(ban->lines[ban->len - 1], line, len);
 	ban->lines[ban->len - 1][len-1] = '\0';
@@ -492,10 +511,10 @@ void
 loadbanner (char *fname, struct dg_banner *ban)
 {
   FILE *bannerfile;
-  char buf[80];
+  char buf[DGL_BANNER_LINELEN+1];
   if (ban->len > 23) return;
 
-  memset (buf, 0, 80);
+  memset (buf, 0, DGL_BANNER_LINELEN);
 
   bannerfile = fopen (fname, "r");
 
@@ -503,22 +522,22 @@ loadbanner (char *fname, struct dg_banner *ban)
     {
 	if (ban->len == 0)
 	    banner_addline(ban, "### dgamelaunch " PACKAGE_VERSION " - network console game launcher");
-	snprintf(buf, 80, "### NOTE: administrator has not installed a %s file", fname);
+	snprintf(buf, DGL_BANNER_LINELEN, "### NOTE: administrator has not installed a %s file", fname);
 	banner_addline(ban, buf);
 	return;
     }
 
-  while (fgets (buf, 80, bannerfile) != NULL)
+  while (fgets (buf, DGL_BANNER_LINELEN, bannerfile) != NULL)
     {
-      char bufnew[80];
+      char bufnew[DGL_BANNER_LINELEN+1];
       int slen;
 
-      memset (bufnew, 0, 80);
+      memset (bufnew, 0, DGL_BANNER_LINELEN);
 
       slen = strlen(buf);
       if ((slen > 0) && (buf[slen-1] == '\n')) buf[slen-1] = '\0';
 
-      strncpy(bufnew, buf, 80);
+      strncpy(bufnew, buf, DGL_BANNER_LINELEN);
       if (strstr(bufnew, "$INCLUDE(")) {
 	  char *fn = bufnew + 9;
 	  char *fn_end = strchr(fn, ')');
@@ -529,22 +548,22 @@ loadbanner (char *fname, struct dg_banner *ban)
 	      }
 	  }
       } else {
-	  char tmpbufnew[80];
+	  char tmpbufnew[DGL_BANNER_LINELEN+1];
 	  struct dg_banner_var *bv = globalconfig.banner_var_list;
 	  while (bv) {
-	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, bv->name, banner_var_resolve(bv)), 80);
+	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, bv->name, banner_var_resolve(bv)), DGL_BANNER_LINELEN);
 	      bv = bv->next;
 	  }
-	  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, "$VERSION", PACKAGE_STRING), 80);
+	  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$VERSION", PACKAGE_STRING), DGL_BANNER_LINELEN);
 	  if (me && loggedin) {
-	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, "$USERNAME", me->username), 80);
+	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", me->username), DGL_BANNER_LINELEN);
 	  } else {
-	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, 80, "$USERNAME", "[Anonymous]"), 80);
+	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", "[Anonymous]"), DGL_BANNER_LINELEN);
 	  }
 	  banner_addline(ban, bufnew);
       }
 
-      memset (buf, 0, 80);
+      memset (buf, 0, DGL_BANNER_LINELEN);
 
       if (ban->len >= 24)
 	  break;
@@ -557,11 +576,71 @@ void
 drawbanner (struct dg_banner *ban)
 {
   unsigned int i;
+  char *tmpch, *tmpch2, *splch;
+  int attr = 0, oattr = 0;
 
   if (!ban) return;
 
-  for (i = 0; i < ban->len; i++)
-    mvaddstr (1 + i, 1, ban->lines[i]);
+  for (i = 0; i < ban->len; i++) {
+      char *tmpbuf = strdup(ban->lines[i]);
+      char *tmpbuf2 = tmpbuf;
+      int ok = 0;
+      int x = 1;
+      do {
+	  ok = 0;
+	  if ((tmpch = strstr(tmpbuf2, "$ATTR("))) {
+	      if ((tmpch2 = strstr(tmpch, ")"))) {
+		  int spl = 0;
+		  char *nxttmpch;
+		  ok = 1;
+		  oattr = attr;
+		  attr = A_NORMAL;
+		  *tmpch = *tmpch2 = '\0';
+		  tmpch += 6;
+		  nxttmpch = tmpch;
+		  do {
+		      spl = 0;
+		      splch = strchr(tmpch, ';');
+		      if (splch && *splch) {
+			  spl = 1;
+			  nxttmpch = splch;
+			  *nxttmpch = '\0';
+			  nxttmpch++;
+		      }
+		      if (tmpch && *tmpch) {
+			  switch (*tmpch) {
+			  default: break;
+			  case '0': case '1': case '2': case '3': case '4':
+			  case '5': case '6': case '7': case '8': case '9':
+			      {
+				  int num = atoi(tmpch);
+				  if (num >= 0 && num <= 15)
+				      attr |= color_remap[num];
+			      }
+			      break;
+			  case 'b': attr |= A_BOLD; break;
+			  case 's': attr |= A_STANDOUT; break;
+			  case 'u': attr |= A_UNDERLINE; break;
+			  case 'r': attr |= A_REVERSE; break;
+			  case 'd': attr |= A_DIM; break;
+			  }
+		      } else attr = A_NORMAL;
+		      tmpch = nxttmpch;
+		  } while (spl);
+
+		  mvaddstr(1 + i, x, tmpbuf2);
+		  if (oattr) attroff(oattr);
+		  if (attr) attron(attr);
+		  x += strlen(tmpbuf2);
+		  tmpch2++;
+		  tmpbuf2 = tmpch2;
+	      } else
+		  mvaddstr (1 + i, x, tmpbuf2);
+	  } else
+	      mvaddstr (1 + i, x, tmpbuf2);
+      } while (ok);
+      free(tmpbuf);
+  }
 }
 
 void
@@ -1678,8 +1757,19 @@ initcurses ()
 #ifdef USE_NCURSES_COLOR
   start_color();
   use_default_colors();
-  init_pair(1, -1, -1);
-  init_pair(2, COLOR_RED, -1);
+
+  init_pair(COLOR_BLACK, COLOR_WHITE, COLOR_BLACK);
+  init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);
+  init_pair(COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);
+  init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
+  init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(COLOR_CYAN, COLOR_CYAN, COLOR_BLACK);
+  init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
+  init_pair(9, 0, COLOR_BLACK);
+  init_pair(10, COLOR_BLACK, COLOR_BLACK);
+  init_pair(11, -1, -1);
+
   if (globalconfig.utf8esc) write(1, "\033%G", 3);
 #endif
   clear();
