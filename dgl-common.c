@@ -115,6 +115,7 @@ dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
     static char buf[1024];
     char *f, *p, *end;
     int ispercent = 0;
+    int isbackslash = 0;
 
     if (!str) return NULL;
 
@@ -172,10 +173,27 @@ dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
 		    p++;
 	    }
 	    ispercent = 0;
+	} else if (isbackslash) {
+	    switch (*f) {
+	    case 'a': *p = '\007'; break;
+	    case 'b': *p = '\010'; break;
+	    case 't': *p = '\011'; break;
+	    case 'n': *p = '\012'; break;
+	    case 'v': *p = '\013'; break;
+	    case 'f': *p = '\014'; break;
+	    case 'r': *p = '\015'; break;
+	    case 'e': *p = '\033'; break;
+	    default:  *p = *f;
+	    }
+	    if (p < end)
+		p++;
+	    isbackslash = 0;
 	} else {
-	    if (*f == '%')
+	    if (*f == '%') {
 		ispercent = 1;
-	    else {
+	    } else if (*f == '\\') {
+		isbackslash = 1;
+	    } else {
 		*p = *f;
 		if (p < end)
 		    p++;
@@ -211,6 +229,9 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 
 	switch (tmp->cmd) {
 	default: break;
+	case DGLCMD_RAWPRINT:
+	    if (p1) fprintf(stdout, "%s", p1);
+	    break;
 	case DGLCMD_MKDIR:
 	    if (p1 && (access(p1, F_OK) != 0)) mkdir(p1, 0755);
 	    break;

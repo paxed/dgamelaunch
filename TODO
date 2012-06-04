@@ -1,6 +1,4 @@
 
--xterm title escape codes. Title strings defineable in config file?
-
 -allow setting banners for the internal menus, with the same method
  as normal user-defined menus, but only the banner is used from them.
  if no such menu is defined, then uses the default banner file.

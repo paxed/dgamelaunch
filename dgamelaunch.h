@@ -57,6 +57,7 @@ typedef enum
 typedef enum
 {
     DGLCMD_NONE = 0,
+    DGLCMD_RAWPRINT,	/* rawprint "foo" */
     DGLCMD_MKDIR,	/* mkdir foo */
     DGLCMD_CHDIR,	/* chdir foo */
     DGLCMD_IF_NX_CP,	/* ifnxcp foo bar */

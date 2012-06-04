@@ -16,9 +16,9 @@ USRGRP="games:games"
 # COMPRESS from include/config.h; the compression binary to copy. leave blank to skip.
 COMPRESSBIN="/bin/gzip"
 # nethack binary to copy into chroot (leave blank to skip)
-NETHACKBIN="/home/paxed/hacking/coding/nethacksource/nethack-3.4.3-nao/nh343/nethack.343-nao"
+#NETHACKBIN="/home/paxed/hacking/coding/nethacksource/nethack-3.4.3-nao/nh343/nethack.343-nao"
 # fixed data to copy (leave blank to skip)
-NH_PLAYGROUND_FIXED="/home/paxed/hacking/coding/nethacksource/nethack-3.4.3-nao/nh343/"
+#NH_PLAYGROUND_FIXED="/home/paxed/hacking/coding/nethacksource/nethack-3.4.3-nao/nh343/"
 # HACKDIR from include/config.h; aka nethack subdir inside chroot
 NHSUBDIR="/nh343/"
 # VAR_PLAYGROUND from include/unixconf.h
@@ -98,11 +98,15 @@ chown "$USRGRP" "$CHROOT/dgldir/userdata"
 
 
 if [ -n "$SQLITE_DBFILE" ]; then
-  echo "Creating SQLite database at $SQLITE_DBFILE"
-  SQLITE_DBFILE="`echo ${SQLITE_DBFILE%/}`"
-  SQLITE_DBFILE="`echo ${SQLITE_DBFILE#/}`"
-  sqlite3 "$CHROOT/$SQLITE_DBFILE" "create table dglusers (id integer primary key, username text, email text, env text, password text, flags integer);"
-  chown "$USRGRP" "$CHROOT/$SQLITE_DBFILE"
+  if [ "x`which sqlite3`" = "x" ]; then
+      errorexit "No sqlite3 found."
+  else
+      echo "Creating SQLite database at $SQLITE_DBFILE"
+      SQLITE_DBFILE="`echo ${SQLITE_DBFILE%/}`"
+      SQLITE_DBFILE="`echo ${SQLITE_DBFILE#/}`"
+      sqlite3 "$CHROOT/$SQLITE_DBFILE" "create table dglusers (id integer primary key, username text, email text, env text, password text, flags integer);"
+      chown "$USRGRP" "$CHROOT/$SQLITE_DBFILE"
+  fi
 fi
 
 

@@ -120,6 +120,7 @@ quit		{ yylval.i = DGLCMD_QUIT;       return TYPE_DGLCMD0; }
 play_game	{ yylval.i = DGLCMD_PLAYGAME;    return TYPE_DGLCMD1; }
 submenu		{ yylval.i = DGLCMD_SUBMENU;     return TYPE_DGLCMD1; }
 return		{ yylval.i = DGLCMD_RETURN;      return TYPE_DGLCMD0; }
+rawprint	{ yylval.i = DGLCMD_RAWPRINT;    return TYPE_DGLCMD1; }
 DEFINE		{ return TYPE_DEFINE_GAME; }
 
 
