@@ -28,8 +28,6 @@
 -cursor keys are not restored after watching a game of
  curses-nethack.
 
--move the games[] array into shmem?
-
 -$MTIME(filename)
 
 < Napkin> I'd suggest the default of DGL_MAILMSGLEN to be less

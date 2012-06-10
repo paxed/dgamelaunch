@@ -55,7 +55,7 @@ char *vi_Version = "0.0.6+dgamelaunch " PACKAGE_VERSION;
 // #define BB_FEATURE_VI_USE_SIGNALS    // 1056
 #define BB_FEATURE_VI_DOT_CMD   //  576
 #define BB_FEATURE_VI_READONLY  //  128
-#define BB_FEATURE_VI_SETOPTS   //  576
+//#define BB_FEATURE_VI_SETOPTS   //  576
 #define BB_FEATURE_VI_SET       //  224
 #define BB_FEATURE_VI_WIN_RESIZE  //  256  WIN_RESIZE
 // To test editor using CRASHME:
