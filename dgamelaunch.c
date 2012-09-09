@@ -672,6 +672,7 @@ shm_update(struct dg_shm *shm_dg_data, struct dg_game **games, int len)
     int di, i;
     struct dg_shm_game *shm_dg_game = (struct dg_shm_game *)(shm_dg_data + sizeof(struct dg_shm));
 
+    signals_block();
     shm_sem_wait(shm_dg_data);
 
     for (di = 0; di < shm_dg_data->max_n_games; di++)
@@ -710,6 +711,7 @@ shm_update(struct dg_shm *shm_dg_data, struct dg_game **games, int len)
     }
 
     shm_sem_post(shm_dg_data);
+    signals_release();
 #endif
 }
 
@@ -1073,6 +1075,7 @@ inprogressmenu (int gameid)
 	  }
       }
 
+      signals_block();
       shm_sem_wait(shm_dg_data);
 
       (void) time(&ctime);
@@ -1106,6 +1109,7 @@ inprogressmenu (int gameid)
         }
 
       shm_sem_post(shm_dg_data);
+      signals_release();
 
       btm = dgl_local_LINES-btm_banner_hei-top_banner_hei;
       if (len <= max_height)
@@ -1345,6 +1349,7 @@ inprogressdisplay (int gameid)
   shm_update(shm_dg_data, games, len);
   games = sort_games (games, len, sortmode);
 
+  signals_block();
   shm_sem_wait(shm_dg_data);
 
   (void) time(&ctime);
@@ -1369,6 +1374,7 @@ inprogressdisplay (int gameid)
   }
 
   shm_sem_post(shm_dg_data);
+  signals_release();
 
   free_populated_games(games, len);
 
