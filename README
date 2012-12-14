@@ -192,6 +192,7 @@ ERROR CODES
   12	Config file has an unrecognized token
   13	Config file: Negative value not accepted
   20	No menu defined, or no banner found for menu
+  60	Cannot create a new terminal, or no termcap files.
   61	Cannot openpty()
   62	Cannot open /dev/ptmx
   65	Cannot open master ptsname

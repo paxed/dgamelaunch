@@ -767,6 +767,7 @@ create_config ()
   globalconfig.menulist = NULL;
   globalconfig.banner_var_list = NULL;
   globalconfig.locale = NULL;
+  globalconfig.defterm = NULL;
 
   globalconfig.shed_uid = (uid_t)-1;
   globalconfig.shed_gid = (gid_t)-1;

@@ -59,7 +59,7 @@ static int sortmode_number(const char *sortmode_name) {
 %token TYPE_CMDQUEUE TYPE_DEFINE_MENU TYPE_BANNER_FILE TYPE_CURSOR
 %token TYPE_POSTCMDQUEUE TYPE_TIMEFORMAT
 %token TYPE_MAX_IDLE_TIME TYPE_MENU_MAX_IDLE_TIME TYPE_EXTRA_INFO_FILE
-%token TYPE_ENCODING TYPE_LOCALE TYPE_UTF8ESC TYPE_FILEMODE
+%token TYPE_ENCODING TYPE_LOCALE TYPE_UTF8ESC TYPE_FILEMODE TYPE_DEFTERM
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER TYPE_CMDQUEUENAME
 %type  <kt> KeyType
@@ -204,6 +204,11 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
     case TYPE_LOCALE:
       if (globalconfig.locale) free(globalconfig.locale);
       globalconfig.locale = strdup($3);
+      break;
+
+    case TYPE_DEFTERM:
+      if (globalconfig.defterm) free(globalconfig.defterm);
+      globalconfig.defterm = strdup($3);
       break;
 
     case TYPE_FILEMODE:
@@ -645,6 +650,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_INPROGRESS	{ $$ = TYPE_PATH_INPROGRESS; }
 	| TYPE_ENCODING         { $$ = TYPE_ENCODING; }
 	| TYPE_LOCALE		{ $$ = TYPE_LOCALE; }
+	| TYPE_DEFTERM		{ $$ = TYPE_DEFTERM; }
 	| TYPE_UTF8ESC		{ $$ = TYPE_UTF8ESC; }
 	| TYPE_RC_FMT		{ $$ = TYPE_RC_FMT; }
 	| TYPE_WATCH_SORTMODE	{ $$ = TYPE_WATCH_SORTMODE; }
@@ -682,6 +688,7 @@ const char* lookup_token (int t)
     case TYPE_WATCH_COLUMNS: return "watch_columns";
     case TYPE_BANNERVARS: return "bannervars";
     case TYPE_LOCALE: return "locale";
+    case TYPE_DEFTERM: return "default_term";
     case TYPE_UTF8ESC: return "utf8esc";
     case TYPE_FILEMODE: return "filemode";
     default: abort();

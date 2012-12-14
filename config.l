@@ -95,6 +95,7 @@ commands	{ return TYPE_CMDQUEUE; }
 postcommands	{ return TYPE_POSTCMDQUEUE; }
 encoding	{ return TYPE_ENCODING; }
 locale		{ return TYPE_LOCALE; }
+default_term	{ return TYPE_DEFTERM; }
 utf8esc		{ return TYPE_UTF8ESC; }
 filemode	{ return TYPE_FILEMODE; }
 yes		{ yylval.i = 1; return TYPE_BOOL; }

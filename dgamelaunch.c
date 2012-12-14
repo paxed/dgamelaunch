@@ -1754,7 +1754,13 @@ void
 initcurses ()
 {
   printf("\033[2J");
-  initscr ();
+  if (newterm(NULL, stdout, stdin) == NULL) {
+      if (!globalconfig.defterm || (newterm(globalconfig.defterm, stdout, stdin) == NULL)) {
+	  debug_write("cannot create newterm");
+	  graceful_exit(60);
+      }
+      mysetenv("TERM", globalconfig.defterm, 1);
+  }
   cbreak ();
   noecho ();
   nonl ();

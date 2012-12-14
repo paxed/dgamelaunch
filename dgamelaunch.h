@@ -239,6 +239,7 @@ struct dg_globalconfig
     struct dg_banner_var *banner_var_list;
     char *locale;
     int utf8esc; /* send select-utf8-charset escape code */
+    char *defterm; /* default TERM in case user TERM is unknown  */
 
     struct dg_cmdpart *cmdqueue[NUM_DGLTIMES];
 
