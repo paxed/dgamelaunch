@@ -2647,7 +2647,7 @@ static Byte *char_insert(Byte * p, Byte c)  // insert the char c at 'p'
           p = text_hole_delete (p, p);  // shrink buffer 1 char
 #ifdef BB_FEATURE_VI_DOT_CMD
           // also rmove char from last_modifying_cmd
-          if (strlen((char *) last_modifying_cmd) > 0) {
+          if (last_modifying_cmd && (strlen((char *) last_modifying_cmd) > 0)) {
               Byte *q;
 
               q = last_modifying_cmd;
