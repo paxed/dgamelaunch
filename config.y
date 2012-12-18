@@ -60,6 +60,7 @@ static int sortmode_number(const char *sortmode_name) {
 %token TYPE_POSTCMDQUEUE TYPE_TIMEFORMAT
 %token TYPE_MAX_IDLE_TIME TYPE_MENU_MAX_IDLE_TIME TYPE_EXTRA_INFO_FILE
 %token TYPE_ENCODING TYPE_LOCALE TYPE_UTF8ESC TYPE_FILEMODE TYPE_DEFTERM
+%token TYPE_FLOWCTRL
 %token <s> TYPE_VALUE
 %token <i> TYPE_NUMBER TYPE_CMDQUEUENAME
 %type  <kt> KeyType
@@ -232,6 +233,9 @@ KeyPair: TYPE_CMDQUEUE '[' TYPE_CMDQUEUENAME ']'
 		break;
 	    case TYPE_UTF8ESC:
 		globalconfig.utf8esc = $<i>3;
+		break;
+	    case TYPE_FLOWCTRL:
+		globalconfig.flowctrl = $<i>3;
 		break;
 	    default:
 		fprintf(stderr, "%s:%d: token %s does not take a boolean, bailing out\n",
@@ -652,6 +656,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_LOCALE		{ $$ = TYPE_LOCALE; }
 	| TYPE_DEFTERM		{ $$ = TYPE_DEFTERM; }
 	| TYPE_UTF8ESC		{ $$ = TYPE_UTF8ESC; }
+	| TYPE_FLOWCTRL		{ $$ = TYPE_FLOWCTRL; }
 	| TYPE_RC_FMT		{ $$ = TYPE_RC_FMT; }
 	| TYPE_WATCH_SORTMODE	{ $$ = TYPE_WATCH_SORTMODE; }
 	| TYPE_FILEMODE		{ $$ = TYPE_FILEMODE; }
@@ -690,6 +695,7 @@ const char* lookup_token (int t)
     case TYPE_LOCALE: return "locale";
     case TYPE_DEFTERM: return "default_term";
     case TYPE_UTF8ESC: return "utf8esc";
+    case TYPE_FLOWCTRL: return "flowcontrol";
     case TYPE_FILEMODE: return "filemode";
     default: abort();
   }

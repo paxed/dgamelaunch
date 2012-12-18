@@ -2791,6 +2791,12 @@ main (int argc, char** argv)
   signal (SIGTERM, catch_sighup);
 
   (void) tcgetattr (0, &tt);
+
+  if (!globalconfig.flowctrl) {
+      tt.c_iflag &= ~(IXON | IXOFF | IXANY); /* Disable XON/XOFF */
+      (void) tcsetattr(0, TCSANOW, &tt);
+  }
+
   if (-1 == ioctl (0, TIOCGWINSZ, (char *) &win) || win.ws_row < 4 ||
 		  win.ws_col < 4) /* Rudimentary validity check */
     {

@@ -240,6 +240,7 @@ struct dg_globalconfig
     char *locale;
     int utf8esc; /* send select-utf8-charset escape code */
     char *defterm; /* default TERM in case user TERM is unknown  */
+    int flowctrl; /* XON/XOFF for games? */
 
     struct dg_cmdpart *cmdqueue[NUM_DGLTIMES];
 

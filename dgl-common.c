@@ -774,6 +774,7 @@ create_config ()
 
   globalconfig.sortmode = SORTMODE_USERNAME;
   globalconfig.utf8esc = 0;
+  globalconfig.flowctrl = -1; /* undefined, don't touch it */
 
   if (config)
   {

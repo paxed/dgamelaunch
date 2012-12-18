@@ -97,6 +97,7 @@ encoding	{ return TYPE_ENCODING; }
 locale		{ return TYPE_LOCALE; }
 default_term	{ return TYPE_DEFTERM; }
 utf8esc		{ return TYPE_UTF8ESC; }
+flowcontrol	{ return TYPE_FLOWCTRL; }
 filemode	{ return TYPE_FILEMODE; }
 yes		{ yylval.i = 1; return TYPE_BOOL; }
 no		{ yylval.i = 0; return TYPE_BOOL; }
