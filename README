@@ -152,6 +152,7 @@ COMMANDLINE PARAMETERS
 ======================
 
  -a		Ignored.
+ -c		Shows error message and exits. (login shell command)
  -e		Ignored.
  -h		Ignored.
  -i user	Autologin and run the register -command hook for "user"
@@ -191,6 +192,7 @@ ERROR CODES
   11	Cannot run as root: Config file has shed_uid = 0
   12	Config file has an unrecognized token
   13	Config file: Negative value not accepted
+  15	dgamelaunch called with -c (login shell command); exited
   20	No menu defined, or no banner found for menu
   60	Cannot create a new terminal, or no termcap files.
   61	Cannot openpty()

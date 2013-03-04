@@ -2719,10 +2719,15 @@ main (int argc, char** argv)
 
   __progname = basename(strdup(argv[0]));
 
-  while ((c = getopt(argc, argv, "sqh:pi:aeW:SD")) != -1)
+  while ((c = getopt(argc, argv, "c:sqh:pi:aeW:SD")) != -1)
   {
     switch (c)
     {
+      case 'c':
+        fprintf(stderr, "This is not a shell account, you can't execute "
+                        "arbitrary commands.\n");
+        graceful_exit(15);
+        break;
       case 's':
 	showplayers = 1; break;
 
