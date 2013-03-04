@@ -81,7 +81,7 @@ mygetnstr(char *buf, int maxlen, int doecho)
 		    addstr("\010 \010");
 	    }
 	}
-	else if ((c >= ' ' && c <= '~') || (c >= 0xA0 && c <= 0xFF))
+	else if ((c >= ' ' && c <= '~'))
 	{
 	    if (i < maxlen)
 	    {
