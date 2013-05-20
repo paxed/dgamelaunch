@@ -1925,7 +1925,7 @@ char *file_name;
 		in_string[length] = 0;
 		get_line(length, in_string, &append);
 	}
-	if ((can_read) && (curr_line->line_length == 1))
+	if ((can_read) && (curr_line->line_length == 1) && (curr_line->prev_line))
 	{
 		temp_line = curr_line->prev_line;
 		temp_line->next_line = curr_line->next_line;
