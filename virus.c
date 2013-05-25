@@ -1092,9 +1092,6 @@ key_cmd_mode:
       break;
     case 'N':                  // N- backward search for last pattern
       if (last_search_pattern == 0) break;
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
       dir = BACK;               // assume BACKWARD search
       p = dot - 1;
       if (last_search_pattern[0] == '?') {
@@ -1106,9 +1103,6 @@ key_cmd_mode:
     case 'n':                  // n- repeat search for last pattern
       // search rest of text[] starting at next char
       // if search fails return orignal "p" not the "p+1" address
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
     dc3:
       if (last_search_pattern == 0) {
           msg = (Byte *) "No previous regular expression";
@@ -1123,29 +1117,36 @@ key_cmd_mode:
           p = dot - 1;
         }
     dc4:
-      q = char_search (p, last_search_pattern + 1, dir, FULL);
-      if (q != NULL) {
-          dot = q;              // good search, update "dot"
-          msg = (Byte *) "";
-          goto dc2;
-        }
-      // no pattern found between "dot" and "end"- continue at top
-      p = text;
-      if (dir == BACK) {
-          p = end - 1;
-        }
-      q = char_search (p, last_search_pattern + 1, dir, FULL);
-      if (q != NULL) {	// found something
-          dot = q;              // found new pattern- goto it
-          msg = (Byte *) "search hit BOTTOM, continuing at TOP";
-          if (dir == BACK) {
-              msg = (Byte *) "search hit TOP, continuing at BOTTOM";
-            }
-        } else {
-          msg = (Byte *) "Pattern not found";
-        }
-    dc2:
-      psbs ("%s", msg);
+      msg = NULL;
+      do {
+	  q = char_search (p, last_search_pattern + 1, dir, FULL);
+	  if (q != NULL) {
+	      dot = q;              // good search, update "dot"
+	      if (cmdcnt-- > 1) {
+		  p = dot + ((dir == FORWARD) ? 1 : -1);
+		  goto dc4;
+	      }
+	      msg = (Byte *) " ";
+	      goto dc2;
+	  }
+	  // no pattern found between "dot" and "end"- continue at top
+	  p = text;
+	  if (dir == BACK) {
+	      p = end - 1;
+	  }
+	  q = char_search (p, last_search_pattern + 1, dir, FULL);
+	  if (q != NULL) {	// found something
+	      dot = q;              // found new pattern- goto it
+	      msg = (Byte *) "search hit BOTTOM, continuing at TOP";
+	      if (dir == BACK) {
+		  msg = (Byte *) "search hit TOP, continuing at BOTTOM";
+	      }
+	  } else {
+	      msg = (Byte *) "Pattern not found";
+	  }
+      } while (msg == NULL && (cmdcnt-- > 1));
+      dc2:
+	  psbs ("%s", msg);
       break;
     case '{':                  // {- move backward paragraph
       q = char_search (dot, (Byte *) "\n\n", BACK, FULL);
