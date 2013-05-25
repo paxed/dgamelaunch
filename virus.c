@@ -888,19 +888,17 @@ key_cmd_mode:
     case VI_K_LEFT:            // cursor key Left
     case 8:                    // ctrl-H- move left    (This may be ERASE char)
     case 127:                  // DEL- move left   (This may be ERASE char)
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
-      dot_left ();
-      break;
+	do {
+	    dot_left ();
+	} while (cmdcnt-- > 1);
+	break;
     case 10:                   // Newline ^J
     case 'j':                  // j- goto next line, same col
     case VI_K_DOWN:            // cursor key Down
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
-      dot_next ();              // go to next B-o-l
-      dot = move_to_col (dot, ccol + offset); // try stay in same col
+	do {
+	    dot_next();              // go to next B-o-l
+	    dot = move_to_col(dot, ccol + offset); // try stay in same col
+	} while (cmdcnt-- > 1);
       break;
     case 12:                   // ctrl-L  force redraw whole screen
     case 18:                   // ctrl-R  force redraw
@@ -912,11 +910,10 @@ key_cmd_mode:
       break;
     case 13:                   // Carriage Return ^M
     case '+':                  // +- goto next line
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
-      dot_next ();
-      dot_skip_over_ws ();
+      do {
+	  dot_next();
+	  dot_skip_over_ws();
+      } while (cmdcnt-- > 1);
       break;
     case 21:                   // ctrl-U  scroll up   half screen
       dot_scroll ((rows - 2) / 2, -1);
@@ -934,10 +931,9 @@ key_cmd_mode:
     case ' ':                  // move right
     case 'l':                  // move right
     case VI_K_RIGHT:           // Cursor Key Right
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
-      dot_right ();
+	do {
+	    dot_right();
+	} while (cmdcnt-- > 1);
       break;
 #ifdef BB_FEATURE_VI_YANKMARK
     case '"':                  // "- name a register to use for Delete/Yank
@@ -1024,10 +1020,9 @@ key_cmd_mode:
 #endif /* BB_FEATURE_VI_YANKMARK */
     case '$':                  // $- goto end of line
     case VI_K_END:             // Cursor Key End
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
-      dot = end_line (dot + 1);
+	do {
+	    dot = end_line(dot + 1);
+	} while (cmdcnt-- > 1);
       break;
     case '%':                  // %- find matching char of pair () [] {}
       for (q = dot; q < end && *q != '\n'; q++) {
@@ -1052,23 +1047,21 @@ key_cmd_mode:
       //
       //**** fall thru to ... 'i'
     case ';':                  // ;- look at rest of line for last forward char
-      if (cmdcnt-- > 1) {
-          do_cmd (';');
-        }                       // repeat cnt
-      if (last_forward_char == 0) break;
-      q = dot + 1;
-      while (q < end - 1 && *q != '\n' && *q != last_forward_char) {
-          q++;
-        }
-      if (*q == last_forward_char)
-        dot = q;
+	if (last_forward_char == 0) break;
+	do {
+	    q = dot + 1;
+	    while (q < end - 1 && *q != '\n' && *q != last_forward_char) {
+		q++;
+	    }
+	    if (*q == last_forward_char)
+		dot = q;
+	} while (cmdcnt-- > 1);
       break;
     case '-':                  // -- goto prev line
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
-      dot_prev ();
-      dot_skip_over_ws ();
+	do {
+	    dot_prev();
+	    dot_skip_over_ws();
+	} while (cmdcnt-- > 1);
       break;
 #ifdef BB_FEATURE_VI_DOT_CMD
     case '.':                  // .- repeat the last modifying command
@@ -1181,6 +1174,7 @@ key_cmd_mode:
           dot_begin ();         // this was a standalone zero
         } else {
           cmdcnt = cmdcnt * 10 + (c - '0'); // this 0 is part of a number
+	  if (cmdcnt > 65536) cmdcnt = 65536; // arbitrary
         }
       break;
     case ':':                  // :- the colon mode commands
@@ -1259,18 +1253,15 @@ key_cmd_mode:
     case 'B':                  // B- back a blank-delimited Word
     case 'E':                  // E- end of a blank-delimited word
     case 'W':                  // W- forward a blank-delimited word
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
-      dir = FORWARD;
-      if (c == 'B')
-        dir = BACK;
-      if (c == 'W' || isspace(dot[dir])) {
-          dot = skip_thing (dot, 1, dir, S_TO_WS);
-          dot = skip_thing (dot, 2, dir, S_OVER_WS);
-        }
-      if (c != 'W')
-        dot = skip_thing (dot, 1, dir, S_BEFORE_WS);
+	dir = ((c == 'B') ? BACK : FORWARD);
+	do {
+	  if (c == 'W' || isspace(dot[dir])) {
+	      dot = skip_thing (dot, 1, dir, S_TO_WS);
+	      dot = skip_thing (dot, 2, dir, S_OVER_WS);
+	  }
+	  if (c != 'W')
+	      dot = skip_thing (dot, 1, dir, S_BEFORE_WS);
+	} while (cmdcnt-- > 1);
       break;
     case 'C':                  // C- Change to e-o-l
     case 'D':                  // D- delete to e-o-l
@@ -1313,17 +1304,16 @@ key_cmd_mode:
       psb ("-- Insert --");
       break;
     case 'J':                  // J- join current and next lines together
-      if (cmdcnt-- > 2) {
-          do_cmd (c);
-        }                       // repeat cnt
-      dot_end ();               // move to NL
-      if (dot < end - 1) {	// make sure not last char in text[]
-          *dot++ = ' ';         // replace NL with space
-          while (isblnk(*dot)) {	// delete leading WS
-              dot_delete ();
-            }
-        }
-      end_cmd_q ();             // stop adding to q
+      do {
+	  dot_end ();               // move to NL
+	  if (dot < end - 1) {	// make sure not last char in text[]
+	      *dot++ = ' ';         // replace NL with space
+	      while (isblnk(*dot)) {	// delete leading WS
+		  dot_delete ();
+	      }
+	  }
+	  end_cmd_q ();             // stop adding to q
+      } while (cmdcnt-- > 2);
       break;
     case 'L':                  // L- goto bottom line on screen
       dot = end_screen ();
@@ -1364,17 +1354,14 @@ key_cmd_mode:
     case 'X':                  // X- delete char before dot
     case 'x':                  // x- delete the current char
     case 's':                  // s- substitute the current char
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
-      dir = 0;
-      if (c == 'X')
-        dir = -1;
-      if (dot[dir] != '\n') {
-          if (c == 'X')
-            dot--;              // delete prev char
-          dot = yank_delete (dot, dot, 0, YANKDEL); // delete char
-        }
+	dir = (c == 'X') ? -1 : 0;
+	do {
+	  if (dot[dir] != '\n') {
+	      if (c == 'X')
+		  dot--;              // delete prev char
+	      dot = yank_delete (dot, dot, 0, YANKDEL); // delete char
+	  }
+	} while (cmdcnt-- > 1);
       if (c == 's')
         goto dc_i;              // start insrting
       end_cmd_q ();             // stop adding to q
@@ -1406,23 +1393,22 @@ key_cmd_mode:
       break;
     case 'b':                  // b- back a word
     case 'e':                  // e- end of word
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-        }                       // repeat cnt
       dir = FORWARD;
       if (c == 'b')
         dir = BACK;
-      if ((dot + dir) < text || (dot + dir) > end - 1)
-        break;
-      dot += dir;
-      if (isspace(*dot)) {
-          dot = skip_thing (dot, (c == 'e') ? 2 : 1, dir, S_OVER_WS);
-        }
-      if (isalnum(*dot) || *dot == '_') {
-          dot = skip_thing (dot, 1, dir, S_END_ALNUM);
-      } else if (ispunct(*dot)) {
-          dot = skip_thing (dot, 1, dir, S_END_PUNCT);
-      }
+      do {
+	  if ((dot + dir) < text || (dot + dir) > end - 1)
+	      break;
+	  dot += dir;
+	  if (isspace(*dot)) {
+	      dot = skip_thing (dot, (c == 'e') ? 2 : 1, dir, S_OVER_WS);
+	  }
+	  if (isalnum(*dot) || *dot == '_') {
+	      dot = skip_thing (dot, 1, dir, S_END_ALNUM);
+	  } else if (ispunct(*dot)) {
+	      dot = skip_thing (dot, 1, dir, S_END_PUNCT);
+	  }
+      } while (cmdcnt-- > 1);
       break;
     case 'c':                  // c- change something
     case 'd':                  // d- delete something
@@ -1499,11 +1485,10 @@ key_cmd_mode:
       break;
     case 'k':                  // k- goto prev line, same col
     case VI_K_UP:              // cursor key Up
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-      }                       // repeat cnt
-      dot_prev ();
-      dot = move_to_col (dot, ccol + offset); // try stay in same col
+      do {
+	  dot_prev();
+	  dot = move_to_col(dot, ccol + offset); // try stay in same col
+      } while (cmdcnt-- > 1);
       break;
     case 'r':                  // r- replace the current char with user input
       c1 = get_one_char ();     // get the replacement char
@@ -1521,19 +1506,18 @@ key_cmd_mode:
       last_forward_char = 0;
       break;
     case 'w':                  // w- forward a word
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-      }                       // repeat cnt
-      if (isalnum(*dot) || *dot == '_') {	// we are on ALNUM
-          dot = skip_thing (dot, 1, FORWARD, S_END_ALNUM);
-      } else if (ispunct(*dot)) {	// we are on PUNCT
-          dot = skip_thing (dot, 1, FORWARD, S_END_PUNCT);
-      }
-      if (dot < end - 1)
-        dot++;                  // move over word
-      if (isspace(*dot)) {
-          dot = skip_thing (dot, 2, FORWARD, S_OVER_WS);
-      }
+	do {
+	    if (isalnum(*dot) || *dot == '_') {	// we are on ALNUM
+		dot = skip_thing(dot, 1, FORWARD, S_END_ALNUM);
+	    } else if (ispunct(*dot)) {	// we are on PUNCT
+		dot = skip_thing(dot, 1, FORWARD, S_END_PUNCT);
+	    }
+	    if (dot < end - 1)
+		dot++;                  // move over word
+	    if (isspace(*dot)) {
+		dot = skip_thing(dot, 2, FORWARD, S_OVER_WS);
+	    }
+	} while (cmdcnt-- > 1);
       break;
     case 'z':                  // z-
       c1 = get_one_char ();     // get the replacement char
@@ -1549,17 +1533,16 @@ key_cmd_mode:
       dot = move_to_col (dot, cmdcnt - 1);  // try to move to column
       break;
     case '~':                  // ~- flip the case of letters   a-z -> A-Z
-      if (cmdcnt-- > 1) {
-          do_cmd (c);
-      }                       // repeat cnt
-      if (islower(*dot)) {
-          *dot = toupper (*dot);
-          file_modified = TRUE; // has the file been modified
-      } else if (isupper(*dot)) {
-          *dot = tolower (*dot);
-          file_modified = TRUE; // has the file been modified
-      }
-      dot_right ();
+      do {
+	  if (islower(*dot)) {
+	      *dot = toupper(*dot);
+	      file_modified = TRUE; // has the file been modified
+	  } else if (isupper(*dot)) {
+	      *dot = tolower(*dot);
+	      file_modified = TRUE; // has the file been modified
+	  }
+	  dot_right();
+      } while (cmdcnt-- > 1);
       end_cmd_q ();             // stop adding to q
       break;
       //----- The Cursor and Function Keys -----------------------------
