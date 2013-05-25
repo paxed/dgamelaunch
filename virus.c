@@ -1149,16 +1149,20 @@ key_cmd_mode:
 	  psbs ("%s", msg);
       break;
     case '{':                  // {- move backward paragraph
-      q = char_search (dot, (Byte *) "\n\n", BACK, FULL);
-      if (q != NULL) {	// found blank line
-          dot = next_line (q);  // move to next blank line
-        }
+	do {
+	    q = char_search(dot, (Byte *) "\n\n", BACK, FULL);
+	    if (q != NULL) {	// found blank line
+		dot = next_line(q);  // move to next blank line
+	    }
+	} while (cmdcnt-- > 1);
       break;
     case '}':                  // }- move forward paragraph
-      q = char_search (dot, (Byte *) "\n\n", FORWARD, FULL);
-      if (q != NULL) {	// found blank line
-          dot = next_line (q);  // move to next blank line
-        }
+	do {
+	    q = char_search(dot, (Byte *) "\n\n", FORWARD, FULL);
+	    if (q != NULL) {	// found blank line
+		dot = next_line(q);  // move to next blank line
+	    }
+	} while (cmdcnt-- > 1);
       break;
 #endif /* BB_FEATURE_VI_SEARCH */
     case '0':                  // 0- goto begining of line
