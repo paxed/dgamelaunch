@@ -1393,9 +1393,7 @@ key_cmd_mode:
       break;
     case 'b':                  // b- back a word
     case 'e':                  // e- end of word
-      dir = FORWARD;
-      if (c == 'b')
-        dir = BACK;
+      dir = (c == 'b') ? BACK : FORWARD;
       do {
 	  if ((dot + dir) < text || (dot + dir) > end - 1)
 	      break;
