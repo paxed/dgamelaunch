@@ -50,7 +50,7 @@ install: all
 	mkdir -p $(DESTDIR)$(sbindir)
 	$(INSTALL) -m 755 $(NAME) $(DESTDIR)$(sbindir)
 	mkdir -p $(DESTDIR)$(mandir)/man8
-	$(INSTALL) -m 644 $(MAN8) $(mandir)/man8
+	$(INSTALL) -m 644 $(MAN8) $(DESTDIR)$(mandir)/man8
 
 indent:
 	indent -nut -ts2 *.c *.h
