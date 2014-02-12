@@ -13,3 +13,6 @@
 /dgamelaunch
 /nethackstub
 /.depend
+/*.o
+/virus
+/ee
