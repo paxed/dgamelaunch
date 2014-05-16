@@ -1970,6 +1970,9 @@ int *append;	/* TRUE if must append more text to end of current line	*/
 	wchar_t in_string[MAX_FILE];
 	length = mbstowcs(in_string, in_str, sizeof(in_string));
 
+	if (length == -1)
+	    exit(0);
+
 	str2 = in_string;
 	num = 0;
 	first_time = TRUE;
