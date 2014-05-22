@@ -1970,8 +1970,16 @@ int *append;	/* TRUE if must append more text to end of current line	*/
 	wchar_t in_string[MAX_FILE];
 	length = mbstowcs(in_string, in_str, sizeof(in_string));
 
-	if (length == -1)
+	if (length == -1) {
+	    wmove(com_win, 0, 0);
+	    wprintw(com_win, "ERROR: Encountered a strange character. --more--");
+	    wclrtoeol(com_win);
+	    wrefresh(com_win);
+	    (void) wget_wch(com_win, &in);
+	    resetty();
+	    endwin();
 	    exit(0);
+	}
 
 	str2 = in_string;
 	num = 0;
