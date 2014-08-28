@@ -43,7 +43,7 @@ WHITE		[\t ]*
 
 {MALSTRING} {
   yytext[yyleng - 1] = '\0'; /* remove trailing newline */
-  fprintf(stderr, "%s:%d:%d: unterminated string constant: %s\n", config, line, col - yyleng + 1, yytext);
+  fprintf(stderr, "%s:%d:%d: unterminated string constant: %s\n", config, line, (int)(col - yyleng + 1), yytext);
   return TYPE_MALSTRING; 
 }
 
