@@ -17,6 +17,7 @@ fi
 
 LIBS="$LIBS $LEXLIB"
 
+AC_CHECK_LIB(pthread, pthread_create, [PTHREAD_CFLAGS+=-lpthread])
 
 AC_CHECK_PROGS(YACC, 'bison -y' byacc yacc)
 if test -z "$YACC"; then
@@ -47,7 +48,7 @@ AC_PATH_PROG(MAKEDEPEND, makedepend)
 AC_MSG_CHECKING([how to generate dependency info])
 
 if test "$ac_cv_c_compiler_gnu" = yes; then
-  CFLAGS="$CFLAGS -Wall -Wno-unused"
+  CFLAGS="$CFLAGS -Wall -Wno-unused $PTHREAD_CFLAGS"
   MKDEP="$CC -MM"
   MKDEP_DIRECT="> .depend"
   AC_MSG_RESULT(gcc)
