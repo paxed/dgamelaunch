@@ -74,6 +74,7 @@ cursor		{ return TYPE_CURSOR; }
 "chroot_path"	{ return TYPE_PATH_CHROOT; }
 "game_name"     { return TYPE_NAME_GAME; }
 "short_name"	{ return TYPE_GAME_SHORT_NAME; }
+"game_id"	{ return TYPE_GAME_ID; }
 "game_path"	{ return TYPE_PATH_GAME; }
 "dglroot"	{ return TYPE_PATH_DGLDIR; }
 "spooldir"	{ return TYPE_PATH_SPOOL; }
@@ -120,6 +121,7 @@ ask_login	{ yylval.i = DGLCMD_LOGIN;      return TYPE_DGLCMD0; }
 ask_register	{ yylval.i = DGLCMD_REGISTER;   return TYPE_DGLCMD0; }
 quit		{ yylval.i = DGLCMD_QUIT;       return TYPE_DGLCMD0; }
 play_game	{ yylval.i = DGLCMD_PLAYGAME;    return TYPE_DGLCMD1; }
+play_if_exist	{ yylval.i = DGLCMD_PLAY_IF_EXIST;    return TYPE_DGLCMD2; }
 submenu		{ yylval.i = DGLCMD_SUBMENU;     return TYPE_DGLCMD1; }
 return		{ yylval.i = DGLCMD_RETURN;      return TYPE_DGLCMD0; }
 rawprint	{ yylval.i = DGLCMD_RAWPRINT;    return TYPE_DGLCMD1; }

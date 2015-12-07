@@ -51,7 +51,7 @@ static int sortmode_number(const char *sortmode_name) {
 
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX TYPE_MAXNICKLEN
 %token TYPE_GAME_SHORT_NAME TYPE_WATCH_SORTMODE TYPE_BANNERVARS
-%token TYPE_ALLOW_REGISTRATION TYPE_WATCH_COLUMNS
+%token TYPE_ALLOW_REGISTRATION TYPE_WATCH_COLUMNS TYPE_GAME_ID
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
 %token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_TTYREC
@@ -496,6 +496,11 @@ game_definition : TYPE_CMDQUEUE
 		myconfig[ncnf]->shortname = strdup($3);
 		break;
 
+	    case TYPE_GAME_ID:
+		if (myconfig[ncnf]->game_id) free (myconfig[ncnf]->game_id);
+		myconfig[ncnf]->game_id = strdup($3);
+		break;
+
 	    case TYPE_RC_FMT:
 		if (myconfig[ncnf]->rc_fmt) free(myconfig[ncnf]->rc_fmt);
 		myconfig[ncnf]->rc_fmt = strdup($3);
@@ -575,6 +580,8 @@ definegame : TYPE_DEFINE_GAME '{'
 	}
 	game_definitions '}'
 	{
+	    if (myconfig[ncnf]->game_id == NULL && myconfig[ncnf]->shortname)
+		myconfig[ncnf]->game_id = strdup(myconfig[ncnf]->shortname);
 	    ncnf++;
 	    num_games = ncnf;
 	}
@@ -644,6 +651,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_GAME	{ $$ = TYPE_PATH_GAME; }
         | TYPE_NAME_GAME        { $$ = TYPE_NAME_GAME; }
 	| TYPE_GAME_SHORT_NAME	{ $$ = TYPE_GAME_SHORT_NAME; }
+	| TYPE_GAME_ID	{ $$ = TYPE_GAME_ID; }
 	| TYPE_PATH_DGLDIR	{ $$ = TYPE_PATH_DGLDIR; }
 	| TYPE_PATH_SPOOL	{ $$ = TYPE_PATH_SPOOL; }
 	| TYPE_PATH_BANNER	{ $$ = TYPE_PATH_BANNER; }
@@ -680,6 +688,7 @@ const char* lookup_token (int t)
     case TYPE_NAME_GAME: return "game_name";
     case TYPE_ALLOW_REGISTRATION: return "allow_new_nicks";
     case TYPE_GAME_SHORT_NAME: return "short_name";
+    case TYPE_GAME_ID: return "game_id";
     case TYPE_PATH_DGLDIR: return "dglroot";
     case TYPE_PATH_SPOOL: return "spooldir";
     case TYPE_PATH_BANNER: return "banner";

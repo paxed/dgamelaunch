@@ -72,6 +72,7 @@ typedef enum
     DGLCMD_CHMAIL,	/* chmail */
     DGLCMD_CHPASSWD,	/* chpasswd */
     DGLCMD_PLAYGAME,	/* play_game "foo" */
+    DGLCMD_PLAY_IF_EXIST,	/* play_if_exist "game" "file" */
     DGLCMD_SUBMENU,	/* submenu "foo" */
     DGLCMD_RETURN	/* return */
 } dglcmd_actions;
@@ -198,6 +199,7 @@ struct dg_config
 {
   char* game_path;
   char* game_name;
+  char* game_id;
   char* shortname;
   char* rcfile;
   char* ttyrecdir;

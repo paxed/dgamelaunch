@@ -25,6 +25,7 @@ struct dg_config **myconfig = NULL;
 struct dg_config defconfig = {
   /* game_path = */ "/bin/nethack",
   /* game_name = */ "NetHack",
+  /* game_id = */ NULL,
   /* shortname = */ "NH",
   /* rcfile = */ NULL, /*"/dgl-default-rcfile",*/
   /* ttyrecdir =*/ "%ruserdata/%n/ttyrec/",
@@ -215,6 +216,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
     struct dg_cmdpart *tmp = queue;
     char *p1;
     char *p2;
+    int played = 0;
 
     if (!queue) return 1;
 
@@ -338,12 +340,22 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_RETURN:
 	    return_from_submenu = 1;
 	    break;
+	case DGLCMD_PLAY_IF_EXIST:
+	    if (!(loggedin && me && p1 && p2)) break;
+	    {
+		FILE *tmpfile;
+		tmpfile = fopen(p2, "r");
+		if (tmpfile) {
+		    fclose(tmpfile);
+		} else break;
+	    }
+	    /* else fall through to playgame */
 	case DGLCMD_PLAYGAME:
-	    if (loggedin && me && p1) {
+	    if (loggedin && me && p1 && !played) {
 		int userchoice, i;
 		char *tmpstr;
 		for (userchoice = 0; userchoice < num_games; userchoice++) {
-		    if (!strcmp(myconfig[userchoice]->game_name, p1) || !strcmp(myconfig[userchoice]->shortname, p1)) {
+		    if (!strcmp(myconfig[userchoice]->game_id, p1) || !strcmp(myconfig[userchoice]->game_name, p1) || !strcmp(myconfig[userchoice]->shortname, p1)) {
 			if (purge_stale_locks(userchoice)) {
 			    if (myconfig[userchoice]->rcfile) {
 				if (access (dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt, NULL), R_OK) == -1)
@@ -378,6 +390,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 					 dgl_format_str(userchoice, me, myconfig[userchoice]->ttyrecdir, NULL),
 					 gen_ttyrec_filename());
 			    idle_alarm_set_enabled(1);
+			    played = 1;
 			    /* lastly, run the generic "do these when a game is left" commands */
 			    signal (SIGHUP, catch_sighup);
 			    signal (SIGINT, catch_sighup);
