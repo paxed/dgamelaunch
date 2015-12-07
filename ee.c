@@ -1968,7 +1968,7 @@ int *append;	/* TRUE if must append more text to end of current line	*/
 	struct text *tline;	/* temporary pointer to new line	*/
 	int first_time;		/* if TRUE, the first time through the loop */
 	wchar_t in_string[MAX_FILE];
-	length = mbstowcs(in_string, in_str, sizeof(in_string));
+	length = mbstowcs(in_string, in_str, sizeof(in_string)/sizeof(wchar_t));
 
 	if (length == -1) {
 	    wmove(com_win, 0, 0);
