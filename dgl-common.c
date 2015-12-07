@@ -71,11 +71,13 @@ term_resize_check()
 {
     if ((COLS == dgl_local_COLS) && (LINES == dgl_local_LINES) && !curses_resize) return;
 
+    signal(SIGWINCH, SIG_IGN);
     endwin();
     initcurses();
     dgl_local_COLS = COLS;
     dgl_local_LINES = LINES;
     curses_resize = 0;
+    signal(SIGWINCH, sigwinch_func);
 }
 
 int
