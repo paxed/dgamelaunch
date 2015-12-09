@@ -2051,9 +2051,13 @@ newuser ()
 int
 passwordgood (char *cpw)
 {
+  char *crypted;
   assert (me != NULL);
 
-  if (!strncmp (crypt (cpw, cpw), me->password, DGL_PASSWDLEN))
+  crypted = crypt (cpw, cpw);
+  if (crypted == NULL)
+      return 0;
+  if (!strncmp (crypted, me->password, DGL_PASSWDLEN))
     return 1;
   if (!strncmp (cpw, me->password, DGL_PASSWDLEN))
     return 1;
