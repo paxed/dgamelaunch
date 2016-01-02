@@ -971,12 +971,12 @@ game_get_column_data(struct dg_game *game,
 	    snprintf(tmptimebuf, 30, "%s %s", game->date, game->time);
 	    tmptimebuf[31] = '\0';
 	    strptime(tmptimebuf, "%Y-%m-%d %H:%M:%S", &timetm);
-	    snprintf(data, 10, get_timediff(ctime, mktime(&timetm)));
+	    snprintf(data, 10, "%s", get_timediff(ctime, mktime(&timetm)));
 	}
 	break;
 
     case SORTMODE_IDLETIME:
-	snprintf(data, 10, get_timediff(ctime, game->idle_time));
+	snprintf(data, 10, "%s", get_timediff(ctime, game->idle_time));
         break;
 
     case SORTMODE_EXTRA_INFO:
@@ -1212,7 +1212,7 @@ inprogressmenu (int gameid)
 	    break;
 
 	case 12: case 18: /* ^L, ^R */
-	  if (globalconfig.utf8esc) write(1, "\033%G", 3);
+          if (globalconfig.utf8esc) (void) write(1, "\033%G", 3);
 	  clear ();
 	  break;
 
@@ -1251,7 +1251,7 @@ watchgame:
               clear ();
               refresh ();
               endwin ();
-	      if (globalconfig.utf8esc) write(1, "\033%G", 3);
+	      if (globalconfig.utf8esc) (void) write(1, "\033%G", 3);
 #ifdef USE_SHMEM
 	      signals_block();
 	      if (games[idx]->is_in_shm) {
@@ -1782,7 +1782,7 @@ initcurses ()
   init_pair(10, COLOR_BLACK, COLOR_BLACK);
   init_pair(11, -1, -1);
 
-  if (globalconfig.utf8esc) write(1, "\033%G", 3);
+  if (globalconfig.utf8esc) (void) write(1, "\033%G", 3);
 #endif
   clear();
   refresh();
@@ -2633,7 +2633,7 @@ runmenuloop(struct dg_menu *menu)
 	term_resize_check();
 	if (doclear) {
 	    doclear = 0;
-	    if (globalconfig.utf8esc) write(1, "\033%G", 3);
+	    if (globalconfig.utf8esc) (void) write(1, "\033%G", 3);
 	    clear();
 	}
 	drawbanner(&ban);
