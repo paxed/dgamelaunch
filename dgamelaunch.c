@@ -2266,7 +2266,7 @@ userexist (char *cname, int isnew)
     if (isnew && (strlen(cname) >= globalconfig.max_newnick_len))
 	strcat(tmpbuf, "%");
 
-    qbuf = sqlite3_mprintf("select * from dglusers where username like '%q' limit 1", tmpbuf);
+    qbuf = sqlite3_mprintf("select * from dglusers where username = '%q' collate nocase limit 1", tmpbuf);
 
     ret = sqlite3_open(globalconfig.passwd, &db);
     if (ret) {
