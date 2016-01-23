@@ -9,6 +9,7 @@ mandir = @mandir@
 
 CC = @CC@
 LIBS = @LIBS@
+LEXLIBS = @LEXLIBS@
 CFLAGS = @CFLAGS@
 INSTALL = @INSTALL@
 LEX = @LEX@
@@ -30,7 +31,7 @@ OBJS = $(SRCS:.c=.o)
 all: .depend $(NAME) $(EDITORS)
 
 $(NAME): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(LEXLIBS)
 
 ee: ee.c
 	$(CC) $(CFLAGS) -o $@ $< $(LIBS)

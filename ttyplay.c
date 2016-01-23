@@ -58,7 +58,7 @@
 #include "io.h"
 #include "stripgfx.h"
 
-#ifdef __MACH__
+#if defined(__MACH__) || defined(__FreeBSD__) || defined(__NetBSD__)
 typedef void (*sighandler_t)(int);
 #endif
 

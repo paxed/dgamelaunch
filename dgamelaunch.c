@@ -66,14 +66,14 @@
 # include <sqlite3.h>
 #endif
 
-#ifndef __FreeBSD__
-# ifdef __APPLE__
-#  include <unistd.h>
-# else
-#  include <crypt.h>
-# endif
-#else
+#if defined(__FreeBSD__)
 # include <libutil.h>
+#elif defined(__NetBSD__)
+# include <util.h>
+#elif defined(__APPLE__)
+# include <unistd.h>
+#else
+# include <crypt.h>
 #endif
 
 #ifdef __linux__
