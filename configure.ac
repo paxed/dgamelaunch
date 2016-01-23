@@ -15,7 +15,7 @@ if test -z "$LEX"; then
    AC_MSG_ERROR([lex or flex not found.])
 fi
 
-LIBS="$LIBS $LEXLIB"
+LEXLIBS="$LEXLIB"
 
 AC_CHECK_LIB(pthread, pthread_create, [], [AC_MSG_ERROR([need pthreads])])
 
@@ -26,7 +26,7 @@ fi
 
 case "$(uname -s)" in
   Linux | *BSD)
-    LIBS="$LIBS -lutil -lcrypt"
+    MY_LIBS="$MY_LIBS -lutil -lcrypt"
     AC_DEFINE(NOSTREAMS, 1, [Don't use SVR4 streams support in ttyrec.])
   ;;
 esac
@@ -108,7 +108,7 @@ AC_ARG_WITH(sqlite-db,
 if test "$enable_sqlite" = yes; then
    AC_MSG_RESULT([Using SQLite for the database, located at $dgl_sqlite_db])
    AC_DEFINE(USE_SQLITE3,1,[Use SQLite for the database instead of flat text file.])
-   LIBS="$LIBS -lsqlite3"
+   MY_LIBS="$MY_LIBS -lsqlite3"
    AC_DEFINE_UNQUOTED(USE_SQLITE_DB, "$dgl_sqlite_db", [Path and filename of the SQLite database.])
 fi
 
@@ -158,7 +158,7 @@ if test "$enable_shmem" = yes; then
    AC_CHECK_HEADERS([sys/shm.h], [], [AC_MSG_ERROR([sys/shm.h not found.])], [])
    AC_MSG_RESULT([Enabled showing number of watchers.])
    AC_DEFINE(USE_SHMEM,1,[Use shared memory block])
-   LIBS="$LIBS -lrt"
+   MY_LIBS="$MY_LIBS -lrt"
    # or -pthread?
 fi
 
@@ -184,8 +184,10 @@ else
 fi
 
 
+LIBS="$LIBS $MY_LIBS"
 
 AC_SUBST(SETPROCTITLE_C)
+AC_SUBST(LEXLIBS)
 
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT
