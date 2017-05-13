@@ -2057,10 +2057,16 @@ passwordgood (char *cpw)
   crypted = crypt (cpw, cpw);
   if (crypted == NULL)
       return 0;
+
+#ifdef USE_SQLITE3
   if (!strncmp (crypted, me->password, DGL_PASSWDLEN))
     return 1;
+
+#else
   if (!strncmp (cpw, me->password, DGL_PASSWDLEN))
     return 1;
+
+#endif
 
   return 0;
 }
