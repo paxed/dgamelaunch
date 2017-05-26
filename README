@@ -1,3 +1,23 @@
+dgamelaunch + security
+======================
+
+This branch was modified to enable proper password salting, using the
+openssl library and pbkdf2 password hashing function. For compatibility
+purposes, you can still compile with only sqlite (which salts passwords
+with themselves using an MD5 based algorithm, or with neither.
+
+--enable-pbkdf2 requires --enable-sqlite
+
+dgamelaunch *should* work with neither pbkdf2 nor sqlite, but I wasn't
+able to get it to work with my Dockerfile, where these were tested.
+
+Tests were carried out on a Debian 8 based Docker container.
+
+In addition, strings that ever hold raw passwords from the user, are now
+cleared out of memory as soon as unnecessary. This is done regardless of
+which flags you compile with.
+
+
 dgamelaunch
 ===========
 
@@ -40,6 +60,7 @@ Some options you might want give to autogen:
  --with-config-file=/absolute/path/to/dgamelaunch.config
  --enable-shmem
  --enable-sqlite
+ --enable-pbkdf2
 
 
 Dgamelaunch should compile without issue on Linux, Solaris, FreeBSD 4 and 5.

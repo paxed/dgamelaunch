@@ -26,7 +26,7 @@ fi
 
 case "$(uname -s)" in
   Linux | *BSD)
-    MY_LIBS="$MY_LIBS -lutil -lcrypt"
+    MY_LIBS="$MY_LIBS -lutil"
     AC_DEFINE(NOSTREAMS, 1, [Don't use SVR4 streams support in ttyrec.])
   ;;
 esac
@@ -113,6 +113,24 @@ if test "$enable_sqlite" = yes; then
 fi
 
 
+AC_ARG_ENABLE(pbkdf2,
+[AC_HELP_STRING([--enable-pbkdf2], [Enable pbkdf2 password hashing. Requires sqlite])],
+[], [])
+
+if test "$enable_pbkdf2" = yes; then
+   AC_MSG_RESULT([Enabling pbkdf2 password hashing.])
+   AC_DEFINE(USE_PBKDF2,1,[Enable pbkdf2 password hashing.])
+   AC_CHECK_HEADERS([openssl/rand.h], [], [AC_MSG_ERROR([openssl/rand.h not found.])], [])
+   AC_CHECK_HEADERS([openssl/evp.h], [], [AC_MSG_ERROR([openssl/evp.h not found.])], [])
+   MY_LIBS="$MY_LIBS -lcrypto"
+   
+   if test "$enable_sqlite" = no; then
+      AC_MSG_ERROR([sqlite must be enabled for pbkdf2 password hashing.])
+   fi
+
+   else
+   MY_LIBS="$MY_LIBS -lcrypt"
+fi
 
 
 dgl_rlimit_core_default=157286400

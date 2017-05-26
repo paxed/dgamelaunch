@@ -104,7 +104,7 @@ if [ -n "$SQLITE_DBFILE" ]; then
       echo "Creating SQLite database at $SQLITE_DBFILE"
       SQLITE_DBFILE="`echo ${SQLITE_DBFILE%/}`"
       SQLITE_DBFILE="`echo ${SQLITE_DBFILE#/}`"
-      sqlite3 "$CHROOT/$SQLITE_DBFILE" "create table dglusers (id integer primary key, username text, email text, env text, password text, flags integer);"
+      sqlite3 "$CHROOT/$SQLITE_DBFILE" "create table dglusers (id integer primary key, username text, email text, env text, salt text, password text, flags integer);"
       chown "$USRGRP" "$CHROOT/$SQLITE_DBFILE"
   fi
 fi
