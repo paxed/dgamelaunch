@@ -17,6 +17,16 @@ In addition, strings that ever hold raw passwords from the user, are now
 cleared out of memory as soon as unnecessary. This is done regardless of
 which flags you compile with.
 
+If you have an sqlite3 database using the old password hashing method,
+there's a new command you can include in dgamelaunch.conf to transfer
+users over to the new database.
+
+update_passwd will prompt users to login, if they successfully
+login using their old password, it will prompt them to change
+their password. The resulting password will be salted and hashed
+with pbkdf2. For this to work, you must merge the old database
+with the new one, with the salt entry as an empty string for users
+who still need to migrate their passwords over.
 
 dgamelaunch
 ===========

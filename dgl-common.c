@@ -329,6 +329,9 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_REGISTER:
 	    if (!loggedin && globalconfig.allow_registration) newuser();
 	    break;
+	case DGLCMD_UPDATEPW:
+	    if (!loggedin) updatepw();
+	    break;
 	case DGLCMD_QUIT:
 	    debug_write("command: quit");
 	    graceful_exit(0);

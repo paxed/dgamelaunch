@@ -122,7 +122,7 @@ if test "$enable_pbkdf2" = yes; then
    AC_DEFINE(USE_PBKDF2,1,[Enable pbkdf2 password hashing.])
    AC_CHECK_HEADERS([openssl/rand.h], [], [AC_MSG_ERROR([openssl/rand.h not found.])], [])
    AC_CHECK_HEADERS([openssl/evp.h], [], [AC_MSG_ERROR([openssl/evp.h not found.])], [])
-   MY_LIBS="$MY_LIBS -lcrypto"
+   MY_LIBS="$MY_LIBS -lcrypto -lcrypt"
    
    if test "$enable_sqlite" = no; then
       AC_MSG_ERROR([sqlite must be enabled for pbkdf2 password hashing.])

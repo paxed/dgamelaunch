@@ -2032,6 +2032,7 @@ loginprompt (int from_ttyplay)
   if (mygetnstr (pw_buf, DGL_PASSWDLEN, 0) != OK){
       memset_s(pw_buf, 0, strlen(pw_buf));
       free(pw_buf);
+	  me = NULL;
       return;
   }
 
@@ -2041,6 +2042,7 @@ loginprompt (int from_ttyplay)
 	    free(pw_buf);
 
 	    if (me->flags & DGLACCT_LOGIN_LOCK) {
+        me = NULL;
 	    clear ();
 	    mvprintw(5, 1, "Sorry, that account has been banned.--More--");
 	    dgl_getch();
@@ -3255,3 +3257,112 @@ int memset_s(void *v, int c, size_t n) {
  
   return 0;
 }
+
+/* if me, free */
+/* get username, check ifalnum */
+
+/* check if username has salt */
+
+/* if has salt, ignore, but go through following steps */
+
+/* get oldpw, check w/ crypt */
+
+/* if error w/ passwords or salt, exit */
+
+
+#ifdef USE_PBKDF2
+void updatepw()
+{
+
+  char user_buf[DGL_PLAYERNAMELEN+1];
+  char* pw_buf;
+  char *crypted;
+  
+  int error = 2;
+
+  loggedin = 0;
+
+  while (error)
+    {
+      clear ();
+
+      drawbanner (&banner);
+
+      mvaddstr (5, 1,
+                "Please enter your username. (blank entry aborts)");
+      mvaddstr (7, 1, "=> ");
+
+      if (error == 1)
+        {
+          mvaddstr (9, 1, "There was a problem with your last entry.");
+          move (7, 4);
+        }
+
+      refresh ();
+
+      if (mygetnstr (user_buf, DGL_PLAYERNAMELEN, 1) != OK)
+	  return;
+
+      if (*user_buf == '\0')
+        return;
+
+      error = 1;
+
+      {
+	  struct dg_user *tmpme;
+	  if ((tmpme = userexist(user_buf, 0))) {
+	      me = cpy_me(tmpme);
+	      error = 0;
+	  }
+      }
+    }
+
+  clear ();
+
+  drawbanner (&banner);
+
+  pw_buf = (char*)malloc((DGL_PASSWDLEN+2)* sizeof(char));
+
+  mvaddstr (5, 1, "Please enter your password.");
+  mvaddstr (7, 1, "=> ");
+
+  refresh ();
+
+  if (mygetnstr (pw_buf, DGL_PASSWDLEN, 0) != OK){
+      memset_s(pw_buf, 0, strlen(pw_buf));
+      free(pw_buf);
+      return;
+  }
+
+  crypted = crypt (pw_buf, pw_buf);
+  memset_s(pw_buf, 0, strlen(pw_buf));
+  free(pw_buf);
+
+  if (strlen(me->salt) || crypted==NULL || strncmp(crypted, me->password, DGL_PASSWDLEN)){
+      
+      clear ();
+      drawbanner (&banner);
+      mvaddstr (5, 1, "There was a problem updating your password.");
+      mvaddstr (6, 1, "Either old password is incorrect or password already updated.");
+  	  refresh ();
+	  dgl_getch();
+      return; 
+  }
+
+
+  if (me->flags & DGLACCT_LOGIN_LOCK) {
+      clear ();
+      mvprintw(5, 1, "Sorry, that account has been banned.--More--");
+  	  refresh ();
+      dgl_getch();
+      return;
+  } 
+
+ 
+  changepw(1);
+  loggedin = 1;
+  setproctitle("%s", me->username);
+  dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_LOGIN], 0, me);
+  return;
+}
+#endif

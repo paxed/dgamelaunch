@@ -118,6 +118,7 @@ chpasswd	{ yylval.i = DGLCMD_CHPASSWD;   return TYPE_DGLCMD0; }
 chmail		{ yylval.i = DGLCMD_CHMAIL;     return TYPE_DGLCMD0; }
 watch_menu	{ yylval.i = DGLCMD_WATCH_MENU; return TYPE_DGLCMD0; }
 ask_login	{ yylval.i = DGLCMD_LOGIN;      return TYPE_DGLCMD0; }
+update_passwd	{ yylval.i = DGLCMD_UPDATEPW;      return TYPE_DGLCMD0; }
 ask_register	{ yylval.i = DGLCMD_REGISTER;   return TYPE_DGLCMD0; }
 quit		{ yylval.i = DGLCMD_QUIT;       return TYPE_DGLCMD0; }
 play_game	{ yylval.i = DGLCMD_PLAYGAME;    return TYPE_DGLCMD1; }

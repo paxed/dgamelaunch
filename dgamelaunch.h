@@ -81,7 +81,8 @@ typedef enum
     DGLCMD_PLAYGAME,	/* play_game "foo" */
     DGLCMD_PLAY_IF_EXIST,	/* play_if_exist "game" "file" */
     DGLCMD_SUBMENU,	/* submenu "foo" */
-    DGLCMD_RETURN	/* return */
+    DGLCMD_RETURN,	/* return */
+    DGLCMD_UPDATEPW /* updates password for new pbkdf2 database */
 } dglcmd_actions;
 
 typedef enum
@@ -379,3 +380,4 @@ extern int mygetnstr(char *buf, int maxlen, int doecho);
 extern int ascii_to_byte(char *input, unsigned char* output, int keyLen);
 extern int byte_to_ascii(unsigned char* input, char* output, int keyLen);
 extern int memset_s(void *v, int c, size_t n);
+extern void updatepw();
