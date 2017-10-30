@@ -223,7 +223,11 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
     p1 = (char *)malloc(1024);
     p2 = (char *)malloc(1024);
 
-    if (!p1 || !p2) return 1;
+    if (!p1 || !p2) {
+        if (p1) free(p1);
+        if (p2) free(p2);
+        return 1;
+    }
 
     return_from_submenu = 0;
 
@@ -635,6 +639,8 @@ populate_games (int xgame, int *l, struct dg_user *me)
 	  debug_write("cannot open inprogress-dir");
 	  graceful_exit (140);
       }
+      free(dir);
+      dir = NULL;
 
    while ((pdirent = readdir (pdir)))
     {

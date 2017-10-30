@@ -2101,8 +2101,10 @@ int noverify;
 		ans = get_string(changes_made_prompt, TRUE);
 		if (toupper(*ans) == toupper(*yes_char))
 			text_changes = FALSE;
-		else
+                else {
+                        free(ans);
 			return(0);
+                }
 		free(ans);
 	}
 	
