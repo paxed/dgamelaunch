@@ -917,7 +917,7 @@ get_timediff(time_t ctime, long seconds)
     else if (mins)
 	snprintf(data, 10, "%ldm %lds", mins, secs);
     else if (secs > 4)
-	snprintf(data, 10, "%lds", secs);
+	snprintf(data, 30, "%lds", secs);
     else
 	snprintf(data, 10, " ");
     return data;
@@ -2080,7 +2080,7 @@ readfile (int nolock)
   fl.l_start = 0;
   fl.l_len = 0;
 
-  memset (buf, 1024, 0);
+  memset (buf, 0, 1024);
 
   /* read new stuff */
 
