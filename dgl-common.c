@@ -648,7 +648,6 @@ populate_games (int xgame, int *l, struct dg_user *me)
 
       snprintf (fullname, 130, "%s%s", inprog, pdirent->d_name);
 
-      fd = 0;
       /* O_RDWR here should be O_RDONLY, but we need to test for
        * an exclusive lock */
       fd = open (fullname, O_RDWR);
