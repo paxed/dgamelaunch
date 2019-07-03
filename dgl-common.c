@@ -234,7 +234,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	switch (tmp->cmd) {
 	default: break;
 	case DGLCMD_RAWPRINT:
-	    if (p1) fprintf(stdout, "%s", p1);
+            fprintf(stdout, "%s", p1);
 	    break;
 	case DGLCMD_MKDIR:
 	    if (p1 && (access(p1, F_OK) != 0)) mkdir(p1, 0755);
@@ -243,12 +243,10 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    if (p1 && (access(p1, F_OK) == 0)) unlink(p1);
 	    break;
 	case DGLCMD_CHDIR:
-	    if (p1) {
-		if (chdir(p1) == -1) {
-		    debug_write("chdir-command failed");
-		    graceful_exit(123);
-		}
-	    }
+            if (chdir(p1) == -1) {
+                debug_write("chdir-command failed");
+                graceful_exit(123);
+            }
 	    break;
 	case DGLCMD_IF_NX_CP:
 	    if (p1 && p2) {
@@ -334,8 +332,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    graceful_exit(0);
 	    /* break; */
 	case DGLCMD_SUBMENU:
-	    if (p1)
-		runmenuloop(dgl_find_menu(p1));
+            runmenuloop(dgl_find_menu(p1));
 	    break;
 	case DGLCMD_RETURN:
 	    return_from_submenu = 1;
