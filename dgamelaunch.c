@@ -1654,8 +1654,10 @@ domailuser (char *username)
 	    DGL_MAILMSGLEN);
   mvaddstr (7, 1, "=> ");
 
-  if (mygetnstr (message, DGL_MAILMSGLEN, 1) != OK)
+  if (mygetnstr (message, DGL_MAILMSGLEN, 1) != OK) {
+      if (spool_fn) free(spool_fn);
       return;
+  }
 
   for (i = 0; i < strlen (message); i++)
     {
@@ -2558,6 +2560,7 @@ purge_stale_locks (int game)
 	  {
 	    nocbreak(); /* leave half-delay */
 	    cbreak();
+            if (fn) free(fn);
 	    return 0;
 	  }
 	  mvprintw (3, 50 + strlen(myconfig[game]->game_name), "%d%s", seconds, (seconds > 9) ? "" : " ");
