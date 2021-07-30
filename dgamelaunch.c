@@ -2504,6 +2504,7 @@ purge_stale_locks (int game)
       char buf[16];
       pid_t pid;
       size_t len;
+      struct stat pstat;
       int seconds = 0;
 
       if (!strcmp (dent->d_name, ".") || !strcmp (dent->d_name, ".."))
@@ -2515,10 +2516,6 @@ purge_stale_locks (int game)
 	  debug_write("purge_stale_locks !colon");
         graceful_exit (201);
       }
-      if (colon - dent->d_name != strlen(me->username))
-        continue;
-      if (strncmp (dent->d_name, me->username, colon - dent->d_name))
-        continue;
 
       len = strlen (dent->d_name) + strlen(dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL)) + 1;
       fn = malloc (len);
@@ -2526,13 +2523,13 @@ purge_stale_locks (int game)
       snprintf (fn, len, "%s%s", dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL), dent->d_name);
 
       /* skip .in files */
-      if (len >= 3) {
+      if (len >= 4) {
         char *tmp = fn + len - 4;
         if (!strcmp(tmp, ".in")) {
           fn[len-4] = '\0';
           printf("%s", fn);
           /* unlink .in file if it's orphaned */
-          if (stat(fn, NULL)) {
+          if (stat(fn, &pstat)) {
             fn[len-4] = '.';
             unlink(fn);
           }
@@ -2540,6 +2537,12 @@ purge_stale_locks (int game)
           continue;
         }
       }
+
+      if (colon - dent->d_name != strlen(me->username))
+        continue;
+      if (strncmp (dent->d_name, me->username, colon - dent->d_name))
+        continue;
+
       fn_in = malloc(len + 3);
       snprintf (fn_in, len + 3, "%s.in", fn);
 
