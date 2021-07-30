@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-/* 1999-02-22 Arkadiusz Mi∂kiewicz <misiek@misiek.eu.org>
+/* 1999-02-22 Arkadiusz Mi≈õkiewicz <misiek@misiek.eu.org>
  * - added Native Language Support
  */
 
@@ -78,10 +78,12 @@ pid_t dgl_parent;
 pid_t child, subchild;
 pid_t input_child;
 char* ipfile = NULL;
+char* inputrec_file = NULL;
 
 volatile int wait_for_menu = 0;
 
 FILE *fscript;
+FILE *inputrec;
 int master;
 
 struct termios tt;
@@ -132,9 +134,9 @@ ttyrec_id(int game, char *username, char *ttyrec_filename)
 }
 
 int
-ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
+ttyrec_main (int game, char *username, char *ttyrec_path, char *inprog_path, char* ttyrec_filename)
 {
-  char dirname[100];
+  char dirname[100], inputrec_path[135];
 
   /* Note our PID to let children kill the main dgl process for idling */
   dgl_parent = getpid();
@@ -163,7 +165,12 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
   if (ancient_encoding == -1)
       query_encoding(game, username);
 
+  if (inprog_path[strlen(inprog_path)-1] == '/')
+      snprintf (inputrec_path, 135, "%s%s:%s.in", inprog_path, username, ttyrec_filename);
+  else
+      snprintf (inputrec_path, 135, "%s/%s:%s.in", inprog_path, username, ttyrec_filename);
   snprintf(last_ttyrec, 512, "%s", dirname);
+  inputrec_file = strdup(inputrec_path);
 
   atexit(&remove_ipfile);
   if ((fscript = fopen (dirname, "w")) == NULL)
@@ -210,8 +217,18 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
       perror ("fork2");
       fail ();
   }
-  if (!input_child)
-      doinput ();
+  if (!input_child) {
+
+    if ((inputrec = fopen (inputrec_path, "w")) == NULL)
+      {
+        perror (inputrec);
+        fail ();
+      }
+    setbuf (inputrec, NULL);
+    doinput ();
+    fclose(inputrec);
+    unlink(inputrec_path);
+  }
   else
   {
       while (wait_for_menu)
@@ -230,8 +247,10 @@ doinput ()
   register int cc;
   char ibuf[BUFSIZ];
 
-  while ((cc = read (0, ibuf, BUFSIZ)) > 0)
+  while ((cc = read (0, ibuf, BUFSIZ)) > 0) {
     (void) write (master, ibuf, cc);
+    (void) fwrite (ibuf, 1, cc, inputrec);
+  }
   done ();
 }
 
@@ -591,6 +610,11 @@ remove_ipfile (void)
 	unlink (ipfile);
 	free(ipfile);
 	ipfile = NULL;
+    }
+    if (inputrec_file) {
+      unlink(inputrec_file);
+      free(inputrec_file);
+      inputrec_file = NULL;
     }
     signal(SIGALRM, SIG_IGN);
 }

@@ -2500,10 +2500,11 @@ purge_stale_locks (int game)
   while ((dent = readdir (pdir)) != NULL)
     {
       FILE *ipfile;
-      char *colon, *fn;
+      char *colon, *fn, *fn_in;
       char buf[16];
       pid_t pid;
       size_t len;
+      struct stat pstat;
       int seconds = 0;
 
       if (!strcmp (dent->d_name, ".") || !strcmp (dent->d_name, ".."))
@@ -2515,15 +2516,35 @@ purge_stale_locks (int game)
 	  debug_write("purge_stale_locks !colon");
         graceful_exit (201);
       }
-      if (colon - dent->d_name != strlen(me->username))
-        continue;
-      if (strncmp (dent->d_name, me->username, colon - dent->d_name))
-        continue;
 
       len = strlen (dent->d_name) + strlen(dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL)) + 1;
       fn = malloc (len);
 
       snprintf (fn, len, "%s%s", dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL), dent->d_name);
+
+      /* skip .in files */
+      if (len >= 4) {
+        char *tmp = fn + len - 4;
+        if (!strcmp(tmp, ".in")) {
+          fn[len-4] = '\0';
+          printf("%s", fn);
+          /* unlink .in file if it's orphaned */
+          if (stat(fn, &pstat)) {
+            fn[len-4] = '.';
+            unlink(fn);
+          }
+          free(fn);
+          continue;
+        }
+      }
+
+      if (colon - dent->d_name != strlen(me->username))
+        continue;
+      if (strncmp (dent->d_name, me->username, colon - dent->d_name))
+        continue;
+
+      fn_in = malloc(len + 3);
+      snprintf (fn_in, len + 3, "%s.in", fn);
 
       if (!(ipfile = fopen (fn, "r"))) {
 	  debug_write("purge_stale_locks fopen inprogressdir fail");
@@ -2608,6 +2629,8 @@ purge_stale_locks (int game)
       /* Don't remove the lock file until the process is dead. */
       unlink (fn);
       free (fn);
+      unlink (fn_in);
+      free (fn_in);
     }
 
   closedir (pdir);
