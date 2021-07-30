@@ -387,7 +387,8 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 			    idle_alarm_set_enabled(0);
 			    /* launch program */
 			    ttyrec_main (userchoice, me->username,
-					 dgl_format_str(userchoice, me, myconfig[userchoice]->ttyrecdir, NULL),
+					 strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->ttyrecdir, NULL)),
+					 strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->inprogressdir, NULL)),
 					 gen_ttyrec_filename());
 			    idle_alarm_set_enabled(1);
 			    played = 1;
@@ -612,7 +613,7 @@ populate_games (int xgame, int *l, struct dg_user *me)
   DIR *pdir;
   struct dirent *pdirent;
   struct stat pstat;
-  char fullname[130], ttyrecname[130], pidws[80], playername[DGL_PLAYERNAMELEN+1];
+  char fullname[130], fullname_in[135], ttyrecname[130], pidws[80], playername[DGL_PLAYERNAMELEN+1];
   char *replacestr, *dir, *p;
   struct dg_game **games = NULL;
   struct flock fl = { 0 };
@@ -641,12 +642,17 @@ populate_games (int xgame, int *l, struct dg_user *me)
 	char *inprog = NULL;
       if (!strcmp (pdirent->d_name, ".") || !strcmp (pdirent->d_name, ".."))
         continue;
+	  if (strlen(pdirent->d_name) >= 3) {
+		  char *tmp = pdirent->d_name + strlen(pdirent->d_name) - 3;
+		  if (!strcmp(tmp, ".in")) continue;
+	  }
 
       inprog = dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL);
 
       if (!inprog) continue;
 
       snprintf (fullname, 130, "%s%s", inprog, pdirent->d_name);
+	  snprintf (fullname_in, 135, "%s.in", fullname);
 
       fd = 0;
       /* O_RDWR here should be O_RDONLY, but we need to test for
@@ -671,7 +677,7 @@ populate_games (int xgame, int *l, struct dg_user *me)
 	      if (!ttrecdir) continue;
               snprintf (ttyrecname, 130, "%s%s", ttrecdir, replacestr);
 
-          if (!stat (ttyrecname, &pstat))
+          if (!stat (fullname_in, &pstat))
             {
               /* now it's a valid game for sure */
               games = realloc (games, sizeof (struct dg_game) * (len + 1));
